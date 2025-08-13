@@ -1,7 +1,7 @@
 "use client";
 import { useState } from "react";
 import { Checkbox } from "../../components/ui/checkbox";
-import { Mail, Lock } from "lucide-react";
+// ...existing code...
 import { useRouter } from "next/navigation";
 
 

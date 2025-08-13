@@ -138,7 +138,11 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
                 }
                 let isActive = false;
                 if (link.href) {
-                  isActive = typeof window !== 'undefined' && window.location.pathname.startsWith(link.href) && link.href !== '/';
+                  if (link.href === '/') {
+                    isActive = pathname === '/';
+                  } else {
+                    isActive = pathname === link.href || pathname.startsWith(link.href + '/');
+                  }
                 }
                 return (
                   <a
@@ -147,8 +151,9 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
                     className={`group flex items-center gap-3 rounded-lg px-3 py-2 font-medium transition-colors hover:bg-blue-700/10 hover:text-blue-700 text-blue-700 dark:text-blue-200 ${sidebarOpen ? '' : 'justify-center px-2 hover:cursor-pointer'} ${isActive ? 'bg-blue-700 text-white font-semibold shadow' : ''}`}
                     tabIndex={0}
                     style={isActive ? { boxShadow: '0 2px 16px 0 rgba(29,78,216,0.15)' } : {}}
+                    aria-current={isActive ? 'page' : undefined}
                   >
-                    <Icon className={`w-5 h-5 transition-colors ${isActive ? 'text-white' : 'text-blue-400 group-hover:text-blue-300'}`} />
+                    <Icon className={`w-5 h-5 transition-colors ${isActive ? 'text-yellow-300 dark:text-yellow-200 drop-shadow' : 'text-blue-400 group-hover:text-blue-300'}`} />
                     <span className={`${sidebarOpen ? 'block' : 'hidden'} transition-all duration-300`}>{link.label}</span>
                   </a>
                 );

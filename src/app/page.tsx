@@ -7,22 +7,9 @@
 import * as React from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '../components/ui/card';
 import { Avatar, AvatarFallback } from '../components/ui/avatar';
-import { createBrowserClient } from '../../lib/supabase/browser';
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, PieChart, Pie, Cell, Legend } from 'recharts';
 import { DollarSign, Package, Users, Eye } from 'lucide-react';
-
-const kpiColors = [
-  'bg-gradient-to-r from-blue-500 to-blue-400 text-white',
-  'bg-gradient-to-r from-pink-500 to-pink-400 text-white',
-  'bg-gradient-to-r from-green-500 to-green-400 text-white',
-];
-
-const rankingData = [
-  { name: 'Carla Ferreira', value: 'R$2.379.583', qtd: 5155, ticket: 'R$461,61', meta: '105,9%', avatar: 'CF' },
-  { name: 'Julio Lima', value: 'R$1.770.897', qtd: 5444, ticket: 'R$325,29', meta: '101,3%', avatar: 'JL' },
-  { name: 'Gustavo Gomes', value: 'R$1.258.451', qtd: 3815, ticket: 'R$329,87', meta: '97,9%', avatar: 'GG' },
-  { name: 'Felipe Goncalves', value: 'R$996.370', qtd: 3508, ticket: 'R$284,03', meta: '103,1%', avatar: 'FG' },
-];
+// ...existing code...
 
 
 
@@ -216,10 +203,10 @@ export default function Home() {
             <CardTitle className="text-lg font-bold">Resumo Analítico</CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="flex items-center justify-center h-36">
-              <ResponsiveContainer width="100%" height={120}>
+            <div className="flex items-center justify-center h-72">
+              <ResponsiveContainer width="100%" height={240}>
                 <PieChart>
-                  <Pie data={pieData} dataKey="total" nameKey="category" cx="50%" cy="50%" outerRadius={50}>
+                  <Pie data={pieData} dataKey="total" nameKey="category" cx="50%" cy="50%" outerRadius={90}>
                     {pieData.map((entry, idx) => (
                       <Cell key={`cell-${idx}`} fill={pieColors[idx % pieColors.length]} />
                     ))}
