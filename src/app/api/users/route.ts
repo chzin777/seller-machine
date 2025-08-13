@@ -12,7 +12,7 @@ export async function POST(req: NextRequest) {
   const supabase = createServerClient();
 
   // Verifica se já existe usuário com o mesmo email
-  const { data: existing, error: findError } = await supabase
+    const { data: existing } = await supabase
     .from('users')
     .select('id')
     .eq('email', email)

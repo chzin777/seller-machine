@@ -142,7 +142,7 @@ export async function generateRecommendations({ customerId }: { customerId?: num
         let potentialValue = 0.5;
         const { data: priceB } = await supabase.from('order_items').select('unit_price').eq('product_id', rec.product_id).limit(10);
         if (priceB && priceB.length) {
-          potentialValue = norm(priceB.map((x:any)=>parseFloat(x.unit_price)).reduce((a:number,b:number)=>a+b,0)/priceB.length, 0, 1000);
+          potentialValue = norm(priceB.map((x: unknown) => parseFloat((x as { unit_price: string }).unit_price)).reduce((a: number, b: number) => a + b, 0) / priceB.length, 0, 1000);
         }
         // Reason
         const reason = `Comprou A e clientes semelhantes levam B (lift=${rec.lift}, conf=${rec.confidence})`;

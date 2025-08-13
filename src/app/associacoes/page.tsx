@@ -12,7 +12,7 @@ export default function AssociacoesPage() {
     const buscarDados = async () => {
       const supabase = createBrowserClient();
       // Busca associações e nomes dos produtos
-      const { data, error } = await supabase
+    const { data } = await supabase
         .from('product_associations')
         .select('product_a_id, product_b_id, support_count, confidence, lift, a:product_a_id(name), b:product_b_id(name)')
         .order('support_count', { ascending: false })
