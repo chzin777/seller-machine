@@ -1,0 +1,9 @@
+export type Customer = { id: number; customer_code: string; name: string; phone?: string; email?: string; segment?: string; region?: string; sales_rep?: string; created_at: string; updated_at: string; };
+export type Product = { id: number; sku: string; name: string; category?: string; brand?: string; unit: string; is_active: boolean; created_at: string; };
+export type Order = { id: number; customer_id: number; order_code?: string; order_date: string; total_value: string; channel?: string; created_at: string; };
+export type OrderItem = { id: number; order_id: number; product_id: number; quantity: string; unit_price: string; line_total: string; };
+export type CustomerStats = { customer_id: number; last_order_at?: string; last_order_value?: string; lifetime_value: string; orders_count: number; updated_at: string; };
+export type CustomerProductStats = { customer_id: number; product_id: number; first_purchase_at?: string; last_purchase_at?: string; total_qty: string; total_spent: string; purchases_count: number; avg_days_between_purchases?: string; };
+export type ProductAssociation = { product_a_id: number; product_b_id: number; support_count: number; support: string; confidence: string; lift: string; leverage: string; window_days: number; updated_at: string; };
+export type Recommendation = { id: number; customer_id: number; product_id: number; reason?: string; score?: string; priority?: string; created_at: string; expires_at?: string; };
+export type SalesAlert = { id: number; customer_id: number; product_id?: number; alert_type: string; message: string; status: 'open'|'working'|'done'|'ignored'; owner_sales_rep?: string; created_at: string; resolved_at?: string; };
