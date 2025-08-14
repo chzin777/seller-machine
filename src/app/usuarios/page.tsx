@@ -4,7 +4,7 @@ import { useRouter } from "next/navigation";
 
 import { Card, CardHeader, CardContent } from "../../components/ui/card";
 import { Button } from "../../components/ui/button";
-import { UserPlus, Pencil } from "lucide-react";
+import { UserPlus, Pencil, UserCog } from "lucide-react";
 // import Header from "../../components/header";
 // Modal para editar usuário
 function EditarUsuarioModal({ open, onClose, onSuccess, usuario }: { open: boolean; onClose: () => void; onSuccess: () => void; usuario: Usuario | null }) {
@@ -283,8 +283,18 @@ export default function UsuariosPage() {
 
   return (
     <>
+      {/* Título da página */}
+      <div className="max-w-3xl mx-auto px-2 sm:px-4 mt-6 mb-6 flex items-center gap-3">
+        <div className="flex items-center justify-center w-12 h-12 rounded-xl bg-blue-100 dark:bg-blue-900 text-blue-700 dark:text-blue-200 shadow">
+          <UserCog className="w-7 h-7" />
+        </div>
+        <div>
+          <h1 className="text-3xl font-extrabold leading-tight">Usuários</h1>
+          <p className="text-gray-500 dark:text-gray-400 text-sm mt-1">Gerencie os usuários do sistema e permissões de acesso.</p>
+        </div>
+      </div>
       {/* Botão de novo usuário abaixo do header global */}
-      <div className="max-w-3xl mx-auto mt-4 mb-2 px-4 flex justify-end">
+      <div className="max-w-3xl mx-auto mt-0 mb-2 px-2 sm:px-4 flex justify-end">
         <Button
           className="flex items-center gap-2 hover:cursor-pointer bg-blue-100 text-blue-700 hover:bg-blue-200 dark:bg-blue-700 dark:text-white dark:hover:bg-blue-800 border-none shadow font-semibold px-5 py-2 rounded-lg"
           onClick={() => setModalOpen(true)}

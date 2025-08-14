@@ -185,7 +185,7 @@ export default function ConfiguracoesPage() {
 
   // JSX de retorno
   return (
-    <div className="max-w-2xl mx-auto py-10 px-4">
+  <div className="max-w-2xl mx-auto py-6 px-2 sm:py-10 sm:px-4 w-full min-h-screen flex flex-col">
       <h1 className="text-3xl font-bold text-blue-900 dark:text-blue-200 mb-8 flex items-center gap-3">
         <UserCog className="w-7 h-7 text-blue-700 dark:text-blue-200" /> Configurações
       </h1>

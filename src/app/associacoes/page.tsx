@@ -55,7 +55,7 @@ export default function AssociacoesPage() {
           <Link2 className="w-7 h-7" />
         </div>
         <div>
-          <h1 className="text-3xl font-extrabold leading-tight ml-16 sm:ml-20">Associações de Produtos</h1>
+          <h1 className="text-3xl font-extrabold leading-tight">Associações de Produtos</h1>
           <p className="text-gray-500 dark:text-gray-400 text-sm mt-1">Veja as principais relações entre produtos vendidos juntos.</p>
         </div>
       </div>
