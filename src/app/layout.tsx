@@ -85,76 +85,78 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
 				</Script>
 			</head>
 			<body className="bg-gray-50 text-gray-900 min-h-screen w-full h-full m-0 p-0 dark:bg-gray-900 dark:text-gray-100 font-sans">
-				<div className="flex min-h-screen w-full">
+				   <div className="flex min-h-screen w-full">
 					   {/* Sidebar Desktop - UI Profissional */}
-					   <aside
-						   ref={sidebarRef}
-						   className={`hidden sm:flex fixed left-0 top-0 h-screen transition-all duration-300 ${sidebarOpen ? "w-64" : "w-20"}
-							   bg-white dark:bg-gray-950 border-r border-blue-100 dark:border-gray-800 flex-col py-6 px-2 shadow-xl z-40 ${isLoginPage ? "hidden" : ""}`}
-						   aria-label="Menu lateral"
-						   style={{
-							   boxShadow: sidebarOpen ? "4px 0 32px 0 rgba(0,0,0,0.13)" : undefined,
-							   height: '100vh',
-							   maxHeight: '100vh',
-						   }}
-					   >
-						   {/* Barra de destaque */}
-						   <div className="absolute left-0 top-0 h-full w-1.5 bg-blue-700 rounded-r-lg" style={{ opacity: 0.85 }} />
-						   {/* Logo e avatar */}
-						   <div className="flex flex-col items-center gap-6 mb-10 relative">
-							   <div className="flex items-center justify-center w-full">
-								   <Logo
-									   className={`block transition-all duration-300 mx-auto text-[#1e293b] dark:text-white ${sidebarOpen ? "scale-100" : "scale-90"}`}
-									   width={sidebarOpen ? 140 : 36}
-									   height={sidebarOpen ? 48 : 36}
-									   style={{ height: sidebarOpen ? 48 : 36, maxWidth: sidebarOpen ? 140 : 36, marginBottom: 0 }}
-									   aria-label="Logo Máquina de Vendas"
-								   />
+					   {!isLoginPage && (
+						   <aside
+							   ref={sidebarRef}
+							   className={`hidden sm:flex fixed left-0 top-0 h-screen transition-all duration-300 ${sidebarOpen ? "w-64" : "w-20"}
+								   bg-white dark:bg-gray-950 border-r border-blue-100 dark:border-gray-800 flex-col py-6 px-2 shadow-xl z-40`}
+							   aria-label="Menu lateral"
+							   style={{
+								   boxShadow: sidebarOpen ? "4px 0 32px 0 rgba(0,0,0,0.13)" : undefined,
+								   height: '100vh',
+								   maxHeight: '100vh',
+							   }}
+						   >
+							   {/* Barra de destaque */}
+							   <div className="absolute left-0 top-0 h-full w-1.5 bg-blue-700 rounded-r-lg" style={{ opacity: 0.85 }} />
+							   {/* Logo e avatar */}
+							   <div className="flex flex-col items-center gap-6 mb-10 relative">
+								   <div className="flex items-center justify-center w-full">
+									   <Logo
+										   className={`block transition-all duration-300 mx-auto text-[#1e293b] dark:text-white ${sidebarOpen ? "scale-100" : "scale-90"}`}
+										   width={sidebarOpen ? 140 : 36}
+										   height={sidebarOpen ? 48 : 36}
+										   style={{ height: sidebarOpen ? 48 : 36, maxWidth: sidebarOpen ? 140 : 36, marginBottom: 0 }}
+										   aria-label="Logo Máquina de Vendas"
+									   />
+								   </div>
 							   </div>
-						   </div>
-						   {/* Navegação principal */}
-						   <nav className="flex flex-col gap-1 mt-2">
-							   {getNavLinks(userConta).map((link) => {
-								   const Icon = link.icon;
-								   if (link.type === "toggle") {
-									   return (
-										   <button
-											   key={"toggle-menu"}
-											   type="button"
-											   onClick={() => setSidebarOpen((v) => !v)}
-											   className="flex items-center justify-center w-full h-12 rounded-lg transition-colors bg-blue-50 dark:bg-blue-900/20 text-blue-700 dark:text-blue-200 focus:outline-none focus:ring-2 focus:ring-blue-400 mb-2 hover:bg-blue-100 dark:hover:bg-blue-900/40 hover:cursor-pointer"
-											   aria-label="Alternar menu lateral"
-										   >
-											   <span className="mx-auto flex items-center justify-center"><Icon className="w-6 h-6" /></span>
-										   </button>
-									   );
-								   }
-								   let isActive = false;
-								   if (link.href) {
-									   if (link.href === "/") {
-										   isActive = pathname === "/";
-									   } else {
-										   isActive = pathname === link.href || pathname.startsWith(link.href + "/");
+							   {/* Navegação principal */}
+							   <nav className="flex flex-col gap-1 mt-2">
+								   {getNavLinks(userConta).map((link) => {
+									   const Icon = link.icon;
+									   if (link.type === "toggle") {
+										   return (
+											   <button
+												   key={"toggle-menu"}
+												   type="button"
+												   onClick={() => setSidebarOpen((v) => !v)}
+												   className="flex items-center justify-center w-full h-12 rounded-lg transition-colors bg-blue-50 dark:bg-blue-900/20 text-blue-700 dark:text-blue-200 focus:outline-none focus:ring-2 focus:ring-blue-400 mb-2 hover:bg-blue-100 dark:hover:bg-blue-900/40 hover:cursor-pointer"
+												   aria-label="Alternar menu lateral"
+											   >
+												   <span className="mx-auto flex items-center justify-center"><Icon className="w-6 h-6" /></span>
+											   </button>
+										   );
 									   }
-								   }
-								   return (
-									   <a
-										   key={link.href}
-										   href={link.href}
-										   className={`group flex items-center gap-3 rounded-lg px-3 py-3 font-medium transition-all duration-200 hover:bg-blue-100/70 dark:hover:bg-blue-900/50 hover:text-blue-700 dark:hover:text-blue-200 text-blue-900 dark:text-blue-200 ${isActive ? "bg-blue-700 text-white font-semibold shadow-lg" : ""} pl-5`}
-										   style={isActive ? { boxShadow: "0 2px 16px 0 rgba(29,78,216,0.15)" } : {}}
-										   aria-current={isActive ? "page" : undefined}
-									   >
-										   <Icon className="w-5 h-5 flex-shrink-0" />
-										   <span className={`transition-all duration-300 origin-left ${sidebarOpen ? "opacity-100 ml-2 scale-x-100" : "opacity-0 ml-0 scale-x-0 w-0"}`} style={{ width: sidebarOpen ? "auto" : 0, overflow: "hidden", whiteSpace: "nowrap" }}>{link.label}</span>
-									   </a>
-								   );
-							   })}
-						   </nav>
-						   {/* Divider */}
-						   {/* Divider */}
-						   <div className="my-4 border-t border-blue-200 dark:border-blue-800" />
-					   </aside>
+									   let isActive = false;
+									   if (link.href) {
+										   if (link.href === "/") {
+											   isActive = pathname === "/";
+										   } else {
+											   isActive = pathname === link.href || pathname.startsWith(link.href + "/");
+										   }
+									   }
+									   return (
+										   <a
+											   key={link.href}
+											   href={link.href}
+											   className={`group flex items-center gap-3 rounded-lg px-3 py-3 font-medium transition-all duration-200 hover:bg-blue-100/70 dark:hover:bg-blue-900/50 hover:text-blue-700 dark:hover:text-blue-200 text-blue-900 dark:text-blue-200 ${isActive ? "bg-blue-700 text-white font-semibold shadow-lg" : ""} pl-5`}
+											   style={isActive ? { boxShadow: "0 2px 16px 0 rgba(29,78,216,0.15)" } : {}}
+											   aria-current={isActive ? "page" : undefined}
+										   >
+											   <Icon className="w-5 h-5 flex-shrink-0" />
+											   <span className={`transition-all duration-300 origin-left ${sidebarOpen ? "opacity-100 ml-2 scale-x-100" : "opacity-0 ml-0 scale-x-0 w-0"}`} style={{ width: sidebarOpen ? "auto" : 0, overflow: "hidden", whiteSpace: "nowrap" }}>{link.label}</span>
+										   </a>
+									   );
+								   })}
+							   </nav>
+							   {/* Divider */}
+							   {/* Divider */}
+							   <div className="my-4 border-t border-blue-200 dark:border-blue-800" />
+						   </aside>
+					   )}
 
 					{/* Menu Mobile */}
 					{!isLoginPage && (

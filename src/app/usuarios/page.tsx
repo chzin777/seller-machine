@@ -146,8 +146,15 @@ function NovoUsuarioModal({ open, onClose, onSuccess }: { open: boolean; onClose
         body: JSON.stringify({ nome, sobrenome, email, conta, senha }),
       });
       if (!res.ok) {
-        const data = await res.json();
-        setErro(data.error || "Erro ao criar usuário");
+        let data;
+        try {
+          data = await res.json();
+        } catch (e) {
+          data = { error: res.statusText };
+        }
+        setErro((data && data.error) || "Erro ao criar usuário");
+        // Log detalhado para debug
+        console.error("Erro ao criar usuário:", data, res.status, res.statusText);
       } else {
         setSuccess(true);
         setTimeout(() => {

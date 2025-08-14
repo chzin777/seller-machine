@@ -1,9 +1,7 @@
-
-
-'use client';
-
-
-
+"use client";
+import { useRouter } from "next/navigation";
+// Proteção de rota: redireciona para login se não autenticado
+import { useEffect } from "react";
 import * as React from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '../components/ui/card';
 import { Avatar, AvatarFallback } from '../components/ui/avatar';
@@ -27,6 +25,15 @@ import { DollarSign, Package, Users, Eye, LayoutDashboard } from 'lucide-react';
 
 
 export default function Home() {
+  const router = useRouter();
+  useEffect(() => {
+    if (typeof window !== "undefined") {
+      let user = localStorage.getItem("user") || sessionStorage.getItem("user");
+      if (!user) {
+        router.replace("/login");
+      }
+    }
+  }, [router]);
   // KPIs simulados
   const kpis = {
     revenue: 2379583,
