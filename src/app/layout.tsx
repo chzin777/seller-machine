@@ -49,7 +49,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
 
 		// Dispara evento customizado para sincronizar o estado do menu lateral
 		useEffect(() => {
-			window.dispatchEvent(new CustomEvent('sidebar-toggle', { detail: sidebarOpen }));
+			  window.dispatchEvent(new CustomEvent('sidebar-toggle', { detail: sidebarOpen }));
 		}, [sidebarOpen]);
 
 		useEffect(() => {
@@ -96,11 +96,11 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
 						theme === "dark" ||
 						(!theme && window.matchMedia("(prefers-color-scheme: dark)").matches);
 					if (isDark) {
-						document.documentElement.classList.add("dark");
-						document.body && (document.body.style.background = "#111827");
+						  document.documentElement.classList.add("dark");
+						  if (document.body) document.body.style.background = "#111827";
 					} else {
-						document.documentElement.classList.remove("dark");
-						document.body && (document.body.style.background = "#f9fafb");
+						  document.documentElement.classList.remove("dark");
+						  if (document.body) document.body.style.background = "#f9fafb";
 					}
 				} catch {}
 			};

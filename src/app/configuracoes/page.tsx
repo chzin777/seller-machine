@@ -2,7 +2,7 @@
 import { useState } from "react";
 import { Card, CardHeader, CardTitle, CardContent } from "../../components/ui/card";
 import { Button } from "../../components/ui/button";
-import { Sun, Moon, UserCog, Lock, Mail, User } from "lucide-react";
+import { Sun, Moon, UserCog, Lock, Mail, User } from "lucide-react"; // Added User import
 
 export default function ConfiguracoesPage() {
   // Estados

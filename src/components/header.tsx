@@ -42,7 +42,9 @@ export default function Header({ userName, title }: HeaderProps) {
 
   return (
     <header className="h-16 flex items-center justify-between px-8 border-b bg-transparent dark:bg-transparent">
-      <div className="font-semibold text-lg ml-16 sm:ml-20">Máquina de Vendas</div>
+      <div className="font-semibold text-lg ml-16 sm:ml-20">
+        {title || "Máquina de Vendas"}
+      </div>
       <div className="flex items-center gap-4 relative">
         <button
           className="flex items-center gap-2 focus:outline-none group"

@@ -164,7 +164,7 @@ export default function Home() {
                   </tr>
                 </thead>
                 <tbody>
-                  {transactions.map((t, i) => (
+                  {transactions.map((t) => (
                     <tr key={t.id} className="border-b last:border-0">
                       <td className="py-2 pr-4 font-mono">{t.id}</td>
                       <td className="py-2 pr-4">{t.cliente}</td>
