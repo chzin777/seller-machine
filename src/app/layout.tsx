@@ -1,7 +1,7 @@
 "use client";
 
 import Header from "../components/header";
-import Image from "next/image";
+import Logo from "../../components/Logo";
 import ThemeToggle from "../components/theme-toggle";
 import { LayoutDashboard, Link2, Users, Menu, UserCog } from "lucide-react";
 import { useState, useRef, useEffect } from "react";
@@ -29,8 +29,9 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
 	const sidebarRef = useRef<HTMLDivElement>(null);
 	const router = useRouter();
 	const pathname = usePathname();
-	const [userName, setUserName] = useState<string | undefined>(undefined);
-	const [userConta, setUserConta] = useState<string | undefined>(undefined);
+		const [userName, setUserName] = useState<string | undefined>(undefined);
+		const [userConta, setUserConta] = useState<string | undefined>(undefined);
+		const [isClient, setIsClient] = useState(false);
 
 	useEffect(() => {
 		if (typeof window === "undefined") return;
@@ -69,21 +70,22 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
 		}, [sidebarOpen]);
 
 	const isLoginPage = pathname === "/login";
-	   useEffect(() => {
-		   if (typeof window !== "undefined") {
-			   let user = localStorage.getItem("user");
-			   if (!user) {
-				   user = sessionStorage.getItem("user");
-			   }
-			   if (user) {
-				   try {
-					   const parsed = JSON.parse(user);
-					   setUserName(parsed.nome ? String(parsed.nome) : undefined);
-					   setUserConta(parsed.conta ? String(parsed.conta) : undefined);
-				   } catch {}
-			   }
-		   }
-	   }, [pathname]);
+		useEffect(() => {
+			setIsClient(true);
+			if (typeof window !== "undefined") {
+				let user = localStorage.getItem("user");
+				if (!user) {
+					user = sessionStorage.getItem("user");
+				}
+				if (user) {
+					try {
+						const parsed = JSON.parse(user);
+						setUserName(parsed.nome ? String(parsed.nome) : undefined);
+						setUserConta(parsed.conta ? String(parsed.conta) : undefined);
+					} catch {}
+				}
+			}
+		}, [pathname]);
 
 	useEffect(() => {
 		if (typeof window !== "undefined") {
@@ -135,20 +137,20 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
 			<body className="bg-gray-50 text-gray-900 min-h-screen w-full h-full m-0 p-0 dark:bg-gray-900 dark:text-gray-100 font-sans">
 				<div className="flex min-h-screen">
 					{/* Sidebar */}
-					<aside
-						ref={sidebarRef}
-						className={`relative transition-all duration-300 ${
-							sidebarOpen ? "w-64" : "w-16"
-						} bg-gray-50 dark:bg-gray-900 border-r-0 flex flex-col py-6 px-2 gap-8 shadow-xl z-20 ${
-							isLoginPage ? "hidden" : ""
-						}`}
-						aria-label="Menu lateral"
-						style={{
-							boxShadow: sidebarOpen
-								? "4px 0 24px 0 rgba(0,0,0,0.12)"
-								: undefined,
-						}}
-					>
+									<aside
+										ref={sidebarRef}
+										className={`fixed left-0 top-0 h-full transition-all duration-300 ${
+											sidebarOpen ? "w-64" : "w-16"
+										} bg-gray-50 dark:bg-gray-900 border-r-0 flex flex-col py-6 px-2 gap-8 shadow-xl z-40 ${
+										isLoginPage ? "hidden" : ""
+										}`}
+										aria-label="Menu lateral"
+										style={{
+											boxShadow: sidebarOpen
+												? "4px 0 24px 0 rgba(0,0,0,0.12)"
+												: undefined,
+										}}
+									>
 						{/* Barra azul vertical */}
 						<div
 							className="absolute left-0 top-0 h-full w-1.5 bg-blue-700 rounded-r-lg"
@@ -159,10 +161,8 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
 							className={`flex flex-col items-center mb-0 transition-all duration-300 group/sidebar relative px-0`}
 						>
 							{sidebarOpen ? (
-								<Image
-									src="/images/logo.png"
-									alt="Logo Máquina de Vendas"
-									className="block transition-all duration-300 mx-auto"
+								<Logo
+									className="block transition-all duration-300 mx-auto text-[#1e293b] dark:text-white"
 									width={200}
 									height={96}
 									style={{
@@ -170,12 +170,11 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
 										maxWidth: 200,
 										marginBottom: 0,
 									}}
+									aria-label="Logo Máquina de Vendas"
 								/>
 							) : (
-								<Image
-									src="/images/logo.png"
-									alt="Logo Máquina de Vendas"
-									className="block transition-all duration-300 mx-auto"
+								<Logo
+									className="block transition-all duration-300 mx-auto text-[#1e293b] dark:text-white"
 									width={40}
 									height={40}
 									style={{
@@ -183,6 +182,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
 										maxWidth: 40,
 										marginBottom: 0,
 									}}
+									aria-label="Logo Máquina de Vendas"
 								/>
 							)}
 						</div>
@@ -279,33 +279,37 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
 							style={isLoginPage ? { background: "transparent" } : {}}
 						>
 							<div className={isLoginPage ? "hidden" : ""}>
-								<Header
-									userName={userName}
-									title={
-										pathname === "/ajuda"
-											? "Ajuda"
-											: pathname === "/feedback"
-											? "Feedback"
-											: pathname === "/configuracoes"
-											? "Configurações"
-											: pathname === "/"
-											? "Painel de Vendas"
-											: pathname === "/associacoes"
-											? "Associações"
-											: pathname.startsWith("/clientes")
-											? "Clientes"
-											: "Máquina de Vendas"
-									}
-								/>
+										{isClient && (
+											<Header
+												userName={userName}
+												title={
+													pathname === "/ajuda"
+														? "Ajuda"
+														: pathname === "/feedback"
+														? "Feedback"
+														: pathname === "/configuracoes"
+														? "Configurações"
+														: pathname === "/"
+														? "Painel de Vendas"
+														: pathname === "/associacoes"
+														? "Associações"
+														: pathname.startsWith("/clientes")
+														? "Clientes"
+														: pathname === "/usuarios"
+														? "Usuários"
+														: "Máquina de Vendas"
+												}
+											/>
+										)}
 							</div>
 							{children}
-							{/* Rodapé visível apenas fora do login */}
-							{!isLoginPage && (
-								<footer className="w-full text-center text-xs text-blue-200 mt-8 select-none">
-									© 2025 Máquina de Vendas
-								</footer>
-							)}
 						</main>
+						{/* Rodapé "quieto" no fim da tela, fora do login */}
+						{!isLoginPage && (
+							<footer className="w-full text-center text-xs text-blue-900 dark:text-blue-200 bg-transparent py-2 select-none">
+								© 2025 Máquina de Vendas
+							</footer>
+						)}
 					</div>
 				</div>
 				<div

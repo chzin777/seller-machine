@@ -1,3 +1,25 @@
+// PATCH /api/users - Edita um usuário existente
+export async function PATCH(req: NextRequest) {
+  const { id, nome, sobrenome, email, conta } = await req.json();
+  if (!id || !nome || !sobrenome || !email || !conta) {
+    return NextResponse.json({ error: 'Dados obrigatórios faltando.' }, { status: 400 });
+  }
+
+  const supabase = createServerClient();
+  // Atualiza usuário
+  const { data, error } = await supabase
+    .from('users')
+    .update({ nome, sobrenome, email, conta })
+    .eq('id', id)
+    .select()
+    .single();
+
+  if (error) {
+    return NextResponse.json({ error: error.message }, { status: 500 });
+  }
+
+  return NextResponse.json({ id: data.id, nome: data.nome, sobrenome: data.sobrenome, email: data.email, conta: data.conta });
+}
 import { NextRequest, NextResponse } from 'next/server';
 import { createServerClient } from '../../../../lib/supabase/server';
 import bcrypt from 'bcryptjs';

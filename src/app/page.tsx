@@ -76,7 +76,9 @@ export default function Home() {
   const pieColors = ['#6366f1', '#f59e42', '#10b981', '#f43f5e', '#fbbf24'];
 
   return (
-    <div className="max-w-[1500px] mx-auto flex flex-col lg:flex-row gap-8 mt-10 px-2 sm:px-6">
+    <>
+  <h1 className="text-3xl font-bold text-gray-900 dark:text-gray-100 mb-6 mt-10 px-2 sm:px-6 max-w-[1500px] mx-auto ml-16 sm:ml-20">Painel de Vendas</h1>
+      <div className="max-w-[1500px] mx-auto flex flex-col lg:flex-row gap-8 px-2 sm:px-6">
       {/* Main dashboard */}
       <div className="flex-1 flex flex-col gap-8">
         {/* KPIs cards */}
@@ -93,7 +95,7 @@ export default function Home() {
           <Card className="shadow-lg border border-blue-200/60 bg-gradient-to-br from-blue-50 to-white dark:from-blue-900/30 dark:to-gray-950">
             <CardHeader className="flex flex-row items-center justify-between pb-2">
               <CardTitle className="text-base font-bold text-blue-900 dark:text-blue-200">Produtos Ativos</CardTitle>
-              <Package className="w-7 h-7 text-blue-600 dark:text-blue-300" />
+              <Package className="w-7 h-7 text-blue-900 dark:text-blue-300" />
             </CardHeader>
             <CardContent>
               <div className="text-3xl font-extrabold tracking-tight text-blue-900 dark:text-blue-100">{kpis.products.toLocaleString()}</div>
@@ -186,9 +188,11 @@ export default function Home() {
           </CardHeader>
           <CardContent>
             <ul className="space-y-4">
-                {customers.map((c) => (
+              {customers.map((c) => (
                 <li key={c.email} className="flex items-center gap-3">
-                  <Avatar className="w-10 h-10 shadow border border-gray-200 dark:border-gray-800"><AvatarFallback>{c.avatar}</AvatarFallback></Avatar>
+                  <Avatar className="w-10 h-10 shadow border border-gray-200 dark:border-gray-800">
+                    <AvatarFallback>{c.avatar}</AvatarFallback>
+                  </Avatar>
                   <div>
                     <div className="font-semibold text-base text-gray-900 dark:text-gray-100">{c.name}</div>
                     <div className="text-xs text-gray-500">{c.email}</div>
@@ -219,5 +223,6 @@ export default function Home() {
         </Card>
       </div>
     </div>
+    </>
   );
 }

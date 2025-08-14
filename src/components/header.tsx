@@ -9,12 +9,13 @@ type HeaderProps = {
 };
 
 export default function Header({ userName, title }: HeaderProps) {
-  const initials = userName
-    ? userName.split(' ').map((n) => n[0]).join('').toUpperCase().slice(0, 2)
-    : 'U';
-
+  const [isClient, setIsClient] = useState(false);
   const [menuOpen, setMenuOpen] = useState(false);
   const menuRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    setIsClient(true);
+  }, []);
 
   useEffect(() => {
     if (!menuOpen) return;
@@ -34,16 +35,25 @@ export default function Header({ userName, title }: HeaderProps) {
     }
   }
 
+  let initials = 'U';
+  if (isClient && userName) {
+    initials = userName.split(' ').map((n) => n[0]).join('').toUpperCase().slice(0, 2);
+  }
+
   return (
     <header className="h-16 flex items-center justify-between px-8 border-b bg-transparent dark:bg-transparent">
-      <div className="font-semibold text-lg">{title || 'Painel de Vendas'}</div>
+      <div className="font-semibold text-lg ml-16 sm:ml-20">Máquina de Vendas</div>
       <div className="flex items-center gap-4 relative">
         <button
           className="flex items-center gap-2 focus:outline-none group"
           onClick={() => setMenuOpen((v) => !v)}
         >
-          <span className="text-sm text-gray-500 dark:text-gray-300 group-hover:text-blue-700 dark:group-hover:text-blue-200 transition-colors hover:cursor-pointer">{userName || 'Usuário'}</span>
-          <div className="w-8 h-8 rounded-full bg-blue-100 dark:bg-blue-900 flex items-center justify-center text-blue-700 dark:text-blue-200 font-bold border border-blue-200 dark:border-blue-800 hover:cursor-pointer">{initials}</div>
+          <span className="text-sm text-gray-500 dark:text-gray-300 group-hover:text-blue-700 dark:group-hover:text-blue-200 transition-colors hover:cursor-pointer">
+            {isClient && userName ? userName : 'Usuário'}
+          </span>
+          <div className="w-8 h-8 rounded-full bg-blue-100 dark:bg-blue-900 flex items-center justify-center text-blue-700 dark:text-blue-200 font-bold border border-blue-200 dark:border-blue-800 hover:cursor-pointer">
+            {initials}
+          </div>
         </button>
         {menuOpen && (
           <div ref={menuRef} className="absolute right-0 top-12 mt-2 w-48 bg-white dark:bg-gray-900 rounded-lg shadow-lg border border-gray-200 dark:border-gray-800 z-50 animate-fade-in">

@@ -10,9 +10,11 @@ export default function AssociacoesPage() {
   const [busca, setBusca] = useState('');
   // Estado para detectar menu lateral aberto/fechado
   const [sidebarOpen, setSidebarOpen] = useState(false);
+  const [isClient, setIsClient] = useState(false);
 
   // Detecta o estado do menu lateral via evento customizado
   useEffect(() => {
+    setIsClient(true);
     function handleSidebar(event: Event) {
       const customEvent = event as CustomEvent;
       if (typeof customEvent.detail === 'boolean') setSidebarOpen(customEvent.detail);
@@ -53,7 +55,7 @@ export default function AssociacoesPage() {
           <Link2 className="w-7 h-7" />
         </div>
         <div>
-          <h1 className="text-3xl font-extrabold leading-tight">Associações de Produtos</h1>
+          <h1 className="text-3xl font-extrabold leading-tight ml-16 sm:ml-20">Associações de Produtos</h1>
           <p className="text-gray-500 dark:text-gray-400 text-sm mt-1">Veja as principais relações entre produtos vendidos juntos.</p>
         </div>
       </div>
@@ -99,20 +101,22 @@ export default function AssociacoesPage() {
             )}
           </tbody>
         </table>
-        {/* Card de legenda fixo no canto inferior esquerdo, respeitando o menu lateral */}
-        <div
-          className="fixed bottom-8 z-40 transition-all duration-300"
-          style={{
-            left: sidebarOpen ? 'calc(256px + 2rem)' : 'calc(64px + 2rem)',
-          }}
-        >
-          <div className="bg-white dark:bg-gray-900 border border-blue-200 dark:border-blue-900 rounded-xl shadow-xl p-4 w-72 text-xs text-gray-700 dark:text-gray-200">
-            <div className="font-bold text-blue-800 dark:text-blue-200 mb-2">Legenda das Métricas</div>
-            <div className="mb-1"><b>Suporte</b>: Quantidade de vezes que os dois produtos foram comprados juntos.</div>
-            <div className="mb-1"><b>Confiança</b>: Probabilidade (%) de quem compra o produto de origem também comprar o associado.</div>
-            <div><b>Força (Lift)</b>: Quanto a associação é mais forte do que o acaso (quanto maior, mais relevante).</div>
+        {/* Card de legenda fixo no canto inferior esquerdo, respeitando o menu lateral (só no client) */}
+        {isClient && (
+          <div
+            className="fixed bottom-8 z-40 transition-all duration-300"
+            style={{
+              left: sidebarOpen ? 'calc(256px + 2rem)' : 'calc(64px + 2rem)',
+            }}
+          >
+            <div className="bg-white dark:bg-gray-900 border border-blue-200 dark:border-blue-900 rounded-xl shadow-xl p-4 w-72 text-xs text-gray-700 dark:text-gray-200">
+              <div className="font-bold text-blue-800 dark:text-blue-200 mb-2">Legenda das Métricas</div>
+              <div className="mb-1"><b>Suporte</b>: Quantidade de vezes que os dois produtos foram comprados juntos.</div>
+              <div className="mb-1"><b>Confiança</b>: Probabilidade (%) de quem compra o produto de origem também comprar o associado.</div>
+              <div><b>Força (Lift)</b>: Quanto a associação é mais forte do que o acaso (quanto maior, mais relevante).</div>
+            </div>
           </div>
-        </div>
+        )}
       </div>
     </main>
   );
