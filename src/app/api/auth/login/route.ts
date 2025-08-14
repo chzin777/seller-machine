@@ -25,6 +25,6 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: 'Usuário ou senha inválidos.' }, { status: 401 });
   }
 
-  // Retorne apenas dados não sensíveis
-  return NextResponse.json({ id: user.id, nome: user.nome, sobrenome: user.sobrenome, email: user.email });
+  // Retorne apenas dados não sensíveis, incluindo conta e precisa_trocar_senha
+  return NextResponse.json({ id: user.id, nome: user.nome, sobrenome: user.sobrenome, email: user.email, conta: user.conta, precisa_trocar_senha: user.precisa_trocar_senha });
 }

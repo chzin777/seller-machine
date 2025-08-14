@@ -2,10 +2,28 @@ import { NextRequest, NextResponse } from 'next/server';
 import { createServerClient } from '../../../../lib/supabase/server';
 import bcrypt from 'bcryptjs';
 
+// GET /api/users - Lista todos os usuários
+export async function GET() {
+  const supabase = createServerClient();
+  const { data, error } = await supabase
+    .from('users')
+    .select('*');
+  if (error) {
+    return NextResponse.json({ error: error?.message || 'Erro desconhecido' }, { status: 500 });
+  }
+  // Não retornar senha se existir
+  const safeData = (data || []).map((user: any) => {
+    const { senha, ...rest } = user;
+    return rest;
+  });
+  return NextResponse.json(safeData);
+}
+
 // POST /api/users - Cria um novo usuário
+
 export async function POST(req: NextRequest) {
-  const { nome, sobrenome, email, senha } = await req.json();
-  if (!nome || !sobrenome || !email || !senha) {
+  const { nome, sobrenome, email, senha, conta } = await req.json();
+  if (!nome || !sobrenome || !email || !senha || !conta) {
     return NextResponse.json({ error: 'Dados obrigatórios faltando.' }, { status: 400 });
   }
 
@@ -27,7 +45,7 @@ export async function POST(req: NextRequest) {
   // Cria usuário
   const { data, error } = await supabase
     .from('users')
-    .insert([{ nome, sobrenome, email, senha: senhaHash }])
+    .insert([{ nome, sobrenome, email, senha: senhaHash, conta, precisa_trocar_senha: true }])
     .select()
     .single();
 

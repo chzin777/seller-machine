@@ -2,66 +2,87 @@
 
 import Header from "../components/header";
 import ThemeToggle from "../components/theme-toggle";
-import { LayoutDashboard, Link2, Users, Menu } from "lucide-react";
+import { LayoutDashboard, Link2, Users, Menu, UserCog } from "lucide-react";
 import { useState, useRef, useEffect } from "react";
 import Script from "next/script";
 import "./globals.css";
 import { useRouter, usePathname } from "next/navigation";
 
-const navLinks = [
-	{ type: "toggle", label: "Menu", icon: Menu },
-	{ href: "/", label: "Dashboard", icon: LayoutDashboard },
-	{ href: "/associacoes", label: "Associações", icon: Link2 },
-	{ href: "/clientes", label: "Clientes", icon: Users },
-];
+
+function getNavLinks(userConta?: string) {
+	const baseLinks = [
+		{ type: "toggle", label: "Menu", icon: Menu },
+		{ href: "/", label: "Dashboard", icon: LayoutDashboard },
+		{ href: "/associacoes", label: "Associações", icon: Link2 },
+		{ href: "/clientes", label: "Clientes", icon: Users },
+	];
+	if (userConta === "Admin") {
+		baseLinks.push({ href: "/usuarios", label: "Usuários", icon: UserCog });
+	}
+	return baseLinks;
+}
+
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
-	const [sidebarOpen, setSidebarOpen] = useState(false);
+		const [sidebarOpen, setSidebarOpen] = useState(false);
 	const sidebarRef = useRef<HTMLDivElement>(null);
 	const router = useRouter();
 	const pathname = usePathname();
+	const [userName, setUserName] = useState<string | undefined>(undefined);
+	const [userConta, setUserConta] = useState<string | undefined>(undefined);
 
 	useEffect(() => {
 		if (typeof window === "undefined") return;
-		const publicPaths = ["/login", "/cadastro"];
-		if (!publicPaths.includes(pathname)) {
-			const user = localStorage.getItem("user");
-			if (!user) {
-				router.replace("/login");
-			}
-		}
+		   const publicPaths = ["/login", "/cadastro"];
+		   if (!publicPaths.includes(pathname)) {
+			   let user = localStorage.getItem("user");
+			   if (!user) {
+				   user = sessionStorage.getItem("user");
+			   }
+			   if (!user) {
+				   router.replace("/login");
+			   }
+		   }
 	}, [pathname, router]);
 
-	useEffect(() => {
-		if (!sidebarOpen) return;
-		function handleClickOutside(event: MouseEvent) {
-			if (
-				sidebarRef.current &&
-				event.target instanceof Node &&
-				!sidebarRef.current.contains(event.target)
-			) {
-				setSidebarOpen(false);
+		// Dispara evento customizado para sincronizar o estado do menu lateral
+		useEffect(() => {
+			window.dispatchEvent(new CustomEvent('sidebar-toggle', { detail: sidebarOpen }));
+		}, [sidebarOpen]);
+
+		useEffect(() => {
+			if (!sidebarOpen) return;
+			function handleClickOutside(event: MouseEvent) {
+				if (
+					sidebarRef.current &&
+					event.target instanceof Node &&
+					!sidebarRef.current.contains(event.target)
+				) {
+					setSidebarOpen(false);
+				}
 			}
-		}
-		document.addEventListener("mousedown", handleClickOutside);
-		return () => {
-			document.removeEventListener("mousedown", handleClickOutside);
-		};
-	}, [sidebarOpen]);
+			document.addEventListener("mousedown", handleClickOutside);
+			return () => {
+				document.removeEventListener("mousedown", handleClickOutside);
+			};
+		}, [sidebarOpen]);
 
 	const isLoginPage = pathname === "/login";
-	const [userName, setUserName] = useState<string | undefined>(undefined);
-	useEffect(() => {
-		if (typeof window !== "undefined") {
-			const user = localStorage.getItem("user");
-			if (user) {
-				try {
-					const parsed = JSON.parse(user);
-					setUserName(parsed.nome ? String(parsed.nome) : undefined);
-				} catch {}
-			}
-		}
-	}, [pathname]);
+	   useEffect(() => {
+		   if (typeof window !== "undefined") {
+			   let user = localStorage.getItem("user");
+			   if (!user) {
+				   user = sessionStorage.getItem("user");
+			   }
+			   if (user) {
+				   try {
+					   const parsed = JSON.parse(user);
+					   setUserName(parsed.nome ? String(parsed.nome) : undefined);
+					   setUserConta(parsed.conta ? String(parsed.conta) : undefined);
+				   } catch {}
+			   }
+		   }
+	   }, [pathname]);
 
 	useEffect(() => {
 		if (typeof window !== "undefined") {
@@ -160,88 +181,88 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
 								/>
 							)}
 						</div>
-						{/* Ícones do menu lateral colados na logo */}
-						<nav className="flex flex-col gap-1 mt-0">
-							 {navLinks.map((link) => {
-								const Icon = link.icon;
-								if (link.type === "toggle") {
-									return (
-										<button
-											key={"toggle-menu"}
-											className={`group flex items-center gap-3 rounded-lg px-3 py-2 font-medium transition-colors hover:bg-blue-700/10 hover:text-blue-700 text-blue-700 dark:text-blue-200 focus:outline-none ${
-												!sidebarOpen ? "justify-center px-2" : ""
-											}`}
-											style={{
-												boxShadow: "none",
-												border: "none",
-												background: "none",
-												width: "100%",
-											}}
-											onClick={() => setSidebarOpen(!sidebarOpen)}
-											aria-label={
-												sidebarOpen ? "Recolher menu" : "Expandir menu"
+									{/* Ícones do menu lateral colados na logo */}
+									<nav className="flex flex-col gap-1 mt-0">
+										{getNavLinks(userConta).map((link) => {
+											const Icon = link.icon;
+											if (link.type === "toggle") {
+												return (
+													<button
+														key={"toggle-menu"}
+														className={`group flex items-center gap-3 rounded-lg px-3 py-2 font-medium transition-colors hover:bg-blue-700/10 hover:text-blue-700 text-blue-700 dark:text-blue-200 focus:outline-none hover:cursor-pointer ${
+															!sidebarOpen ? "justify-center px-2" : ""
+														}`}
+														style={{
+															boxShadow: "none",
+															border: "none",
+															background: "none",
+															width: "100%",
+														}}
+														onClick={() => setSidebarOpen(!sidebarOpen)}
+														aria-label={
+															sidebarOpen ? "Recolher menu" : "Expandir menu"
+														}
+														tabIndex={0}
+														type="button"
+													>
+														<Icon
+															className={`w-5 h-5 transition-colors group-hover:text-blue-300 hover:cursor-pointer ${
+																sidebarOpen ? "text-blue-400" : "text-blue-400"
+															}`}
+														/>
+														<span
+															className={`${
+																sidebarOpen ? "block" : "hidden"
+															} transition-all duration-300 hover:cursor-pointer`}
+														>
+															{link.label}
+														</span>
+													</button>
+												);
 											}
-											tabIndex={0}
-											type="button"
-										>
-											<Icon
-												className={`w-5 h-5 transition-colors group-hover:text-blue-300 hover:cursor-pointer ${
-													sidebarOpen ? "text-blue-400" : "text-blue-400"
-												}`}
-											/>
-											<span
-												className={`${
-													sidebarOpen ? "block" : "hidden"
-												} transition-all duration-300 hover:cursor-pointer`}
-											>
-												{link.label}
-											</span>
-										</button>
-									);
-								}
-								let isActive = false;
-								if (link.href) {
-									if (link.href === "/") {
-										isActive = pathname === "/";
-									} else {
-										isActive =
-											pathname === link.href ||
-											pathname.startsWith(link.href + "/");
-									}
-								}
-								return (
-									<a
-										key={link.href}
-										href={link.href}
-										className={`group flex items-center gap-3 rounded-lg px-3 py-2 font-medium transition-colors hover:bg-blue-700/10 hover:text-blue-700 text-blue-700 dark:text-blue-200 ${
-											sidebarOpen ? "" : "justify-center px-2 hover:cursor-pointer"
-										} ${isActive ? "bg-blue-700 text-white font-semibold shadow" : ""}`}
-										tabIndex={0}
-										style={
-											isActive
-												? { boxShadow: "0 2px 16px 0 rgba(29,78,216,0.15)" }
-												: {}
-										}
-										aria-current={isActive ? "page" : undefined}
-									>
-										<Icon
-											className={`w-5 h-5 transition-colors ${
-												isActive
-													? "text-yellow-300 dark:text-yellow-200 drop-shadow"
-													: "text-blue-400 group-hover:text-blue-300"
-											}`}
-										/>
-										<span
-											className={`${
-												sidebarOpen ? "block" : "hidden"
-											} transition-all duration-300`}
-										>
-											{link.label}
-										</span>
-									</a>
-								);
-							})}
-						</nav>
+											let isActive = false;
+											if (link.href) {
+												if (link.href === "/") {
+													isActive = pathname === "/";
+												} else {
+													isActive =
+														pathname === link.href ||
+														pathname.startsWith(link.href + "/");
+												}
+											}
+											return (
+												<a
+													key={link.href}
+													href={link.href}
+													className={`group flex items-center gap-3 rounded-lg px-3 py-2 font-medium transition-colors hover:bg-blue-700/10 hover:text-blue-700 text-blue-700 dark:text-blue-200 ${
+														sidebarOpen ? "" : "justify-center px-2 hover:cursor-pointer"
+													} ${isActive ? "bg-blue-700 text-white font-semibold shadow" : ""}`}
+													tabIndex={0}
+													style={
+														isActive
+															? { boxShadow: "0 2px 16px 0 rgba(29,78,216,0.15)" }
+															: {}
+													}
+													aria-current={isActive ? "page" : undefined}
+												>
+													<Icon
+														className={`w-5 h-5 transition-colors ${
+															isActive
+																? "text-yellow-300 dark:text-yellow-200 drop-shadow"
+																: "text-blue-400 group-hover:text-blue-300"
+														}`}
+													/>
+													<span
+														className={`${
+															sidebarOpen ? "block" : "hidden"
+														} transition-all duration-300`}
+													>
+														{link.label}
+													</span>
+												</a>
+											);
+										})}
+									</nav>
 					</aside>
 					{/* Main content */}
 					<div className="flex-1 flex flex-col min-h-screen bg-gradient-to-br from-gray-50 via-blue-50 to-white dark:from-gray-900 dark:via-gray-950 dark:to-gray-900">
@@ -268,7 +289,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
 											? "Associações"
 											: pathname.startsWith("/clientes")
 											? "Clientes"
-											: "Seller Machine"
+											: "Máquina de Vendas"
 									}
 								/>
 							</div>
@@ -276,7 +297,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
 							{/* Rodapé visível apenas fora do login */}
 							{!isLoginPage && (
 								<footer className="w-full text-center text-xs text-blue-200 mt-8 select-none">
-									© 2025 Seller Machine
+									© 2025 Máquina de Vendas
 								</footer>
 							)}
 						</main>

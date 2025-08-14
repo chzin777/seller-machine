@@ -29,7 +29,11 @@ export default function LoginPage() {
       } else {
         sessionStorage.setItem("user", JSON.stringify(data));
       }
-      router.push("/");
+      if (data.precisa_trocar_senha) {
+        router.push("/nova-senha");
+      } else {
+        router.push("/");
+      }
     } else {
       setMsg(data.error || "Erro ao fazer login.");
     }
