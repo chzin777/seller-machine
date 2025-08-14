@@ -13,8 +13,9 @@ export default function AssociacoesPage() {
 
   // Detecta o estado do menu lateral via evento customizado
   useEffect(() => {
-    function handleSidebar(event: any) {
-      if (typeof event?.detail === 'boolean') setSidebarOpen(event.detail);
+    function handleSidebar(event: Event) {
+      const customEvent = event as CustomEvent;
+      if (typeof customEvent.detail === 'boolean') setSidebarOpen(customEvent.detail);
     }
     window.addEventListener('sidebar-toggle', handleSidebar);
     return () => window.removeEventListener('sidebar-toggle', handleSidebar);

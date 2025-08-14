@@ -12,7 +12,7 @@ export async function GET() {
     return NextResponse.json({ error: error?.message || 'Erro desconhecido' }, { status: 500 });
   }
   // Não retornar senha se existir
-  const safeData = (data || []).map((user: any) => {
+  const safeData = (data || []).map((user: Record<string, unknown>) => {
     const { senha, ...rest } = user;
     return rest;
   });
