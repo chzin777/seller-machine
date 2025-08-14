@@ -4,7 +4,7 @@ import { useRouter } from "next/navigation";
 
 import { Card, CardHeader, CardContent } from "../../components/ui/card";
 import { Button } from "../../components/ui/button";
-import { UserPlus, Pencil, UserCog } from "lucide-react";
+import { UserPlus, Pencil, Users, Search } from "lucide-react";
 // import Header from "../../components/header";
 // Modal para editar usuário
 function EditarUsuarioModal({ open, onClose, onSuccess, usuario }: { open: boolean; onClose: () => void; onSuccess: () => void; usuario: Usuario | null }) {
@@ -284,17 +284,17 @@ export default function UsuariosPage() {
   return (
     <>
       {/* Título da página */}
-      <div className="max-w-3xl mx-auto px-2 sm:px-4 mt-6 mb-6 flex items-center gap-3">
+      <div className="flex items-center gap-3 mb-8 mt-16 sm:mt-0 max-w-3xl mx-auto px-4">
         <div className="flex items-center justify-center w-12 h-12 rounded-xl bg-blue-100 dark:bg-blue-900 text-blue-700 dark:text-blue-200 shadow">
-          <UserCog className="w-7 h-7" />
+          <Users className="w-7 h-7" />
         </div>
         <div>
           <h1 className="text-3xl font-extrabold leading-tight">Usuários</h1>
-          <p className="text-gray-500 dark:text-gray-400 text-sm mt-1">Gerencie os usuários do sistema e permissões de acesso.</p>
+          <p className="text-gray-500 dark:text-gray-400 text-sm mt-1">Gerencie os usuários cadastrados e suas permissões de acesso.</p>
         </div>
       </div>
       {/* Botão de novo usuário abaixo do header global */}
-      <div className="max-w-3xl mx-auto mt-0 mb-2 px-2 sm:px-4 flex justify-end">
+      <div className="max-w-3xl mx-auto mt-4 mb-2 px-4 flex justify-end">
         <Button
           className="flex items-center gap-2 hover:cursor-pointer bg-blue-100 text-blue-700 hover:bg-blue-200 dark:bg-blue-700 dark:text-white dark:hover:bg-blue-800 border-none shadow font-semibold px-5 py-2 rounded-lg"
           onClick={() => setModalOpen(true)}
@@ -321,12 +321,13 @@ export default function UsuariosPage() {
           }}
           usuario={usuarioEditando}
         />
-        {/* Barra de pesquisa */}
-        <div className="mb-6 flex justify-end">
+        {/* Barra de pesquisa igual clientes */}
+        <div className="relative mb-6">
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 w-5 h-5" />
           <input
             type="text"
-            className="w-full max-w-[360px] px-4 py-2 border-2 border-blue-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 bg-blue-50 text-blue-900 dark:bg-blue-950 dark:text-blue-100 placeholder-blue-400"
-            placeholder="Pesquisar por nome, sobrenome ou email..."
+            className="pl-10 pr-4 py-2 rounded-lg border border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-950 shadow-sm w-full focus:outline-none focus:ring-2 focus:ring-blue-400 text-base transition"
+            placeholder="Buscar usuário..."
             value={search}
             onChange={e => setSearch(e.target.value)}
           />
@@ -347,51 +348,74 @@ export default function UsuariosPage() {
             }
           })();
         }} />
-        <Card className="shadow-lg border border-gray-100 dark:border-gray-900 bg-white dark:bg-gray-950">
-          <CardHeader>
-            {/* Removido título duplicado */}
-          </CardHeader>
-          <CardContent>
+        {/* Mobile: Cards, Desktop: Tabela */}
+        <div className="mt-4">
+          {/* Mobile: Cards */}
+          <div className="flex flex-col gap-4 sm:hidden">
             {loading ? (
               <div className="text-center py-8 text-blue-700">Carregando...</div>
+            ) : usuariosFiltrados.length === 0 ? (
+              <div className="text-center py-8 text-blue-700 bg-white dark:bg-gray-950 rounded-xl shadow border border-gray-100 dark:border-gray-900">Nenhum usuário encontrado.</div>
             ) : (
-              <div className="overflow-x-auto">
-                <table className="min-w-full text-sm">
-                  <thead>
-                    <tr className="bg-blue-50 dark:bg-blue-900 text-blue-900 dark:text-blue-200">
-                      <th className="px-6 py-3 text-left text-xs font-bold uppercase tracking-wider">Nome</th>
-                      <th className="px-6 py-3 text-left text-xs font-bold uppercase tracking-wider">Email</th>
-                      <th className="px-6 py-3 text-left text-xs font-bold uppercase tracking-wider">Conta</th>
-                      <th className="px-4 py-3 text-center text-xs font-bold uppercase tracking-wider w-12">Ações</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {usuariosFiltrados.map((u) => (
-                      <tr key={u.id} className="border-t border-gray-100 dark:border-gray-900 hover:bg-blue-50/40 dark:hover:bg-blue-900/40 transition">
-                        <td className="px-6 py-4 whitespace-nowrap font-semibold text-blue-900 dark:text-blue-100">{u.nome} {u.sobrenome}</td>
-                        <td className="px-6 py-4 whitespace-nowrap text-blue-900 dark:text-blue-100">{u.email}</td>
-                        <td className="px-6 py-4 whitespace-nowrap text-blue-900 dark:text-blue-100">{u.conta || '-'}</td>
-                        <td className="px-4 py-4 whitespace-nowrap text-center align-middle">
-                          <button
-                            type="button"
-                            className="p-1 rounded hover:bg-blue-100 dark:hover:bg-blue-900 transition hover:cursor-pointer"
-                            title="Editar usuário"
-                            onClick={() => { setUsuarioEditando(u); setEditarModalOpen(true); }}
-                          >
-                            <Pencil className="w-4 h-4 text-blue-700 dark:text-blue-200 mx-auto" />
-                          </button>
-                        </td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-                {usuariosFiltrados.length === 0 && (
-                  <div className="text-center py-8 text-blue-700">Nenhum usuário encontrado.</div>
-                )}
-              </div>
+              usuariosFiltrados.map((u) => (
+                <div key={u.id} className="rounded-xl shadow-lg border border-gray-100 dark:border-gray-900 bg-white dark:bg-gray-950 p-4 flex flex-col gap-2">
+                  <div className="flex items-center gap-2 mb-1">
+                    <span className="font-bold text-blue-800 dark:text-blue-100">{u.nome} {u.sobrenome}</span>
+                  </div>
+                  <div className="flex flex-wrap gap-2 text-xs mb-1">
+                    <span className="bg-blue-50 dark:bg-blue-900 text-blue-900 dark:text-blue-200 rounded px-2 py-1">Email: <b>{u.email}</b></span>
+                    <span className="bg-blue-50 dark:bg-blue-900 text-blue-900 dark:text-blue-200 rounded px-2 py-1">Conta: <b>{u.conta || '-'}</b></span>
+                  </div>
+                  <div className="flex gap-2 mt-2">
+                    <button
+                      type="button"
+                      className="flex-1 py-2 rounded bg-blue-100 dark:bg-blue-800 hover:bg-blue-200 dark:hover:bg-blue-700 text-blue-700 dark:text-white font-semibold transition hover:cursor-pointer"
+                      title="Editar usuário"
+                      onClick={() => { setUsuarioEditando(u); setEditarModalOpen(true); }}
+                    >
+                      <Pencil className="w-4 h-4 mx-auto" /> Editar
+                    </button>
+                  </div>
+                </div>
+              ))
             )}
-          </CardContent>
-        </Card>
+          </div>
+          {/* Desktop: Tabela */}
+          <div className="hidden sm:block overflow-x-auto rounded-xl shadow-lg bg-white dark:bg-gray-950 border border-gray-100 dark:border-gray-900">
+            <table className="w-full text-sm">
+              <thead>
+                <tr className="bg-blue-50 dark:bg-blue-900 text-blue-900 dark:text-blue-200">
+                  <th className="px-6 py-3 text-left text-xs font-bold uppercase tracking-wider">Nome</th>
+                  <th className="px-6 py-3 text-left text-xs font-bold uppercase tracking-wider">Email</th>
+                  <th className="px-6 py-3 text-left text-xs font-bold uppercase tracking-wider">Conta</th>
+                  <th className="px-4 py-3 text-center text-xs font-bold uppercase tracking-wider w-12">Ações</th>
+                </tr>
+              </thead>
+              <tbody>
+                {usuariosFiltrados.map((u) => (
+                  <tr key={u.id} className="border-t border-gray-100 dark:border-gray-900 hover:bg-blue-50/40 dark:hover:bg-blue-900/40 transition">
+                    <td className="px-6 py-4 whitespace-nowrap font-semibold text-blue-900 dark:text-blue-100">{u.nome} {u.sobrenome}</td>
+                    <td className="px-6 py-4 whitespace-nowrap text-blue-900 dark:text-blue-100">{u.email}</td>
+                    <td className="px-6 py-4 whitespace-nowrap text-blue-900 dark:text-blue-100">{u.conta || '-'}</td>
+                    <td className="px-4 py-4 whitespace-nowrap text-center align-middle">
+                      <button
+                        type="button"
+                        className="p-1 rounded hover:bg-blue-100 dark:hover:bg-blue-900 transition hover:cursor-pointer"
+                        title="Editar usuário"
+                        onClick={() => { setUsuarioEditando(u); setEditarModalOpen(true); }}
+                      >
+                        <Pencil className="w-4 h-4 text-blue-700 dark:text-blue-200 mx-auto" />
+                      </button>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+            {usuariosFiltrados.length === 0 && (
+              <div className="text-center py-8 text-blue-700">Nenhum usuário encontrado.</div>
+            )}
+          </div>
+        </div>
       </div>
     </>
   );

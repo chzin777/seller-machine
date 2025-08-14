@@ -8,7 +8,7 @@ import * as React from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '../components/ui/card';
 import { Avatar, AvatarFallback } from '../components/ui/avatar';
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, PieChart, Pie, Cell, Legend } from 'recharts';
-import { DollarSign, Package, Users, Eye } from 'lucide-react';
+import { DollarSign, Package, Users, Eye, LayoutDashboard } from 'lucide-react';
 // ...existing code...
 
 
@@ -44,6 +44,13 @@ export default function Home() {
     { name: 'Ana Souza', email: 'ana@empresa.com', avatar: 'AS' },
   ];
 
+  // Função para copiar email
+  function copyEmail(email: string) {
+    if (navigator && navigator.clipboard) {
+      navigator.clipboard.writeText(email);
+    }
+  }
+
   // Gráfico de vendas simulado
   const salesData = [
     { week: '01/07', total: 12000 },
@@ -77,7 +84,15 @@ export default function Home() {
 
   return (
     <>
-  <h1 className="text-3xl font-bold text-gray-900 dark:text-gray-100 mb-6 mt-10 px-2 sm:px-6 max-w-[1500px] mx-auto ml-16 sm:ml-20">Painel de Vendas</h1>
+  <div className="flex items-center gap-3 mb-8 mt-16 sm:mt-0 ml-0 sm:ml-0 px-2 sm:px-6 max-w-[1500px] mx-auto">
+    <div className="flex items-center justify-center w-12 h-12 rounded-xl bg-blue-100 dark:bg-blue-900 text-blue-700 dark:text-blue-200 shadow">
+      <LayoutDashboard className="w-7 h-7" />
+    </div>
+    <div>
+      <h1 className="text-3xl font-extrabold leading-tight">Painel de Vendas</h1>
+      <p className="text-gray-500 dark:text-gray-400 text-sm mt-1">Visão geral das vendas, KPIs e principais métricas do seu negócio.</p>
+    </div>
+  </div>
       <div className="max-w-[1500px] mx-auto flex flex-col lg:flex-row gap-8 px-2 sm:px-6">
       {/* Main dashboard */}
       <div className="flex-1 flex flex-col gap-8">
@@ -182,12 +197,13 @@ export default function Home() {
 
       {/* Right sidebar: Customers List & Analytics Overview */}
       <div className="w-full lg:w-[340px] flex flex-col gap-8">
-  <Card className="shadow-lg border border-blue-200/30 bg-gray-50 dark:bg-gray-900">
+        <Card className="shadow-lg border border-blue-200/30 bg-gray-50 dark:bg-gray-900">
           <CardHeader>
             <CardTitle className="text-lg font-bold">Lista de Clientes</CardTitle>
           </CardHeader>
           <CardContent>
-            <ul className="space-y-4">
+            {/* Mobile: lista vertical, Desktop: igual */}
+            <ul className="space-y-4 sm:space-y-4">
               {customers.map((c) => (
                 <li key={c.email} className="flex items-center gap-3">
                   <Avatar className="w-10 h-10 shadow border border-gray-200 dark:border-gray-800">
@@ -195,7 +211,15 @@ export default function Home() {
                   </Avatar>
                   <div>
                     <div className="font-semibold text-base text-gray-900 dark:text-gray-100">{c.name}</div>
-                    <div className="text-xs text-gray-500">{c.email}</div>
+                    <button
+                      type="button"
+                      className="text-sm sm:text-xs text-blue-700 dark:text-blue-200 underline underline-offset-2 hover:text-blue-900 dark:hover:text-blue-100 transition cursor-pointer px-0 py-0 bg-transparent border-0"
+                      style={{ fontSize: '1rem', background: 'none' }}
+                      title="Copiar e-mail"
+                      onClick={() => copyEmail(c.email)}
+                    >
+                      {c.email}
+                    </button>
                   </div>
                 </li>
               ))}

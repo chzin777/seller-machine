@@ -26,7 +26,7 @@ export default function ClientesPage() {
   );
   return (
     <main className="max-w-4xl mx-auto py-10 px-2 sm:px-0">
-      <div className="flex items-center gap-3 mb-8">
+      <div className="flex items-center gap-3 mb-8 mt-16 sm:mt-0">
         <div className="flex items-center justify-center w-12 h-12 rounded-xl bg-blue-100 dark:bg-blue-900 text-blue-700 dark:text-blue-200 shadow">
           <Users className="w-7 h-7" />
         </div>
@@ -44,31 +44,53 @@ export default function ClientesPage() {
           onChange={e => setBusca(e.target.value)}
         />
       </div>
-      <div className="overflow-x-auto rounded-xl shadow-lg bg-white dark:bg-gray-950 border border-gray-100 dark:border-gray-900">
-        <table className="w-full text-sm">
-          <thead>
-            <tr className="bg-blue-50 dark:bg-blue-900 text-blue-900 dark:text-blue-200">
-              <th className="p-3 font-semibold text-left">Nome</th>
-              <th className="p-3 font-semibold text-left">E-mail</th>
-              <th className="p-3 font-semibold text-left">LTV</th>
-            </tr>
-          </thead>
-          <tbody>
-            {filtrados.length === 0 ? (
-              <tr>
-                <td colSpan={3} className="text-center py-8 text-gray-400">Nenhum cliente encontrado.</td>
+      {/* Mobile: Cards, Desktop: Tabela */}
+      <div className="mt-4">
+        {/* Mobile: Cards */}
+        <div className="flex flex-col gap-4 sm:hidden">
+          {filtrados.length === 0 ? (
+            <div className="text-center py-8 text-gray-400 bg-white dark:bg-gray-950 rounded-xl shadow border border-gray-100 dark:border-gray-900">Nenhum cliente encontrado.</div>
+          ) : (
+            filtrados.map((c, i) => (
+              <div key={i} className="rounded-xl shadow-lg border border-gray-100 dark:border-gray-900 bg-white dark:bg-gray-950 p-4 flex flex-col gap-2">
+                <div className="flex items-center gap-2 mb-1">
+                  <span className="font-bold text-blue-800 dark:text-blue-100">{c.name}</span>
+                </div>
+                <div className="flex flex-wrap gap-2 text-xs mb-1">
+                  <span className="bg-blue-50 dark:bg-blue-900 text-blue-900 dark:text-blue-200 rounded px-2 py-1">E-mail: <b>{c.email}</b></span>
+                  <span className="bg-blue-50 dark:bg-blue-900 text-blue-900 dark:text-blue-200 rounded px-2 py-1">LTV: <b>{c.ltv ? `R$ ${Number(c.ltv).toLocaleString()}` : '-'}</b></span>
+                </div>
+              </div>
+            ))
+          )}
+        </div>
+        {/* Desktop: Tabela */}
+        <div className="hidden sm:block overflow-x-auto rounded-xl shadow-lg bg-white dark:bg-gray-950 border border-gray-100 dark:border-gray-900">
+          <table className="w-full text-sm">
+            <thead>
+              <tr className="bg-blue-50 dark:bg-blue-900 text-blue-900 dark:text-blue-200">
+                <th className="p-3 font-semibold text-left">Nome</th>
+                <th className="p-3 font-semibold text-left">E-mail</th>
+                <th className="p-3 font-semibold text-left">LTV</th>
               </tr>
-            ) : (
-              filtrados.map((c, i) => (
-                <tr key={i} className="border-t border-gray-100 dark:border-gray-900 hover:bg-blue-50/40 dark:hover:bg-blue-900/40 transition">
-                  <td className="p-3 font-medium text-gray-800 dark:text-gray-100">{c.name}</td>
-                  <td className="p-3 text-gray-700 dark:text-gray-300">{c.email}</td>
-                  <td className="p-3 text-gray-700 dark:text-gray-300">{c.ltv ? `R$ ${Number(c.ltv).toLocaleString()}` : '-'}</td>
+            </thead>
+            <tbody>
+              {filtrados.length === 0 ? (
+                <tr>
+                  <td colSpan={3} className="text-center py-8 text-gray-400">Nenhum cliente encontrado.</td>
                 </tr>
-              ))
-            )}
-          </tbody>
-        </table>
+              ) : (
+                filtrados.map((c, i) => (
+                  <tr key={i} className="border-t border-gray-100 dark:border-gray-900 hover:bg-blue-50/40 dark:hover:bg-blue-900/40 transition">
+                    <td className="p-3 font-medium text-gray-800 dark:text-gray-100">{c.name}</td>
+                    <td className="p-3 text-gray-700 dark:text-gray-300">{c.email}</td>
+                    <td className="p-3 text-gray-700 dark:text-gray-300">{c.ltv ? `R$ ${Number(c.ltv).toLocaleString()}` : '-'}</td>
+                  </tr>
+                ))
+              )}
+            </tbody>
+          </table>
+        </div>
       </div>
     </main>
   );

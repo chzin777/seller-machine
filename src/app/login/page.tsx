@@ -41,7 +41,7 @@ export default function LoginPage() {
   }
 
   return (
-    <div className="relative min-h-screen flex items-center justify-center overflow-hidden" style={{background: 'linear-gradient(120deg, #3b82f6 0%, #1e3a8a 100%)'}}>
+  <div className="relative min-h-screen flex items-center justify-center overflow-hidden px-2 sm:px-0" style={{background: 'linear-gradient(120deg, #3b82f6 0%, #1e3a8a 100%)'}}>
       {/* Montanhas estilizadas */}
       <svg className="absolute inset-0 w-full h-full" viewBox="0 0 800 600" fill="none" xmlns="http://www.w3.org/2000/svg" style={{zIndex:1}}>
         <defs>
@@ -61,7 +61,7 @@ export default function LoginPage() {
         <path d="M0 600 Q 300 350 600 600 T 800 600 V 600 H 0 Z" fill="url(#mountain2)" fillOpacity="0.85" />
       </svg>
       {/* Card de login */}
-      <div className="relative z-10 w-full max-w-md mx-auto bg-white/90 dark:bg-gray-900/90 rounded-xl shadow-2xl p-8 flex flex-col items-center backdrop-blur-md">
+  <div className="relative z-10 w-full max-w-md mx-auto bg-white/90 dark:bg-gray-900/90 rounded-xl shadow-2xl p-4 sm:p-8 flex flex-col items-center backdrop-blur-md">
         <h1 className="text-3xl font-bold mb-6 text-center text-blue-900 dark:text-blue-200">Login</h1>
         <form onSubmit={handleSubmit} className="w-full space-y-5">
           <div className="flex flex-col gap-2">

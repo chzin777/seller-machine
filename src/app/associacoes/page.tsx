@@ -50,7 +50,7 @@ export default function AssociacoesPage() {
 
   return (
     <main className="max-w-4xl mx-auto py-10 px-2 sm:px-0">
-      <div className="flex items-center gap-3 mb-8">
+  <div className="flex items-center gap-3 mb-8 mt-16 sm:mt-0">
         <div className="flex items-center justify-center w-12 h-12 rounded-xl bg-blue-100 dark:bg-blue-900 text-blue-700 dark:text-blue-200 shadow">
           <Link2 className="w-7 h-7" />
         </div>
@@ -68,43 +68,71 @@ export default function AssociacoesPage() {
           onChange={e => setBusca(e.target.value)}
         />
       </div>
-      <div className="overflow-x-auto rounded-xl shadow-lg bg-white dark:bg-gray-950 border border-gray-100 dark:border-gray-900 mt-4">
-        <table className="w-full text-sm">
-          <thead>
-            <tr className="bg-blue-50 dark:bg-blue-900 text-blue-900 dark:text-blue-200">
-              <th className="p-3 font-semibold text-left">Produto de Origem</th>
-              <th className="p-3 font-semibold text-left">Produto Associado</th>
-              <th className="p-3 font-semibold text-left" title="Quantidade de vezes que os dois produtos foram comprados juntos">Suporte <span className='text-xs text-blue-400'>(Qntd. juntos)</span></th>
-              <th className="p-3 font-semibold text-left" title="Probabilidade de quem compra o produto de origem também comprar o associado">Confiança <span className='text-xs text-blue-400'>(% juntos)</span></th>
-              <th className="p-3 font-semibold text-left" title="Quanto a associação é mais forte do que o acaso">Força (Lift) <TrendingUp className="inline w-4 h-4 ml-1 text-blue-400 align-text-bottom" /></th>
-              <th className="p-3 font-semibold text-left">Explicação</th>
-            </tr>
-          </thead>
-          <tbody>
-            {filtrados.length === 0 ? (
-              <tr>
-                <td colSpan={6} className="text-center py-8 text-gray-400">Nenhuma associação encontrada.</td>
+      {/* Mobile: Cards, Desktop: Tabela */}
+      <div className="mt-4">
+        {/* Mobile: Cards */}
+        <div className="flex flex-col gap-4 sm:hidden">
+          {filtrados.length === 0 ? (
+            <div className="text-center py-8 text-gray-400 bg-white dark:bg-gray-950 rounded-xl shadow border border-gray-100 dark:border-gray-900">Nenhuma associação encontrada.</div>
+          ) : (
+            filtrados.map((row, i) => (
+              <div key={i} className="rounded-xl shadow-lg border border-gray-100 dark:border-gray-900 bg-white dark:bg-gray-950 p-4 flex flex-col gap-2">
+                <div className="flex items-center gap-2 mb-1">
+                  <span className="font-bold text-blue-800 dark:text-blue-100">{row.a_name}</span>
+                  <span className="text-xs text-gray-400">→</span>
+                  <span className="font-bold text-blue-700 dark:text-blue-200">{row.b_name}</span>
+                </div>
+                <div className="flex flex-wrap gap-2 text-xs mb-1">
+                  <span className="bg-blue-50 dark:bg-blue-900 text-blue-900 dark:text-blue-200 rounded px-2 py-1">Suporte: <b>{row.support_count}</b></span>
+                  <span className="bg-blue-50 dark:bg-blue-900 text-blue-900 dark:text-blue-200 rounded px-2 py-1">Confiança: <b>{(row.confidence*100).toFixed(1)}%</b></span>
+                  <span className="bg-blue-50 dark:bg-blue-900 text-blue-900 dark:text-blue-200 rounded px-2 py-1 flex items-center gap-1">Força: <b>{row.lift.toFixed(2)}</b> <TrendingUp className="inline w-4 h-4 text-blue-400 align-text-bottom" /></span>
+                </div>
+                <div className="text-gray-600 dark:text-gray-300 text-xs">
+                  Quem compra <span className="font-semibold text-blue-800 dark:text-blue-100">{row.a_name}</span> também costuma comprar <span className="font-semibold text-blue-700 dark:text-blue-200">{row.b_name}</span>.
+                </div>
+              </div>
+            ))
+          )}
+        </div>
+        {/* Desktop: Tabela */}
+        <div className="hidden sm:block overflow-x-auto rounded-xl shadow-lg bg-white dark:bg-gray-950 border border-gray-100 dark:border-gray-900">
+          <table className="w-full text-sm">
+            <thead>
+              <tr className="bg-blue-50 dark:bg-blue-900 text-blue-900 dark:text-blue-200">
+                <th className="p-3 font-semibold text-left">Produto de Origem</th>
+                <th className="p-3 font-semibold text-left">Produto Associado</th>
+                <th className="p-3 font-semibold text-left" title="Quantidade de vezes que os dois produtos foram comprados juntos">Suporte <span className='text-xs text-blue-400'>(Qntd. juntos)</span></th>
+                <th className="p-3 font-semibold text-left" title="Probabilidade de quem compra o produto de origem também comprar o associado">Confiança <span className='text-xs text-blue-400'>(% juntos)</span></th>
+                <th className="p-3 font-semibold text-left" title="Quanto a associação é mais forte do que o acaso">Força (Lift) <TrendingUp className="inline w-4 h-4 ml-1 text-blue-400 align-text-bottom" /></th>
+                <th className="p-3 font-semibold text-left">Explicação</th>
               </tr>
-            ) : (
-              filtrados.map((row, i) => (
-                <tr key={i} className="border-t border-gray-100 dark:border-gray-900 hover:bg-blue-50/40 dark:hover:bg-blue-900/40 transition">
-                  <td className="p-3 font-bold text-blue-800 dark:text-blue-100">{row.a_name}</td>
-                  <td className="p-3 font-bold text-blue-700 dark:text-blue-200">{row.b_name}</td>
-                  <td className="p-3 text-gray-700 dark:text-gray-300 text-center">{row.support_count}</td>
-                  <td className="p-3 text-gray-700 dark:text-gray-300 text-center">{(row.confidence*100).toFixed(1)}%</td>
-                  <td className="p-3 text-gray-700 dark:text-gray-300 text-center">{row.lift.toFixed(2)}</td>
-                  <td className="p-3 text-gray-600 dark:text-gray-300 text-sm">
-                    Quem compra <span className="font-semibold text-blue-800 dark:text-blue-100">{row.a_name}</span> também costuma comprar <span className="font-semibold text-blue-700 dark:text-blue-200">{row.b_name}</span>.
-                  </td>
+            </thead>
+            <tbody>
+              {filtrados.length === 0 ? (
+                <tr>
+                  <td colSpan={6} className="text-center py-8 text-gray-400">Nenhuma associação encontrada.</td>
                 </tr>
-              ))
-            )}
-          </tbody>
-        </table>
+              ) : (
+                filtrados.map((row, i) => (
+                  <tr key={i} className="border-t border-gray-100 dark:border-gray-900 hover:bg-blue-50/40 dark:hover:bg-blue-900/40 transition">
+                    <td className="p-3 font-bold text-blue-800 dark:text-blue-100">{row.a_name}</td>
+                    <td className="p-3 font-bold text-blue-700 dark:text-blue-200">{row.b_name}</td>
+                    <td className="p-3 text-gray-700 dark:text-gray-300 text-center">{row.support_count}</td>
+                    <td className="p-3 text-gray-700 dark:text-gray-300 text-center">{(row.confidence*100).toFixed(1)}%</td>
+                    <td className="p-3 text-gray-700 dark:text-gray-300 text-center">{row.lift.toFixed(2)}</td>
+                    <td className="p-3 text-gray-600 dark:text-gray-300 text-sm">
+                      Quem compra <span className="font-semibold text-blue-800 dark:text-blue-100">{row.a_name}</span> também costuma comprar <span className="font-semibold text-blue-700 dark:text-blue-200">{row.b_name}</span>.
+                    </td>
+                  </tr>
+                ))
+              )}
+            </tbody>
+          </table>
+        </div>
         {/* Card de legenda fixo no canto inferior esquerdo, respeitando o menu lateral (só no client) */}
         {isClient && (
           <div
-            className="fixed bottom-8 z-40 transition-all duration-300"
+            className="fixed bottom-8 z-40 transition-all duration-300 hidden sm:block"
             style={{
               left: sidebarOpen ? 'calc(256px + 2rem)' : 'calc(64px + 2rem)',
             }}

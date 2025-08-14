@@ -50,8 +50,8 @@ export default function NovaSenhaPage() {
   }
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-100 to-blue-300 dark:from-gray-900 dark:to-blue-950">
-      <div className="bg-white dark:bg-gray-900 rounded-xl shadow-xl p-8 w-full max-w-md flex flex-col items-center">
+    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-100 to-blue-300 dark:from-gray-900 dark:to-blue-950 px-2 sm:px-0">
+      <div className="bg-white dark:bg-gray-900 rounded-xl shadow-xl p-4 sm:p-8 w-full max-w-md flex flex-col items-center">
         <h1 className="text-2xl font-bold mb-4 text-blue-900 dark:text-blue-200">Primeiro acesso</h1>
         <p className="mb-6 text-blue-800 dark:text-blue-300 text-center">Defina uma nova senha para continuar.</p>
         <form onSubmit={handleSubmit} className="w-full space-y-4">
