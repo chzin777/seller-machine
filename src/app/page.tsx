@@ -28,7 +28,7 @@ export default function Home() {
   const router = useRouter();
   useEffect(() => {
     if (typeof window !== "undefined") {
-      let user = localStorage.getItem("user") || sessionStorage.getItem("user");
+      const user = localStorage.getItem("user") || sessionStorage.getItem("user");
       if (!user) {
         router.replace("/login");
       }
