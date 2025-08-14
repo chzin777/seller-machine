@@ -225,7 +225,7 @@ export default function ConfiguracoesPage() {
               Sistema
             </Button>
           </div>
-          <p className="text-xs text-gray-500 mt-2">Escolha o tema visual do sistema. "Sistema" segue o tema do seu dispositivo.</p>
+          <p className="text-xs text-gray-500 mt-2">Escolha o tema visual do sistema. &quot;Sistema&quot; segue o tema do seu dispositivo.</p>
         </CardContent>
       </Card>
 
