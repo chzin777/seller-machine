@@ -186,8 +186,8 @@ export default function Home() {
           </CardHeader>
           <CardContent>
             <ul className="space-y-4">
-              {customers.map((c, i) => (
-                <li key={i} className="flex items-center gap-3">
+                {customers.map((c) => (
+                <li key={c.email} className="flex items-center gap-3">
                   <Avatar className="w-10 h-10 shadow border border-gray-200 dark:border-gray-800"><AvatarFallback>{c.avatar}</AvatarFallback></Avatar>
                   <div>
                     <div className="font-semibold text-base text-gray-900 dark:text-gray-100">{c.name}</div>

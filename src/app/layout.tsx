@@ -67,8 +67,8 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
 		if (typeof window !== "undefined") {
 			const applyTheme = () => {
 				try {
-					var theme = localStorage.getItem("theme");
-					var isDark =
+					const theme = localStorage.getItem("theme");
+					const isDark =
 						theme === "dark" ||
 						(!theme && window.matchMedia("(prefers-color-scheme: dark)").matches);
 					if (isDark) {
@@ -96,8 +96,8 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
 					{`
             (function() {
               try {
-                var theme = localStorage.getItem('theme');
-                var isDark = theme === 'dark' || (!theme && window.matchMedia('(prefers-color-scheme: dark)').matches);
+				const theme = localStorage.getItem('theme');
+				const isDark = theme === 'dark' || (!theme && window.matchMedia('(prefers-color-scheme: dark)').matches);
                 if (isDark) {
                   document.documentElement.classList.add('dark');
                   document.body && (document.body.style.background = '#111827');
@@ -162,7 +162,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
 						</div>
 						{/* Ícones do menu lateral colados na logo */}
 						<nav className="flex flex-col gap-1 mt-0">
-							{navLinks.map((link, idx) => {
+							 {navLinks.map((link) => {
 								const Icon = link.icon;
 								if (link.type === "toggle") {
 									return (
