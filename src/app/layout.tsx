@@ -1,6 +1,7 @@
 "use client";
 
 import Header from "../components/header";
+import Image from "next/image";
 import ThemeToggle from "../components/theme-toggle";
 import { LayoutDashboard, Link2, Users, Menu, UserCog } from "lucide-react";
 import { useState, useRef, useEffect } from "react";
@@ -115,19 +116,19 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
 				<meta name="color-scheme" content="dark light" />
 				<Script id="theme-init" strategy="beforeInteractive">
 					{`
-            (function() {
-              try {
-				const theme = localStorage.getItem('theme');
-				const isDark = theme === 'dark' || (!theme && window.matchMedia('(prefers-color-scheme: dark)').matches);
-                if (isDark) {
-                  document.documentElement.classList.add('dark');
-                  document.body && (document.body.style.background = '#111827');
-                } else {
-                  document.documentElement.classList.remove('dark');
-                  document.body && (document.body.style.background = '#f9fafb');
-                }
-              } catch(e) {}
-            })();
+						(function() {
+							try {
+								const theme = localStorage.getItem('theme');
+								const isDark = theme === 'dark' || (!theme && window.matchMedia('(prefers-color-scheme: dark)').matches);
+								if (isDark) {
+									document.documentElement.classList.add('dark');
+									if (document.body) document.body.style.background = '#111827';
+								} else {
+									document.documentElement.classList.remove('dark');
+									if (document.body) document.body.style.background = '#f9fafb';
+								}
+							} catch(e) {}
+						})();
           `}
 				</Script>
 			</head>
@@ -158,10 +159,12 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
 							className={`flex flex-col items-center mb-0 transition-all duration-300 group/sidebar relative px-0`}
 						>
 							{sidebarOpen ? (
-								<img
+								<Image
 									src="/images/logo.png"
 									alt="Logo Máquina de Vendas"
 									className="block transition-all duration-300 mx-auto"
+									width={200}
+									height={96}
 									style={{
 										height: 96,
 										maxWidth: 200,
@@ -169,10 +172,12 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
 									}}
 								/>
 							) : (
-								<img
+								<Image
 									src="/images/logo.png"
 									alt="Logo Máquina de Vendas"
 									className="block transition-all duration-300 mx-auto"
+									width={40}
+									height={40}
 									style={{
 										height: 40,
 										maxWidth: 40,

@@ -22,7 +22,7 @@ export default function NovaSenhaPage() {
     }
     setLoading(true);
     // Recupera usuário do localStorage/sessionStorage
-    let user = localStorage.getItem("user") || sessionStorage.getItem("user");
+  const user = localStorage.getItem("user") || sessionStorage.getItem("user");
     if (!user) {
       setMsg("Usuário não autenticado.");
       setLoading(false);

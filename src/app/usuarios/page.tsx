@@ -3,7 +3,6 @@ import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 
 import { Card, CardHeader, CardTitle, CardContent } from "../../components/ui/card";
-import { Table, TableHeader, TableHead, TableRow, TableBody, TableCell } from "../../components/ui/table";
 import { Button } from "../../components/ui/button";
 import { UserPlus } from "lucide-react";
 // Modal profissional para cadastro de usuário
@@ -39,7 +38,7 @@ function NovoUsuarioModal({ open, onClose, onSuccess }: { open: boolean; onClose
       return;
     }
     try {
-      const res = await fetch("/api/users", {
+  const res = await fetch("/api/users", { 
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ nome, sobrenome, email, conta, senha }),
