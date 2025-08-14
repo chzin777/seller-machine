@@ -2,9 +2,9 @@
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 
-import { Card, CardHeader, CardTitle, CardContent } from "../../components/ui/card";
+import { Card, CardHeader, CardContent } from "../../components/ui/card";
 import { Button } from "../../components/ui/button";
-import { UserPlus, Pencil, UserCog } from "lucide-react";
+import { UserPlus, Pencil } from "lucide-react";
 // import Header from "../../components/header";
 // Modal para editar usuário
 function EditarUsuarioModal({ open, onClose, onSuccess, usuario }: { open: boolean; onClose: () => void; onSuccess: () => void; usuario: Usuario | null }) {
@@ -130,8 +130,7 @@ function NovoUsuarioModal({ open, onClose, onSuccess }: { open: boolean; onClose
     }
   }, [open]);
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
+  const handleSubmit = async () => {
     setLoading(true);
     setErro("");
     setSuccess(false);
@@ -141,7 +140,7 @@ function NovoUsuarioModal({ open, onClose, onSuccess }: { open: boolean; onClose
       return;
     }
     try {
-  const res = await fetch("/api/users", { 
+      const res = await fetch("/api/users", { 
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ nome, sobrenome, email, conta, senha }),
