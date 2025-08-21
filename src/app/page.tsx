@@ -22,7 +22,7 @@ export default function Home() {
   const [vendasPorFilial, setVendasPorFilial] = useState<VendaPorFilial>([]);
   const [clientesAtivos, setClientesAtivos] = useState<number | null>(null);
   const [clientesInativos, setClientesInativos] = useState<number | null>(null);
-  const [totalClientes, setTotalClientes] = useState<number | null>(null);
+  // const [totalClientes, setTotalClientes] = useState<number | null>(null); // removed unused variable
   const [ticketMedio, setTicketMedio] = useState<number | null>(null);
   const [itensVendidos, setItensVendidos] = useState<number | null>(null);
   const [loading, setLoading] = useState(true);
@@ -93,7 +93,7 @@ export default function Home() {
         const todosClientesData = await todosClientesRes.json();
         // Supondo que retorna um array de clientes
         const totalClientesCount = Array.isArray(todosClientesData) ? todosClientesData.length : null;
-        setTotalClientes(totalClientesCount);
+  // setTotalClientes(totalClientesCount); // removed unused state
 
         // Clientes ativos = total - inativos
         if (typeof totalClientesCount === 'number' && Array.isArray(inativosData)) {
@@ -204,7 +204,7 @@ export default function Home() {
                       <CartesianGrid stroke="#e5e7eb" />
                       <XAxis dataKey="mes" tick={{ fontSize: 14, fill: '#64748b' }} />
                       <YAxis tickFormatter={(v) => `R$ ${formatCompact(v)}`} tick={{ fontSize: 14, fill: '#64748b' }} />
-                      <Tooltip formatter={(v: any) => `R$ ${formatCompact(v)}`} />
+                      <Tooltip formatter={(v: number) => `R$ ${formatCompact(v)}`} />
                       <Bar dataKey="valor" fill="#6366f1" radius={[8, 8, 0, 0]} />
                     </BarChart>
                   </ResponsiveContainer>
@@ -221,7 +221,7 @@ export default function Home() {
               <div className="h-72 w-full">
                 {vendasPorFilial.length > 0 && (
                   <ResponsiveContainer width="100%" height="100%">
-                    <BarChart data={vendasPorFilial.map((f: any) => ({
+                    <BarChart data={vendasPorFilial.map((f: VendaPorFilial[number]) => ({
                       filial: f.filial?.nome || '',
                       receita: Number(f.receitaTotal),
                       quantidadeNotas: f.quantidadeNotas
@@ -241,7 +241,7 @@ export default function Home() {
                         tickFormatter={(v) => `${formatCompact(v)} Notas`}
                         axisLine={false}
                       />
-                      <Tooltip formatter={(v: any, name: string) => {
+                      <Tooltip formatter={(v: number, name: string) => {
                         if (name === 'Receita') return [`R$ ${formatCompact(v)}`, 'Receita'];
                         if (name === 'Notas Fiscais') return [`${formatCompact(v)} Notas`, 'Notas Fiscais'];
                         return v;
@@ -298,7 +298,7 @@ export default function Home() {
                       tick={{ fontSize: 15, fill: '#64748b', fontWeight: 600 }}
                       axisLine={false}
                     />
-                    <Tooltip formatter={(v: any) => `R$ ${formatCompact(v)}`} />
+                    <Tooltip formatter={(v: number) => `R$ ${formatCompact(v)}`} />
                     <Bar dataKey="receita" radius={8} fill="#6366f1" barSize={30} />
                   </BarChart>
                 </ResponsiveContainer>
