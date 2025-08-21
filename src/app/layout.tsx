@@ -248,26 +248,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
 					>
 						{/* Header fixo no topo do conteúdo, exceto na página de login */}
 						{!isLoginPage && isClient && (
-							<Header
-								userName={userName}
-								title={
-									pathname === "/ajuda"
-										? "Ajuda"
-										: pathname === "/feedback"
-											? "Feedback"
-											: pathname === "/configuracoes"
-												? "Configurações"
-												: pathname === "/"
-													? "Painel de Vendas"
-													: pathname === "/associacoes"
-														? "Associações"
-														: pathname.startsWith("/clientes")
-															? "Clientes"
-															: pathname === "/usuarios"
-																? "Usuários"
-																: "Máquina de Vendas"
-								}
-							/>
+							   <Header userName={userName} />
 						)}
 						<main
 							className={`flex-1 overflow-y-auto ${isLoginPage ? "p-0 bg-transparent" : "p-2 sm:p-6 md:p-8 bg-transparent"
