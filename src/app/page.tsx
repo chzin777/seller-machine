@@ -4,15 +4,22 @@
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from '../components/ui/card';
-import { PieChart, Pie, Cell, ResponsiveContainer, Tooltip, Legend, BarChart, Bar, XAxis, YAxis, CartesianGrid } from 'recharts';
+import { ResponsiveContainer, Tooltip, Legend, BarChart, Bar, XAxis, YAxis, CartesianGrid } from 'recharts';
 import { LayoutDashboard } from 'lucide-react';
+
+type ReceitaMensal = {
+  ano: number;
+  receitaPorMes: Record<string, number>;
+};
+type ReceitaPorTipo = { tipo: string; receita: number }[];
+type VendaPorFilial = { filial: { nome: string }; receitaTotal: number; quantidadeNotas: number }[];
 
 export default function Home() {
   const router = useRouter();
   const [receitaTotal, setReceitaTotal] = useState<number | null>(null);
-  const [receitaMensal, setReceitaMensal] = useState<any | null>(null);
-  const [receitaPorTipo, setReceitaPorTipo] = useState<any[]>([]);
-  const [vendasPorFilial, setVendasPorFilial] = useState<any[]>([]);
+  const [receitaMensal, setReceitaMensal] = useState<ReceitaMensal | null>(null);
+  const [receitaPorTipo, setReceitaPorTipo] = useState<ReceitaPorTipo>([]);
+  const [vendasPorFilial, setVendasPorFilial] = useState<VendaPorFilial>([]);
   const [clientesAtivos, setClientesAtivos] = useState<number | null>(null);
   const [clientesInativos, setClientesInativos] = useState<number | null>(null);
   const [totalClientes, setTotalClientes] = useState<number | null>(null);
@@ -56,25 +63,25 @@ export default function Home() {
         }
 
         // Receita mensal
-        const receitaMensalRes = await fetch("/api/proxy?url=/api/indicadores/receita-mensal");
-        const receitaMensalData = await receitaMensalRes.json();
-        setReceitaMensal(receitaMensalData);
+  const receitaMensalRes = await fetch("/api/proxy?url=/api/indicadores/receita-mensal");
+  const receitaMensalData = await receitaMensalRes.json();
+  setReceitaMensal(receitaMensalData as ReceitaMensal);
 
         // Receita por tipo de produto
         const receitaTipoRes = await fetch("/api/proxy?url=/api/indicadores/receita-por-tipo-produto");
         const receitaTipoData = await receitaTipoRes.json();
-        let receitaTipoArr = [];
+        let receitaTipoArr: ReceitaPorTipo = [];
         if (Array.isArray(receitaTipoData)) {
           receitaTipoArr = receitaTipoData;
         } else if (receitaTipoData && typeof receitaTipoData === 'object') {
-          receitaTipoArr = Object.entries(receitaTipoData).map(([tipo, receita]) => ({ tipo, receita }));
+          receitaTipoArr = Object.entries(receitaTipoData).map(([tipo, receita]) => ({ tipo, receita: Number(receita) }));
         }
         setReceitaPorTipo(receitaTipoArr);
 
         // Vendas por filial
-        const vendasFilialRes = await fetch("/api/proxy?url=/api/indicadores/vendas-por-filial");
-        const vendasFilialData = await vendasFilialRes.json();
-        setVendasPorFilial(Array.isArray(vendasFilialData) ? vendasFilialData : []);
+  const vendasFilialRes = await fetch("/api/proxy?url=/api/indicadores/vendas-por-filial");
+  const vendasFilialData = await vendasFilialRes.json();
+  setVendasPorFilial(Array.isArray(vendasFilialData) ? vendasFilialData : []);
 
         // Clientes inativos (últimos 90 dias)
         const inativosRes = await fetch("/api/proxy?url=/api/indicadores/clientes-inativos?dias=90");
@@ -94,7 +101,7 @@ export default function Home() {
         } else {
           setClientesAtivos(null);
         }
-      } catch (err: any) {
+      } catch (err) {
         setError("Erro ao carregar dados da API.");
       } finally {
         setLoading(false);
@@ -305,20 +312,7 @@ export default function Home() {
 }
 
 // Label customizado para PieChart, afasta cada texto de acordo com o índice
-function renderCustomPieLabel(props: any) {
-  const { cx, cy, midAngle, outerRadius, index, name, value } = props;
-  // Distâncias diferentes para cada fatia (ajustado para evitar sobreposição)
-  const distances = [175, 150, 25]; // Máquina, Peça, Serviço
-  const radius = (outerRadius || 0) + (distances[index] || 40);
-  const RADIAN = Math.PI / 180;
-  const x = cx + radius * Math.cos(-midAngle * RADIAN);
-  const y = cy + radius * Math.sin(-midAngle * RADIAN);
-  return (
-    <text x={x} y={y} fill="#fff" textAnchor={x > cx ? 'start' : 'end'} dominantBaseline="central" fontSize={14}>
-      {`${name}: R$ ${formatCompact(typeof value === 'number' ? value : 0)}`}
-    </text>
-  );
-}
+//
 
 function formatCompact(value: number) {
   if (value === null || value === undefined) return '';
