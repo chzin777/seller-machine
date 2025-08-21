@@ -5,10 +5,9 @@ import React, { useState, useRef, useEffect } from "react";
 
 type HeaderProps = {
   userName?: string;
-  title?: string;
 };
 
-export default function Header({ userName, title }: HeaderProps) {
+export default function Header({ userName }: HeaderProps) {
   const [isClient, setIsClient] = useState(false);
   const [menuOpen, setMenuOpen] = useState(false);
   const menuRef = useRef<HTMLDivElement>(null);
@@ -43,7 +42,6 @@ export default function Header({ userName, title }: HeaderProps) {
   return (
     <header className="h-16 flex items-center justify-between px-8 border-b bg-transparent dark:bg-transparent">
       <div className="font-semibold text-lg ml-16 sm:ml-20">
-        {title || "Máquina de Vendas"}
       </div>
       <div className="flex items-center gap-4 relative">
         {/* Botão só mostra avatar no mobile, nome/avatar no desktop */}

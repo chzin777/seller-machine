@@ -1,31 +1,26 @@
-"use client";
+
+  "use client";
+
 import { useRouter } from "next/navigation";
-// Proteção de rota: redireciona para login se não autenticado
-import { useEffect } from "react";
-import * as React from 'react';
+import { useEffect, useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from '../components/ui/card';
-import { Avatar, AvatarFallback } from '../components/ui/avatar';
-import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, PieChart, Pie, Cell, Legend } from 'recharts';
-import { DollarSign, Package, Users, Eye, LayoutDashboard } from 'lucide-react';
-// ...existing code...
-
-
-
-// ...existing code...
-
-// Removido bloco duplicado e corrigido uso do Card para KPIs dinâmicos
-
-// ...existing code...
-
-// KPIs e cards dinâmicos (exemplo de uso correto do Card do shadcn/ui)
-
-// ...existing code...
-
-// Remover bloco duplicado de export default Home
-
+import { PieChart, Pie, Cell, ResponsiveContainer, Tooltip, Legend, BarChart, Bar, XAxis, YAxis, CartesianGrid } from 'recharts';
+import { LayoutDashboard } from 'lucide-react';
 
 export default function Home() {
   const router = useRouter();
+  const [receitaTotal, setReceitaTotal] = useState<number | null>(null);
+  const [receitaMensal, setReceitaMensal] = useState<any | null>(null);
+  const [receitaPorTipo, setReceitaPorTipo] = useState<any[]>([]);
+  const [vendasPorFilial, setVendasPorFilial] = useState<any[]>([]);
+  const [clientesAtivos, setClientesAtivos] = useState<number | null>(null);
+  const [clientesInativos, setClientesInativos] = useState<number | null>(null);
+  const [totalClientes, setTotalClientes] = useState<number | null>(null);
+  const [ticketMedio, setTicketMedio] = useState<number | null>(null);
+  const [itensVendidos, setItensVendidos] = useState<number | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+
   useEffect(() => {
     if (typeof window !== "undefined") {
       const user = localStorage.getItem("user") || sessionStorage.getItem("user");
@@ -34,226 +29,320 @@ export default function Home() {
       }
     }
   }, [router]);
-  // KPIs simulados
-  const kpis = {
-    revenue: 2379583,
-    products: 128,
-    members: 512,
-    visitors: 9000,
-  };
 
-  // Clientes simulados
-  const customers = [
-    { name: 'Carla Ferreira', email: 'carla@empresa.com', avatar: 'CF' },
-    { name: 'Julio Lima', email: 'julio@empresa.com', avatar: 'JL' },
-    { name: 'Gustavo Gomes', email: 'gustavo@empresa.com', avatar: 'GG' },
-    { name: 'Felipe Goncalves', email: 'felipe@empresa.com', avatar: 'FG' },
-    { name: 'Ana Souza', email: 'ana@empresa.com', avatar: 'AS' },
-  ];
+  useEffect(() => {
+    async function fetchData() {
+      setLoading(true);
+      setError(null);
+      try {
 
-  // Função para copiar email
-  function copyEmail(email: string) {
-    if (navigator && navigator.clipboard) {
-      navigator.clipboard.writeText(email);
+        // Receita total
+        const receitaTotalRes = await fetch("/api/proxy?url=/api/indicadores/receita-total");
+        const receitaTotalData = await receitaTotalRes.json();
+        setReceitaTotal(Number(receitaTotalData.receitaTotal || receitaTotalData.total || receitaTotalData.value || 0));
+
+        // Ticket médio por nota fiscal e Itens Vendidos
+        const notasRes = await fetch("/api/proxy?url=/api/notas-fiscais");
+        const notasData = await notasRes.json();
+        if (Array.isArray(notasData) && notasData.length > 0) {
+          const soma = notasData.reduce((acc, nf) => acc + (parseFloat(nf.valorTotal) || 0), 0);
+          setTicketMedio(soma / notasData.length);
+          // Soma dos itens vendidos
+          const totalItens = notasData.reduce((acc, nf) => acc + (nf._count?.itens || 0), 0);
+          setItensVendidos(totalItens);
+        } else {
+          setTicketMedio(null);
+          setItensVendidos(null);
+        }
+
+        // Receita mensal
+        const receitaMensalRes = await fetch("/api/proxy?url=/api/indicadores/receita-mensal");
+        const receitaMensalData = await receitaMensalRes.json();
+        setReceitaMensal(receitaMensalData);
+
+        // Receita por tipo de produto
+        const receitaTipoRes = await fetch("/api/proxy?url=/api/indicadores/receita-por-tipo-produto");
+        const receitaTipoData = await receitaTipoRes.json();
+        let receitaTipoArr = [];
+        if (Array.isArray(receitaTipoData)) {
+          receitaTipoArr = receitaTipoData;
+        } else if (receitaTipoData && typeof receitaTipoData === 'object') {
+          receitaTipoArr = Object.entries(receitaTipoData).map(([tipo, receita]) => ({ tipo, receita }));
+        }
+        setReceitaPorTipo(receitaTipoArr);
+
+        // Vendas por filial
+        const vendasFilialRes = await fetch("/api/proxy?url=/api/indicadores/vendas-por-filial");
+        const vendasFilialData = await vendasFilialRes.json();
+        setVendasPorFilial(Array.isArray(vendasFilialData) ? vendasFilialData : []);
+
+        // Clientes inativos (últimos 90 dias)
+        const inativosRes = await fetch("/api/proxy?url=/api/indicadores/clientes-inativos?dias=90");
+        const inativosData = await inativosRes.json();
+        setClientesInativos(Array.isArray(inativosData) ? inativosData.length : null);
+
+        // Buscar todos os clientes em /api/clientes
+        const todosClientesRes = await fetch("/api/proxy?url=/api/clientes");
+        const todosClientesData = await todosClientesRes.json();
+        // Supondo que retorna um array de clientes
+        const totalClientesCount = Array.isArray(todosClientesData) ? todosClientesData.length : null;
+        setTotalClientes(totalClientesCount);
+
+        // Clientes ativos = total - inativos
+        if (typeof totalClientesCount === 'number' && Array.isArray(inativosData)) {
+          setClientesAtivos(totalClientesCount - inativosData.length);
+        } else {
+          setClientesAtivos(null);
+        }
+      } catch (err: any) {
+        setError("Erro ao carregar dados da API.");
+      } finally {
+        setLoading(false);
+      }
     }
+    fetchData();
+  }, []);
+
+  if (loading) {
+    return (<div className="flex justify-center items-center h-96 text-xl">Carregando dados...</div>);
   }
-
-  // Gráfico de vendas simulado
-  const salesData = [
-    { week: '01/07', total: 12000 },
-    { week: '08/07', total: 18500 },
-    { week: '15/07', total: 14200 },
-    { week: '22/07', total: 21000 },
-    { week: '29/07', total: 19500 },
-    { week: '05/08', total: 23000 },
-    { week: '12/08', total: 25000 },
-  ];
-
-  // Gráfico de pizza simulado
-  const pieData = [
-    { category: 'Eletrônicos', total: 40000 },
-    { category: 'Papelaria', total: 25000 },
-    { category: 'Móveis', total: 15000 },
-    { category: 'Limpeza', total: 10000 },
-    { category: 'Outros', total: 5000 },
-  ];
-
-  // Transações recentes simuladas
-  const transactions = [
-    { id: 'TX12345', cliente: 'Carla Ferreira', valor: 'R$ 2.500,00', data: '12/08/2025', status: 'Concluída' },
-    { id: 'TX12346', cliente: 'Julio Lima', valor: 'R$ 1.200,00', data: '11/08/2025', status: 'Concluída' },
-    { id: 'TX12347', cliente: 'Gustavo Gomes', valor: 'R$ 3.100,00', data: '10/08/2025', status: 'Pendente' },
-    { id: 'TX12348', cliente: 'Ana Souza', valor: 'R$ 800,00', data: '09/08/2025', status: 'Concluída' },
-    { id: 'TX12349', cliente: 'Felipe Goncalves', valor: 'R$ 1.750,00', data: '08/08/2025', status: 'Cancelada' },
-  ];
-
-  const pieColors = ['#6366f1', '#f59e42', '#10b981', '#f43f5e', '#fbbf24'];
+  if (error) {
+    return (<div className="flex justify-center items-center h-96 text-xl text-red-600">{error}</div>);
+  }
 
   return (
     <>
-  <div className="flex items-center gap-3 mb-8 mt-16 sm:mt-0 ml-0 sm:ml-0 px-2 sm:px-6 max-w-[1500px] mx-auto">
-    <div className="flex items-center justify-center w-12 h-12 rounded-xl bg-blue-100 dark:bg-blue-900 text-blue-700 dark:text-blue-200 shadow">
-      <LayoutDashboard className="w-7 h-7" />
-    </div>
-    <div>
-      <h1 className="text-3xl font-extrabold leading-tight">Painel de Vendas</h1>
-      <p className="text-gray-500 dark:text-gray-400 text-sm mt-1">Visão geral das vendas, KPIs e principais métricas do seu negócio.</p>
-    </div>
-  </div>
-      <div className="max-w-[1500px] mx-auto flex flex-col lg:flex-row gap-8 px-2 sm:px-6">
-      {/* Main dashboard */}
-      <div className="flex-1 flex flex-col gap-8">
-        {/* KPIs cards */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-6">
-          <Card className="shadow-lg border border-blue-200/60 bg-gradient-to-br from-green-50 to-white dark:from-green-900/30 dark:to-gray-950">
+  <div className="flex items-center gap-3 mb-8 mt-4 px-2 sm:px-6 max-w-[1500px] mx-auto">
+        <div className="flex items-center justify-center w-12 h-12 rounded-xl bg-blue-100 dark:bg-blue-900 text-blue-700 dark:text-blue-200 shadow">
+          <LayoutDashboard className="w-7 h-7" />
+        </div>
+        <div>
+          <h1 className="text-3xl font-extrabold leading-tight">Painel Comercial</h1>
+          <p className="text-gray-500 dark:text-gray-400 text-sm mt-1">Indicadores, gráficos e clientes da plataforma.</p>
+        </div>
+      </div>
+  <div className="max-w-[1500px] mx-auto flex flex-col gap-8 px-2 sm:px-6">
+
+        {/* Linha de cards Receita Total, Ticket Médio, Itens Vendidos, Clientes Ativos e Inativos */}
+        <div className="flex flex-col sm:flex-row gap-4">
+          {/* Receita Total */}
+          <Card className="flex-1 shadow-lg border border-green-200/60 bg-gradient-to-br from-green-50 to-white dark:from-green-900/30 dark:to-gray-950">
             <CardHeader className="flex flex-row items-center justify-between pb-2">
-              <CardTitle className="text-base font-bold text-green-900 dark:text-green-200">Faturamento Total</CardTitle>
-              <DollarSign className="w-7 h-7 text-green-600 dark:text-green-300" />
+              <CardTitle className="text-base font-bold text-green-900 dark:text-green-200">Receita Total</CardTitle>
             </CardHeader>
             <CardContent>
-              <div className="text-3xl font-extrabold tracking-tight text-green-900 dark:text-green-100">R$ {kpis.revenue.toLocaleString()}</div>
+              <div className="text-4xl font-extrabold tracking-tight text-green-900 dark:text-green-100 flex items-center gap-2">
+                {receitaTotal !== null ? <><span>R$</span><span>{receitaTotal.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</span></> : '--'}
+              </div>
             </CardContent>
           </Card>
-          <Card className="shadow-lg border border-blue-200/60 bg-gradient-to-br from-blue-50 to-white dark:from-blue-900/30 dark:to-gray-950">
+          {/* Ticket Médio por NF */}
+          <Card className="flex-1 shadow-lg border border-yellow-200/60 bg-gradient-to-br from-yellow-50 to-white dark:from-yellow-900/30 dark:to-gray-950">
             <CardHeader className="flex flex-row items-center justify-between pb-2">
-              <CardTitle className="text-base font-bold text-blue-900 dark:text-blue-200">Produtos Ativos</CardTitle>
-              <Package className="w-7 h-7 text-blue-900 dark:text-blue-300" />
+              <CardTitle className="text-base font-bold text-yellow-900 dark:text-yellow-200">Ticket Médio por NF</CardTitle>
             </CardHeader>
             <CardContent>
-              <div className="text-3xl font-extrabold tracking-tight text-blue-900 dark:text-blue-100">{kpis.products.toLocaleString()}</div>
+              <div className="text-4xl font-extrabold tracking-tight text-yellow-900 dark:text-yellow-100">
+                {ticketMedio !== null ? `R$ ${ticketMedio.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}` : '--'}
+              </div>
             </CardContent>
           </Card>
-          <Card className="shadow-lg border border-cyan-300/60 bg-gradient-to-br from-cyan-50 to-white dark:from-cyan-900/30 dark:to-gray-950">
+          {/* Itens Vendidos */}
+          <Card className="flex-1 shadow-lg border border-indigo-200/60 bg-gradient-to-br from-indigo-50 to-white dark:from-indigo-900/30 dark:to-gray-950">
             <CardHeader className="flex flex-row items-center justify-between pb-2">
-              <CardTitle className="text-base font-bold text-cyan-900 dark:text-cyan-200">Clientes Ativos</CardTitle>
-              <Users className="w-7 h-7 text-cyan-600 dark:text-cyan-300" />
+              <CardTitle className="text-base font-bold text-indigo-900 dark:text-indigo-200">Itens Vendidos</CardTitle>
             </CardHeader>
             <CardContent>
-              <div className="text-3xl font-extrabold tracking-tight text-cyan-900 dark:text-cyan-100">{kpis.members.toLocaleString()}</div>
+              <div className="text-4xl font-extrabold tracking-tight text-indigo-900 dark:text-indigo-100">
+                {itensVendidos !== null ? itensVendidos.toLocaleString('pt-BR') : '--'}
+              </div>
             </CardContent>
           </Card>
-          <Card className="shadow-lg border border-blue-200/60 bg-gradient-to-br from-yellow-50 to-white dark:from-yellow-900/30 dark:to-gray-950">
+          {/* Clientes Ativos */}
+          <Card className="flex-1 shadow-lg border border-blue-200/60 bg-gradient-to-br from-blue-50 to-white dark:from-blue-900/30 dark:to-gray-950">
             <CardHeader className="flex flex-row items-center justify-between pb-2">
-              <CardTitle className="text-base font-bold text-yellow-900 dark:text-yellow-200">Visitantes (simulado)</CardTitle>
-              <Eye className="w-7 h-7 text-yellow-600 dark:text-yellow-300" />
+              <CardTitle className="text-base font-bold text-blue-900 dark:text-blue-200">Clientes Ativos (90 dias)</CardTitle>
             </CardHeader>
             <CardContent>
-              <div className="text-3xl font-extrabold tracking-tight text-yellow-900 dark:text-yellow-100">{kpis.visitors.toLocaleString()}</div>
+              <div className="text-4xl font-extrabold tracking-tight text-blue-900 dark:text-blue-100">
+                {clientesAtivos !== null ? clientesAtivos : '--'}
+              </div>
+            </CardContent>
+          </Card>
+          {/* Clientes Inativos */}
+          <Card className="flex-1 shadow-lg border border-red-200/60 bg-gradient-to-br from-red-50 to-white dark:from-red-900/30 dark:to-gray-950">
+            <CardHeader className="flex flex-row items-center justify-between pb-2">
+              <CardTitle className="text-base font-bold text-red-900 dark:text-red-200">Clientes Inativos (90 dias)</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="text-4xl font-extrabold tracking-tight text-red-900 dark:text-red-100">
+                {clientesInativos !== null ? clientesInativos : '--'}
+              </div>
             </CardContent>
           </Card>
         </div>
 
-        {/* Analytics chart real */}
-  <Card className="shadow-lg border border-blue-200/30 bg-gray-50 dark:bg-gray-900">
-          <CardHeader className="flex flex-row items-center justify-between pb-2">
-            <CardTitle className="text-lg font-bold">Evolução de Vendas</CardTitle>
-            <div className="flex items-center gap-2">
-              <span className="text-xs text-gray-500">Semanal</span>
-              <span className="w-2 h-2 rounded-full bg-blue-500 inline-block"></span>
-              <span className="text-xs text-gray-500">Faturamento</span>
-            </div>
-          </CardHeader>
-          <CardContent>
-            <div className="h-56">
-              <ResponsiveContainer width="100%" height="100%">
-                <LineChart data={salesData} margin={{ top: 10, right: 20, left: 0, bottom: 0 }}>
-                  <CartesianGrid strokeDasharray="3 3" />
-                  <XAxis dataKey="week" />
-                  <YAxis />
-                  <Tooltip />
-                  <Line type="monotone" dataKey="total" stroke="#6366f1" strokeWidth={2} dot={false} />
-                </LineChart>
-              </ResponsiveContainer>
-            </div>
-          </CardContent>
-        </Card>
+        {/* Linha de gráficos Receita Mensal e Vendas por Filial */}
+        <div className="flex flex-col lg:flex-row gap-8 w-full">
+          {/* Gráfico Receita Mensal */}
+          <Card className="flex-1 shadow-lg border border-blue-200/30 bg-gray-50 dark:bg-gray-900 min-w-[350px]">
+            <CardHeader>
+              <CardTitle className="text-lg font-bold">Receita Mensal {receitaMensal?.ano ? `(${receitaMensal.ano})` : ''}</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="h-72 w-full">
+                {receitaMensal?.receitaPorMes && (
+                  <ResponsiveContainer width="100%" height="100%">
+                    <BarChart data={Object.entries(receitaMensal.receitaPorMes).map(([mes, valor]) => ({ mes, valor }))}>
+                      <CartesianGrid stroke="#e5e7eb" />
+                      <XAxis dataKey="mes" tick={{ fontSize: 14, fill: '#64748b' }} />
+                      <YAxis tickFormatter={(v) => `R$ ${formatCompact(v)}`} tick={{ fontSize: 14, fill: '#64748b' }} />
+                      <Tooltip formatter={(v: any) => `R$ ${formatCompact(v)}`} />
+                      <Bar dataKey="valor" fill="#6366f1" radius={[8, 8, 0, 0]} />
+                    </BarChart>
+                  </ResponsiveContainer>
+                )}
+              </div>
+            </CardContent>
+          </Card>
+          {/* Gráfico Vendas x Receita */}
+          <Card className="flex-1 shadow-lg border border-blue-200/30 bg-gray-50 dark:bg-gray-900 min-w-[350px]">
+            <CardHeader>
+              <CardTitle className="text-lg font-bold">Vendas x Receita</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="h-72 w-full">
+                {vendasPorFilial.length > 0 && (
+                  <ResponsiveContainer width="100%" height="100%">
+                    <BarChart data={vendasPorFilial.map((f: any) => ({
+                      filial: f.filial?.nome || '',
+                      receita: Number(f.receitaTotal),
+                      quantidadeNotas: f.quantidadeNotas
+                    }))}>
+                      <CartesianGrid stroke="#e5e7eb" vertical={true} />
+                      <XAxis dataKey="filial" tick={{ fontSize: 14, fill: '#64748b' }} />
+                      <YAxis
+                        yAxisId="left"
+                        tick={{ fontSize: 14, fill: '#10b981' }}
+                        tickFormatter={(v) => `R$ ${formatCompact(v)}`}
+                        axisLine={false}
+                      />
+                      <YAxis
+                        yAxisId="right"
+                        orientation="right"
+                        tick={{ fontSize: 14, fill: '#6366f1' }}
+                        tickFormatter={(v) => `${formatCompact(v)} Notas`}
+                        axisLine={false}
+                      />
+                      <Tooltip formatter={(v: any, name: string) => {
+                        if (name === 'Receita') return [`R$ ${formatCompact(v)}`, 'Receita'];
+                        if (name === 'Notas Fiscais') return [`${formatCompact(v)} Notas`, 'Notas Fiscais'];
+                        return v;
+                      }} />
+                      <Bar
+                        yAxisId="right"
+                        dataKey="quantidadeNotas"
+                        fill="#6366f1"
+                        name="Notas Fiscais"
+                        radius={[8, 8, 0, 0]}
+                      />
+                      <Bar
+                        yAxisId="left"
+                        dataKey="receita"
+                        fill="#10b981"
+                        name="Receita"
+                        radius={[8, 8, 0, 0]}
+                      />
+                      <Legend />
+                    </BarChart>
+                  </ResponsiveContainer>
+                )}
+              </div>
+            </CardContent>
+          </Card>
+        </div>
 
-        {/* Transações Recentes Simuladas */}
+        {/* Gráfico Receita por Tipo de Produto */}
+        {/* Gráfico Receita por Tipo de Produto (Barra horizontal estilo mixed) */}
         <Card className="shadow-lg border border-blue-200/30 bg-gray-50 dark:bg-gray-900">
           <CardHeader>
-            <CardTitle className="text-lg font-bold">Transações Recentes</CardTitle>
+            <CardTitle className="text-lg font-bold">Receita por Tipo de Produto</CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="overflow-x-auto">
-              <table className="min-w-full text-xs text-left">
-                <thead>
-                  <tr className="text-gray-500 border-b">
-                    <th className="py-2 pr-4">ID</th>
-                    <th className="py-2 pr-4">Cliente</th>
-                    <th className="py-2 pr-4">Valor</th>
-                    <th className="py-2 pr-4">Data</th>
-                    <th className="py-2 pr-4">Status</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {transactions.map((t) => (
-                    <tr key={t.id} className="border-b last:border-0">
-                      <td className="py-2 pr-4 font-mono">{t.id}</td>
-                      <td className="py-2 pr-4">{t.cliente}</td>
-                      <td className="py-2 pr-4">{t.valor}</td>
-                      <td className="py-2 pr-4">{t.data}</td>
-                      <td className={`py-2 pr-4 font-semibold ${t.status === 'Concluída' ? 'text-green-600' : t.status === 'Pendente' ? 'text-yellow-600' : 'text-red-600'}`}>{t.status}</td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
+            <div className="h-72 flex items-center justify-center">
+              {receitaPorTipo.length > 0 && (
+                <ResponsiveContainer width="100%" height={260}>
+                  <BarChart
+                    data={receitaPorTipo}
+                    layout="vertical"
+                    margin={{ top: 20, right: 40, left: 40, bottom: 20 }}
+                    barCategoryGap={30}
+                  >
+                    <CartesianGrid stroke="#222" />
+                    <XAxis
+                      type="number"
+                      tickFormatter={(v) => `R$ ${formatCompact(v)}`}
+                      tick={{ fontSize: 14, fill: '#64748b' }}
+                      axisLine={false}
+                    />
+                    <YAxis
+                      dataKey="tipo"
+                      type="category"
+                      tick={{ fontSize: 15, fill: '#64748b', fontWeight: 600 }}
+                      axisLine={false}
+                    />
+                    <Tooltip formatter={(v: any) => `R$ ${formatCompact(v)}`} />
+                    <Bar dataKey="receita" radius={8} fill="#6366f1" barSize={30} />
+                  </BarChart>
+                </ResponsiveContainer>
+              )}
             </div>
           </CardContent>
         </Card>
       </div>
-
-      {/* Right sidebar: Customers List & Analytics Overview */}
-      <div className="w-full lg:w-[340px] flex flex-col gap-8">
-        <Card className="shadow-lg border border-blue-200/30 bg-gray-50 dark:bg-gray-900">
-          <CardHeader>
-            <CardTitle className="text-lg font-bold">Lista de Clientes</CardTitle>
-          </CardHeader>
-          <CardContent>
-            {/* Mobile: lista vertical, Desktop: igual */}
-            <ul className="space-y-4 sm:space-y-4">
-              {customers.map((c) => (
-                <li key={c.email} className="flex items-center gap-3">
-                  <Avatar className="w-10 h-10 shadow border border-gray-200 dark:border-gray-800">
-                    <AvatarFallback>{c.avatar}</AvatarFallback>
-                  </Avatar>
-                  <div>
-                    <div className="font-semibold text-base text-gray-900 dark:text-gray-100">{c.name}</div>
-                    <button
-                      type="button"
-                      className="text-sm sm:text-xs text-blue-700 dark:text-blue-200 underline underline-offset-2 hover:text-blue-900 dark:hover:text-blue-100 transition cursor-pointer px-0 py-0 bg-transparent border-0"
-                      style={{ fontSize: '1rem', background: 'none' }}
-                      title="Copiar e-mail"
-                      onClick={() => copyEmail(c.email)}
-                    >
-                      {c.email}
-                    </button>
-                  </div>
-                </li>
-              ))}
-            </ul>
-          </CardContent>
-        </Card>
-  <Card className="shadow-lg border border-blue-200/30 bg-gray-50 dark:bg-gray-900">
-          <CardHeader>
-            <CardTitle className="text-lg font-bold">Resumo Analítico</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="flex items-center justify-center h-72">
-              <ResponsiveContainer width="100%" height={240}>
-                <PieChart>
-                  <Pie data={pieData} dataKey="total" nameKey="category" cx="50%" cy="50%" outerRadius={90}>
-                    {pieData.map((entry, idx) => (
-                      <Cell key={`cell-${idx}`} fill={pieColors[idx % pieColors.length]} />
-                    ))}
-                  </Pie>
-                  <Legend />
-                </PieChart>
-              </ResponsiveContainer>
-            </div>
-          </CardContent>
-        </Card>
-      </div>
-    </div>
     </>
   );
+}
+
+// Label customizado para PieChart, afasta cada texto de acordo com o índice
+function renderCustomPieLabel(props: any) {
+  const { cx, cy, midAngle, outerRadius, index, name, value } = props;
+  // Distâncias diferentes para cada fatia (ajustado para evitar sobreposição)
+  const distances = [175, 150, 25]; // Máquina, Peça, Serviço
+  const radius = (outerRadius || 0) + (distances[index] || 40);
+  const RADIAN = Math.PI / 180;
+  const x = cx + radius * Math.cos(-midAngle * RADIAN);
+  const y = cy + radius * Math.sin(-midAngle * RADIAN);
+  return (
+    <text x={x} y={y} fill="#fff" textAnchor={x > cx ? 'start' : 'end'} dominantBaseline="central" fontSize={14}>
+      {`${name}: R$ ${formatCompact(typeof value === 'number' ? value : 0)}`}
+    </text>
+  );
+}
+
+function formatCompact(value: number) {
+  if (value === null || value === undefined) return '';
+  const abs = Math.abs(value);
+  if (abs >= 1e9) {
+    let v = (value / 1e9).toFixed(2).replace('.', ',');
+    v = v.replace(/,00$/, '');
+    v = v.replace(/,0$/, '');
+    return v + 'BI';
+  }
+  if (abs >= 1e6) {
+    let v = (value / 1e6).toFixed(2).replace('.', ',');
+    v = v.replace(/,00$/, '');
+    v = v.replace(/,0$/, '');
+    return v + 'MI';
+  }
+  if (abs >= 1e3) {
+    let v = (value / 1e3).toFixed(1).replace('.', ',');
+    v = v.replace(/,0$/, '');
+    return v + 'K';
+  }
+  // Para valores menores que 1.000, remover zeros desnecessários após a vírgula
+  let v = value.toLocaleString('pt-BR', { minimumFractionDigits: 2 });
+  v = v.replace(/,00$/, '');
+  v = v.replace(/,0$/, '');
+  return v;
 }
