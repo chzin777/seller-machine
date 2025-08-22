@@ -3,6 +3,39 @@
 
 @custom-variant dark (&:is(.dark *));
 
+/* Estilos para Leaflet */
+.leaflet-container {
+  height: 100%;
+  width: 100%;
+}
+
+.custom-popup .leaflet-popup-content-wrapper {
+  background: white;
+  border-radius: 8px;
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+  border: none;
+}
+
+.custom-popup .leaflet-popup-tip {
+  background: white;
+  border: none;
+}
+
+.custom-tooltip {
+  background: rgba(0, 0, 0, 0.8);
+  color: white;
+  padding: 4px 8px;
+  border-radius: 4px;
+  font-size: 12px;
+  font-weight: 500;
+  border: none;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+}
+
+.custom-tooltip:before {
+  border-top-color: rgba(0, 0, 0, 0.8);
+}
+
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
@@ -118,5 +151,205 @@
   }
   body {
     @apply bg-background text-foreground;
+  }
+}
+
+@layer utilities {
+  .line-clamp-2 {
+    overflow: hidden;
+    display: -webkit-box;
+    -webkit-box-orient: vertical;
+    -webkit-line-clamp: 2;
+    line-clamp: 2;
+  }
+  
+  .line-clamp-3 {
+    overflow: hidden;
+    display: -webkit-box;
+    -webkit-box-orient: vertical;
+    -webkit-line-clamp: 3;
+    line-clamp: 3;
+  }
+  
+  .animate-fade-in {
+    animation: fadeIn 0.2s ease-out;
+  }
+  
+  @keyframes fadeIn {
+    from {
+      opacity: 0;
+      transform: translateY(-10px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+  
+  /* Smooth scrolling para mobile */
+  .overflow-y-auto {
+    -webkit-overflow-scrolling: touch;
+  }
+  
+  /* Better touch targets for mobile */
+  @media (max-width: 768px) {
+    button, 
+    a[role="button"], 
+    input[type="button"], 
+    input[type="submit"], 
+    select, 
+    .cursor-pointer {
+      min-height: 44px;
+      min-width: 44px;
+    }
+    
+    /* Ensure text inputs have good touch size */
+    input[type="text"], input[type="email"], input[type="password"], input[type="search"], textarea {
+      min-height: 44px;
+    }
+    
+    /* Better spacing for mobile cards */
+    .card-mobile {
+      padding: 1rem;
+      margin-bottom: 0.75rem;
+    }
+    
+    /* Hide desktop-only elements */
+    .desktop-only {
+      display: none !important;
+    }
+    
+    /* Show mobile-only elements */
+    .mobile-only {
+      display: block !important;
+    }
+
+    /* KPI Cards mobile responsiveness */
+    .kpi-container {
+      min-height: 140px;
+      display: flex;
+      flex-direction: column;
+    }
+    
+    .kpi-content {
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      flex: 1;
+      min-height: 0;
+    }
+    
+    .kpi-number-responsive {
+      font-size: clamp(1.1rem, 3.5vw, 1.8rem) !important;
+      line-height: 1.2 !important;
+      word-break: break-all;
+      hyphens: auto;
+    }
+    
+    /* Melhor formatação para títulos dos cards KPI */
+    .kpi-container .card-header,
+    .kpi-container [class*="card-header"] {
+      padding-bottom: 0.25rem !important;
+      padding-top: 0.75rem !important;
+      min-height: 2.5rem;
+      flex-shrink: 0;
+    }
+    
+    .kpi-container .card-header h3,
+    .kpi-container h3,
+    .kpi-container [class*="CardTitle"] {
+      font-size: 0.7rem !important;
+      line-height: 1.2 !important;
+      white-space: normal !important;
+      overflow: visible !important;
+      text-overflow: clip !important;
+      word-wrap: break-word !important;
+      hyphens: auto !important;
+      max-height: none !important;
+      margin: 0 !important;
+      padding: 0 !important;
+      display: block !important;
+    }
+
+    /* Garantir que o conteúdo do card tenha espaço adequado */
+    .kpi-container [class*="card-content"],
+    .kpi-container .card-content {
+      padding-top: 0.5rem !important;
+      padding-bottom: 0.75rem !important;
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      min-height: 0;
+    }
+
+    /* Otimizações gerais para mobile */
+    .leading-tight {
+      line-height: 1.25 !important;
+    }
+
+    .break-all {
+      word-break: break-all;
+      overflow-wrap: break-word;
+    }
+    
+    /* Ajustar o grid dos cards para mobile */
+    .grid {
+      gap: 0.75rem !important;
+    }
+    
+    /* Melhorar o espaçamento entre elementos */
+    .kpi-container > * {
+      flex-shrink: 0;
+    }
+    
+    /* Forçar quebra de linha em títulos longos */
+    .kpi-container h3 {
+      word-wrap: break-word !important;
+      overflow-wrap: break-word !important;
+      hyphens: auto !important;
+    }
+
+    /* Ajustar background em mobile para dar espaço extra */
+    .brightness-75 {
+      padding-bottom: 80px !important;
+      height: calc(100vh + 80px) !important;
+    }
+  }
+  
+  /* Desktop breakpoints */
+  @media (min-width: 769px) {
+    .mobile-only {
+      display: none !important;
+    }
+    
+    .desktop-only {
+      display: block !important;
+    }
+  }
+  
+  /* Better focus states for accessibility */
+  .focus-visible {
+    outline: 2px solid rgb(59 130 246);
+    outline-offset: 2px;
+  }
+  
+  /* Safe area insets for mobile devices with notches */
+  @supports (padding-top: env(safe-area-inset-top)) {
+    .safe-top {
+      padding-top: env(safe-area-inset-top);
+    }
+    
+    .safe-bottom {
+      padding-bottom: env(safe-area-inset-bottom);
+    }
+    
+    .safe-left {
+      padding-left: env(safe-area-inset-left);
+    }
+    
+    .safe-right {
+      padding-right: env(safe-area-inset-right);
+    }
   }
 }

@@ -1,0 +1,13 @@
+{
+  "scripts": {
+    "dev": "next dev --turbopack",
+    "build": "next build",
+    "start": "next start",
+    "lint": "next lint",
+    "analyze": "ANALYZE=true npm run build",
+    "build:analyze": "cross-env ANALYZE=true next build",
+    "perf:audit": "lighthouse http://localhost:3000 --only-categories=performance,accessibility,best-practices,seo --output=json --output-path=./lighthouse-report.json",
+    "perf:dev": "npm run dev & sleep 10 && npm run perf:audit",
+    "cache:clear": "rm -rf .next && npm run build"
+  }
+}

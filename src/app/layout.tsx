@@ -2,10 +2,15 @@
 
 import Header from "../components/header";
 import Logo from "../../components/Logo";
-import ThemeToggle from "../components/theme-toggle";
-import { LayoutDashboard, Link2, Users, Menu, UserCog, X } from "lucide-react";
+import DarkVeil from "../blocks/Backgrounds/DarkVeil/DarkVeil";
+import SimpleDarkVeil from "../blocks/Backgrounds/SimpleDarkVeil/SimpleDarkVeil";
+import { LoadingProvider, useLoading } from "../components/LoadingContext";
+import { DataProvider } from "../components/DataProvider";
+import { ServiceWorkerProvider } from "../components/ServiceWorkerProvider";
+import { PerformanceMonitor } from "../components/PerformanceMonitor";
+import ProgressBar from "../components/ui/progress-bar";
+import { LayoutDashboard, Link2, Users, Menu, UserCog, X, Map } from "lucide-react";
 import { useState, useRef, useEffect } from "react";
-import Script from "next/script";
 import "./globals.css";
 import { useRouter, usePathname } from "next/navigation";
 
@@ -14,6 +19,7 @@ function getNavLinks(userConta?: string) {
 	const baseLinks = [
 		{ type: "toggle", label: "Menu", icon: Menu },
 		{ href: "/", label: "Dashboard", icon: LayoutDashboard },
+		{ href: "/mapa-vendas", label: "Mapa de Vendas", icon: Map },
 		{ href: "/associacoes", label: "Associações", icon: Link2 },
 		{ href: "/clientes", label: "Clientes", icon: Users },
 	];
@@ -25,6 +31,32 @@ function getNavLinks(userConta?: string) {
 
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
+	return (
+		<html
+			lang="pt-BR"
+			suppressHydrationWarning
+			className="w-full h-full min-h-screen dark"
+		>
+			<head>
+				<meta name="color-scheme" content="dark" />
+			</head>
+			<body className="bg-gray-900 text-gray-100 min-h-screen w-full h-full m-0 p-0 font-sans overflow-x-hidden"
+				style={{ background: '#111827' }}>
+				<ServiceWorkerProvider>
+					<LoadingProvider>
+						<DataProvider>
+							<LayoutContent>{children}</LayoutContent>
+							<PerformanceMonitor />
+						</DataProvider>
+					</LoadingProvider>
+				</ServiceWorkerProvider>
+			</body>
+		</html>
+	);
+}
+
+function LayoutContent({ children }: { children: React.ReactNode }) {
+	const { isLoading, progress } = useLoading();
 	// Garante que userName e userConta sejam sempre lidos do storage
 	useEffect(() => {
 		if (typeof window !== "undefined") {
@@ -59,33 +91,29 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
 	}, []);
 
 	return (
-		<html
-			lang="pt-BR"
-			suppressHydrationWarning
-			className="w-full h-full min-h-screen"
-		>
-			<head>
-				<meta name="color-scheme" content="dark light" />
-				<Script id="theme-init" strategy="beforeInteractive">
-					{`
-						(function() {
-							try {
-								const theme = localStorage.getItem('theme');
-								const isDark = theme === 'dark' || (!theme && window.matchMedia('(prefers-color-scheme: dark)').matches);
-								if (isDark) {
-									document.documentElement.classList.add('dark');
-									if (document.body) document.body.style.background = '#111827';
-								} else {
-									document.documentElement.classList.remove('dark');
-									if (document.body) document.body.style.background = '#f9fafb';
-								}
-							} catch(e) {}
-						})();
-					`}
-				</Script>
-			</head>
-			<body className="bg-gray-50 text-gray-900 min-h-screen w-full h-full m-0 p-0 dark:bg-gray-900 dark:text-gray-100 font-sans">
-				   <div className="flex min-h-screen w-full">
+		<>
+			{/* Progress Bar Global */}
+			<ProgressBar isLoading={isLoading} progress={progress} />
+			
+			<div className="flex min-h-screen w-full relative overflow-x-hidden" style={{ minHeight: '100vh' }}>
+					   {/* DarkVeil Background Global - apenas para páginas que não são de login */}
+					   {!isLoginPage && (
+						   <>
+							   <SimpleDarkVeil 
+								   className="brightness-75" 
+								   hueShift={20}
+								   noiseIntensity={0.02}
+								   speed={0.8}
+							   />
+							   {/* Fallback original caso SimpleDarkVeil falhe */}
+							   <DarkVeil 
+								   className="brightness-70" 
+								   hueShift={20}
+								   noiseIntensity={0.05}
+								   speed={1.3}
+							   />
+						   </>
+					   )}
 					   {/* Sidebar Desktop - UI Profissional */}
 					   {!isLoginPage && (
 						   <aside
@@ -161,99 +189,143 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
 					{/* Menu Mobile */}
 					{!isLoginPage && (
 						<div className="sm:hidden fixed top-0 left-0 w-full z-50">
-							<div className="flex items-center justify-between bg-gray-50 dark:bg-gray-900 px-2 py-2 shadow-md">
+							<div className="flex items-center justify-between bg-gray-50/95 dark:bg-gray-900/95 backdrop-blur-md px-3 py-3 shadow-lg border-b border-gray-200/50 dark:border-gray-800/50">
 								<button
-									className="flex items-center gap-2 text-blue-700 dark:text-blue-200 focus:outline-none hover:cursor-pointer"
+									className="flex items-center gap-2 text-blue-700 dark:text-blue-200 focus:outline-none hover:cursor-pointer p-2 rounded-lg hover:bg-blue-50 dark:hover:bg-blue-900/30 transition-colors"
 									onClick={() => setSidebarOpen((v) => !v)}
 									aria-label="Abrir menu"
 									type="button"
 								>
-									<Menu className="w-7 h-7" />
+									<Menu className="w-6 h-6" />
 								</button>
 								<Logo
 									className="block mx-auto text-[#1e293b] dark:text-white"
-									width={120}
-									height={48}
-									style={{ height: 48, maxWidth: 120 }}
+									width={110}
+									height={40}
+									style={{ height: 40, maxWidth: 110 }}
 									aria-label="Logo Máquina de Vendas"
 								/>
-								<div className="w-7 h-7" /> {/* Espaço para alinhar */}
+								<div className="w-10 h-10" /> {/* Espaço para alinhar */}
 							</div>
 							{sidebarOpen && (
-								<div className="absolute left-2 right-2 mt-2 bg-white dark:bg-gray-900 rounded-xl shadow-xl border border-blue-100 dark:border-gray-800 flex flex-col py-2 px-2 animate-fade-in z-50">
-									<button
-										className="absolute top-2 right-2 text-gray-400 hover:text-blue-700 dark:hover:text-blue-200 text-2xl font-bold"
+								<>
+									{/* Overlay */}
+									<div 
+										className="fixed inset-0 bg-black/30 backdrop-blur-sm z-40"
 										onClick={() => setSidebarOpen(false)}
-										aria-label="Fechar menu"
-										type="button"
-									>
-										<X className="w-6 h-6" />
-									</button>
-									{/* Bloco do usuário no topo do menu lateral mobile */}
-									<div className="flex items-center gap-3 px-4 py-3 border-b border-blue-100 dark:border-blue-800 bg-blue-50 dark:bg-blue-900/40 rounded-t-lg mb-2">
-										<div className="w-9 h-9 rounded-full bg-blue-700 flex items-center justify-center text-white font-bold text-lg">
-											{userName ? userName.split(' ').map((n) => n[0]).join('').toUpperCase().slice(0, 2) : 'U'}
+									/>
+									{/* Menu lateral */}
+									<div className="fixed left-0 top-0 h-full w-80 max-w-[85vw] bg-white dark:bg-gray-900 shadow-2xl border-r border-blue-100 dark:border-gray-800 flex flex-col py-4 px-3 animate-fade-in z-50 overflow-y-auto">
+										<div className="flex items-center justify-between mb-4 px-2">
+											<Logo
+												className="text-[#1e293b] dark:text-white"
+												width={120}
+												height={42}
+												style={{ height: 42, maxWidth: 120 }}
+												aria-label="Logo Máquina de Vendas"
+											/>
+											<button
+												className="text-gray-400 hover:text-blue-700 dark:hover:text-blue-200 p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors"
+												onClick={() => setSidebarOpen(false)}
+												aria-label="Fechar menu"
+												type="button"
+											>
+												<X className="w-5 h-5" />
+											</button>
 										</div>
-										<span className="font-semibold text-base text-blue-900 dark:text-blue-100 break-all">{userName || 'Usuário'}</span>
-									</div>
-									{/* Links de navegação principais */}
-									{getNavLinks(userConta)
-										.filter((link) => link.type !== "toggle")
-										.map((link) => {
-											const Icon = link.icon;
-											let isActive = false;
-											if (link.href) {
-												if (link.href === "/") {
-													isActive = pathname === "/";
-												} else {
-													isActive =
-														pathname === link.href ||
-														pathname.startsWith(link.href + "/");
-												}
-											}
-											return (
-												<a
-													key={link.href}
-													href={link.href}
-													className={`flex items-center gap-3 rounded-lg px-4 py-3 font-medium transition-colors hover:bg-blue-700/10 hover:text-blue-700 text-blue-700 dark:text-blue-200 ${isActive ? "bg-blue-700 text-white font-semibold shadow" : ""
-														}`}
-													style={
-														isActive
-															? { boxShadow: "0 2px 16px 0 rgba(29,78,216,0.15)" }
-															: {}
+										{/* Bloco do usuário */}
+										<div className="flex items-center gap-3 px-4 py-4 border border-blue-100 dark:border-blue-800 bg-gradient-to-r from-blue-50 to-indigo-50 dark:from-blue-900/40 dark:to-indigo-900/40 rounded-xl mb-4">
+											<div className="w-12 h-12 rounded-full bg-gradient-to-br from-blue-600 to-blue-700 flex items-center justify-center text-white font-bold text-lg shadow-lg">
+												{userName ? userName.split(' ').map((n) => n[0]).join('').toUpperCase().slice(0, 2) : 'U'}
+											</div>
+											<div className="flex-1 min-w-0">
+												<span className="font-semibold text-base text-blue-900 dark:text-blue-100 block truncate">{userName || 'Usuário'}</span>
+												<span className="text-xs text-blue-600 dark:text-blue-300">Conectado</span>
+											</div>
+										</div>
+										{/* Links de navegação principais */}
+										<nav className="flex flex-col gap-1 mb-4">
+											{getNavLinks(userConta)
+												.filter((link) => link.type !== "toggle")
+												.map((link) => {
+													const Icon = link.icon;
+													let isActive = false;
+													if (link.href) {
+														if (link.href === "/") {
+															isActive = pathname === "/";
+														} else {
+															isActive =
+																pathname === link.href ||
+																pathname.startsWith(link.href + "/");
+														}
 													}
-													aria-current={isActive ? "page" : undefined}
-													onClick={() => setSidebarOpen(false)}
-												>
-													<Icon className="w-5 h-5" />
-													<span>{link.label}</span>
-												</a>
-											);
-										})}
-									{/* Opções extras do usuário */}
-									<div className="mt-2 border-t border-blue-100 dark:border-blue-800 pt-2 flex flex-col gap-1">
-										<a href="/configuracoes" className="block px-4 py-2 text-sm text-gray-700 dark:text-gray-200 rounded hover:bg-blue-50 dark:hover:bg-blue-900/40 transition-colors hover:cursor-pointer" onClick={() => setSidebarOpen(false)}>Configurações</a>
-										<a href="/ajuda" className="block px-4 py-2 text-sm text-gray-700 dark:text-gray-200 rounded hover:bg-blue-50 dark:hover:bg-blue-900/40 transition-colors hover:cursor-pointer" onClick={() => setSidebarOpen(false)}>Ajuda</a>
-										<a href="/feedback" className="block px-4 py-2 text-sm text-gray-700 dark:text-gray-200 rounded hover:bg-blue-50 dark:hover:bg-blue-900/40 transition-colors hover:cursor-pointer" onClick={() => setSidebarOpen(false)}>Feedback</a>
-										<button onClick={() => { localStorage.removeItem('user'); window.location.href = '/login'; }} className="w-full text-left block px-4 py-2 text-sm text-gray-700 dark:text-gray-200 rounded hover:bg-blue-50 dark:hover:bg-blue-900/40 transition-colors hover:cursor-pointer">Sair</button>
+													return (
+														<a
+															key={link.href}
+															href={link.href}
+															className={`flex items-center gap-4 rounded-xl px-4 py-3 font-medium transition-all duration-200 hover:bg-blue-700/10 hover:text-blue-700 text-blue-700 dark:text-blue-200 ${isActive ? "bg-gradient-to-r from-blue-700 to-blue-600 text-white font-semibold shadow-lg" : ""
+																}`}
+															style={
+																isActive
+																	? { boxShadow: "0 4px 20px 0 rgba(29,78,216,0.25)" }
+																	: {}
+															}
+															aria-current={isActive ? "page" : undefined}
+															onClick={() => setSidebarOpen(false)}
+														>
+															<Icon className="w-5 h-5 flex-shrink-0" />
+															<span className="text-base">{link.label}</span>
+														</a>
+													);
+												})}
+										</nav>
+										{/* Opções extras do usuário */}
+										<div className="mt-auto border-t border-blue-100 dark:border-blue-800 pt-4 flex flex-col gap-1">
+											<a href="/configuracoes" className="flex items-center gap-3 px-4 py-3 text-sm text-gray-700 dark:text-gray-200 rounded-lg hover:bg-blue-50 dark:hover:bg-blue-900/40 transition-colors hover:cursor-pointer" onClick={() => setSidebarOpen(false)}>
+												<svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+													<path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" />
+													<path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+												</svg>
+												Configurações
+											</a>
+											<a href="/ajuda" className="flex items-center gap-3 px-4 py-3 text-sm text-gray-700 dark:text-gray-200 rounded-lg hover:bg-blue-50 dark:hover:bg-blue-900/40 transition-colors hover:cursor-pointer" onClick={() => setSidebarOpen(false)}>
+												<svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+													<path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8.228 9c.549-1.165 2.03-2 3.772-2 2.21 0 4 1.343 4 3 0 1.4-1.278 2.575-3.006 2.907-.542.104-.994.54-.994 1.093m0 3h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+												</svg>
+												Ajuda
+											</a>
+											<a href="/feedback" className="flex items-center gap-3 px-4 py-3 text-sm text-gray-700 dark:text-gray-200 rounded-lg hover:bg-blue-50 dark:hover:bg-blue-900/40 transition-colors hover:cursor-pointer" onClick={() => setSidebarOpen(false)}>
+												<svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+													<path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 8h10M7 12h4m1 8l-4-4H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-3l-4 4z" />
+												</svg>
+												Feedback
+											</a>
+											<button onClick={() => { localStorage.removeItem('user'); window.location.href = '/login'; }} className="flex items-center gap-3 w-full text-left px-4 py-3 text-sm text-red-600 dark:text-red-400 rounded-lg hover:bg-red-50 dark:hover:bg-red-900/40 transition-colors hover:cursor-pointer mt-2">
+												<svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+													<path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
+												</svg>
+												Sair
+											</button>
+										</div>
 									</div>
-								</div>
+								</>
 							)}
 						</div>
 					)}
 					{/* Main content */}
 					<div
-						className={`flex-1 flex flex-col min-h-screen bg-gradient-to-br from-gray-50 via-blue-50 to-white dark:from-gray-900 dark:via-gray-950 dark:to-gray-900 w-full transition-all duration-300
+						className={`relative flex-1 flex flex-col min-h-screen w-full min-w-0 transition-all duration-300 overflow-x-hidden z-0
 									${!isLoginPage ? (sidebarOpen ? 'sm:pl-64' : 'sm:pl-16') : ''}`}
+						style={{ background: 'transparent', backgroundColor: 'transparent' }}
 					>
 						{/* Header fixo no topo do conteúdo, exceto na página de login */}
 						{!isLoginPage && isClient && (
 							   <Header userName={userName} />
 						)}
 						<main
-							className={`flex-1 overflow-y-auto ${isLoginPage ? "p-0 bg-transparent" : "p-2 sm:p-6 md:p-8 bg-transparent"
+							className={`flex-1 overflow-y-auto overflow-x-hidden relative z-0 ${isLoginPage ? "p-0 bg-gradient-to-br from-gray-50 via-blue-50 to-white dark:from-gray-900 dark:via-gray-950 dark:to-gray-900" : "pt-16 sm:pt-6 p-3 sm:p-6 md:p-8"
 								}`}
-							style={isLoginPage ? { background: "transparent" } : {}}
+							style={isLoginPage ? {} : { background: "transparent", backgroundColor: "transparent" }}
 						>
 							{children}
 						</main>
@@ -265,13 +337,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
 						)}
 					</div>
 				</div>
-				<div
-					className={`fixed bottom-6 right-6 z-50 ${isLoginPage ? "hidden" : ""}`}
-				>
-					<ThemeToggle />
-				</div>
-			</body>
-		</html>
+		</>
 	);
 }
 

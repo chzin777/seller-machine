@@ -2,15 +2,10 @@
 import { useState } from "react";
 import { Card, CardHeader, CardTitle, CardContent } from "../../components/ui/card";
 import { Button } from "../../components/ui/button";
-import { Sun, Moon, UserCog, Lock, Mail, User } from "lucide-react"; // Added User import
+import { UserCog, Lock, Mail, User } from "lucide-react"; // Added User import
 
 export default function ConfiguracoesPage() {
   // Estados
-  const [theme, setTheme] = useState(
-    typeof window !== "undefined"
-      ? localStorage.getItem("theme") || "system"
-      : "system"
-  );
   const [showSenhaModal, setShowSenhaModal] = useState(false);
   const [novaSenha, setNovaSenha] = useState("");
   const [novaSenha2, setNovaSenha2] = useState("");
@@ -27,28 +22,6 @@ export default function ConfiguracoesPage() {
   const [loadingDados, setLoadingDados] = useState(false);
 
   // Funções
-  const handleThemeChange = (value: string) => {
-    setTheme(value);
-    if (typeof window !== "undefined") {
-      localStorage.setItem("theme", value);
-      if (value === "dark") {
-        document.documentElement.classList.add("dark");
-        document.body.style.background = "#111827";
-      } else if (value === "light") {
-        document.documentElement.classList.remove("dark");
-        document.body.style.background = "#f9fafb";
-      } else {
-        if (window.matchMedia("(prefers-color-scheme: dark)").matches) {
-          document.documentElement.classList.add("dark");
-          document.body.style.background = "#111827";
-        } else {
-          document.documentElement.classList.remove("dark");
-          document.body.style.background = "#f9fafb";
-        }
-      }
-    }
-  };
-
   const handleAlterarSenha = async () => {
     setSenhaMsg(null);
     if (novaSenha.length < 6) {
@@ -189,45 +162,6 @@ export default function ConfiguracoesPage() {
       <h1 className="text-3xl font-bold text-blue-900 dark:text-blue-200 mb-8 flex items-center gap-3">
         <UserCog className="w-7 h-7 text-blue-700 dark:text-blue-200" /> Configurações
       </h1>
-      {/* Card Tema */}
-      <Card className="mb-8 shadow-lg border border-gray-100 dark:border-gray-900 bg-white dark:bg-gray-950">
-        <CardHeader>
-          <CardTitle className="text-lg font-bold flex items-center gap-2">
-            <Sun className="w-5 h-5 text-yellow-400" /> Tema do sistema
-          </CardTitle>
-        </CardHeader>
-        <CardContent>
-          <div className="flex gap-4 items-center">
-            <Button
-              className={`flex items-center gap-2 hover:cursor-pointer px-4 py-2 rounded-lg font-semibold border-none shadow
-                ${theme === "light" ? "bg-blue-100 text-blue-700 hover:bg-blue-200" : "bg-white text-blue-700 hover:bg-blue-100"}
-                dark:bg-blue-700 dark:text-white dark:hover:bg-blue-800`}
-              onClick={() => handleThemeChange("light")}
-            >
-              <Sun className="w-4 h-4" /> Claro
-            </Button>
-            <Button
-              className={`flex items-center gap-2 hover:cursor-pointer px-4 py-2 rounded-lg font-semibold border-none shadow
-                ${theme === "dark" ? "bg-blue-700 text-white hover:bg-blue-800" : "bg-white text-blue-700 hover:bg-blue-100"}
-                dark:bg-blue-700 dark:text-white dark:hover:bg-blue-800`}
-              onClick={() => handleThemeChange("dark")}
-            >
-              <Moon className="w-4 h-4" /> Escuro
-            </Button>
-            <Button
-              className={`flex items-center gap-2 hover:cursor-pointer px-4 py-2 rounded-lg font-semibold border-none shadow
-                ${theme === "system" ? "bg-blue-100 text-blue-700 hover:bg-blue-200" : "bg-white text-blue-700 hover:bg-blue-100"}
-                dark:bg-blue-700 dark:text-white dark:hover:bg-blue-800`}
-              onClick={() => handleThemeChange("system")}
-            >
-              <Sun className="w-4 h-4" />
-              <Moon className="w-4 h-4 -ml-2" />
-              Sistema
-            </Button>
-          </div>
-          <p className="text-xs text-gray-500 mt-2">Escolha o tema visual do sistema. &quot;Sistema&quot; segue o tema do seu dispositivo.</p>
-        </CardContent>
-      </Card>
 
       {/* Card Alterar e-mail */}
       <Card className="shadow-lg border border-gray-100 dark:border-gray-900 bg-white dark:bg-gray-950 mb-8">
