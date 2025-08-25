@@ -71,7 +71,8 @@ export default function AssociacoesPage() {
     const buscarDados = async () => {
       setLoading(true);
       try {
-        const res = await fetch('https://api-maquina-de-vendas-production.up.railway.app/api/associacoes');
+        // Busca via proxy interno para evitar CORS
+        const res = await fetch('/api/proxy?url=/api/associacoes');
         if (!res.ok) throw new Error('Erro ao buscar associações');
         const json = await res.json();
         // Se a resposta vier paginada, use json.data, senão use json direto
