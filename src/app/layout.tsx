@@ -289,13 +289,6 @@ function LayoutContent({ children }: { children: React.ReactNode }) {
 												   </svg>
 												   Configurações
 											   </a>
-											   <a href="/configurar-rfv" className="flex items-center gap-3 px-4 py-3 text-sm text-blue-700 dark:text-blue-200 rounded-lg hover:bg-blue-50 dark:hover:bg-blue-900/40 transition-colors hover:cursor-pointer" onClick={() => setSidebarOpen(false)}>
-												   <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-													   <circle cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="2" fill="none" />
-													   <path d="M8 12h8M12 8v8" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
-												   </svg>
-												   Configurar RFV
-											   </a>
 											<a href="/ajuda" className="flex items-center gap-3 px-4 py-3 text-sm text-gray-700 dark:text-gray-200 rounded-lg hover:bg-blue-50 dark:hover:bg-blue-900/40 transition-colors hover:cursor-pointer" onClick={() => setSidebarOpen(false)}>
 												<svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
 													<path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8.228 9c.549-1.165 2.03-2 3.772-2 2.21 0 4 1.343 4 3 0 1.4-1.278 2.575-3.006 2.907-.542.104-.994.54-.994 1.093m0 3h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
