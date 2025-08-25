@@ -39,11 +39,16 @@ type Assoc = {
   b_name: string;
   a_tipo: string;
   b_tipo: string;
+  vendas_produto_a?: number;
+  vendas_produto_b?: number;
 };
 
 export default function AssociacoesPage() {
   const [data, setData] = useState<Assoc[]>([]);
   const [busca, setBusca] = useState('');
+  const [filtroTipoA, setFiltroTipoA] = useState('');
+  const [filtroTipoB, setFiltroTipoB] = useState('');
+  // Ordenação removida
   const [pagina, setPagina] = useState(1);
   const [porPagina, setPorPagina] = useState(10);
   const [loading, setLoading] = useState(true);
@@ -66,33 +71,25 @@ export default function AssociacoesPage() {
     const buscarDados = async () => {
       setLoading(true);
       try {
-        const res = await fetch('/api/proxy?url=/api/produtos');
-        if (!res.ok) throw new Error('Erro ao buscar produtos');
-        const produtos: Produto[] = await res.json();
-        console.log('Produtos recebidos:', produtos);
-        // Simula associações: para cada produto, associa com outros 2 produtos seguintes (circular)
-        const associacoes: Assoc[] = [];
-        for (let i = 0; i < produtos.length; i++) {
-          const a = produtos[i];
-          for (let j = 1; j <= 2; j++) {
-            const b = produtos[(i + j) % produtos.length];
-            if (a.id !== b.id) {
-              associacoes.push({
-                product_a_id: a.id,
-                product_b_id: b.id,
-                support_count: Math.floor(Math.random() * 50) + 1, // valor fictício
-                confidence: Math.random() * 0.5 + 0.5, // entre 0.5 e 1
-                lift: Math.random() * 2 + 1, // entre 1 e 3
-                a_name: a.descricao || '',
-                b_name: b.descricao || '',
-                a_tipo: corrigirAcentuacao(String(a.tipo ?? a.Tipo_Produto ?? '')),
-                b_tipo: corrigirAcentuacao(String(b.tipo ?? b.Tipo_Produto ?? '')),
-
-              });
-            }
-          }
-        }
-        setData(associacoes);
+        const res = await fetch('https://api-maquina-de-vendas-production.up.railway.app/api/associacoes');
+        if (!res.ok) throw new Error('Erro ao buscar associações');
+        const json = await res.json();
+        // Se a resposta vier paginada, use json.data, senão use json direto
+        const associacoes = Array.isArray(json) ? json : json.data;
+        const dataFormatada: Assoc[] = associacoes.map((item: any) => ({
+          product_a_id: item.produto_a_id,
+          product_b_id: item.produto_b_id,
+          support_count: item.suporte ?? item.support_count ?? 0,
+          confidence: item.confianca ?? item.confidence ?? 0,
+          lift: item.lift ?? 0,
+          a_name: item.a_nome ?? item.a_name ?? '',
+          b_name: item.b_nome ?? item.b_name ?? '',
+          a_tipo: corrigirAcentuacao(item.a_tipo ?? ''),
+          b_tipo: corrigirAcentuacao(item.b_tipo ?? ''),
+          vendas_produto_a: item.vendas_produto_a ?? 0,
+          vendas_produto_b: item.vendas_produto_b ?? 0,
+        }));
+        setData(dataFormatada);
       } catch (e) {
         setData([]);
       } finally {
@@ -102,18 +99,25 @@ export default function AssociacoesPage() {
     buscarDados();
   }, []);
 
-  const filtrados = useMemo(() => (
-    data.filter(row =>
+
+  const filtrados = useMemo(() => {
+    let filtered = data.filter(row =>
       (row.a_name?.toLowerCase().includes(busca.toLowerCase()) ||
        row.b_name?.toLowerCase().includes(busca.toLowerCase()))
-    )
-  ), [data, busca]);
+    );
+    if (filtroTipoA) filtered = filtered.filter(row => row.a_tipo === filtroTipoA);
+    if (filtroTipoB) filtered = filtered.filter(row => row.b_tipo === filtroTipoB);
+    return filtered;
+  }, [data, busca, filtroTipoA, filtroTipoB]);
 
   const totalPaginas = Math.ceil(filtrados.length / porPagina) || 1;
   const paginados = filtrados.slice((pagina - 1) * porPagina, pagina * porPagina);
 
   // Sempre que a busca mudar, volta para página 1
   useEffect(() => { setPagina(1); }, [busca]);
+
+  // Função para alternar ordenação
+
 
   return (
     <main className="max-w-6xl mx-auto py-6 px-3 sm:px-6">
@@ -126,14 +130,38 @@ export default function AssociacoesPage() {
           <p className="text-gray-500 dark:text-gray-400 text-xs sm:text-sm mt-1 line-clamp-2 sm:line-clamp-none">Veja exemplos de produtos que costumam ser comprados juntos.</p>
         </div>
       </div>
-      <div className="relative mb-6">
-        <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 w-4 h-4 sm:w-5 sm:h-5" />
-        <input
-          className="pl-9 sm:pl-10 pr-4 py-2 sm:py-3 rounded-lg border border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-950 shadow-sm w-full focus:outline-none focus:ring-2 focus:ring-blue-400 text-sm sm:text-base transition"
-          placeholder="Buscar produto..."
-          value={busca}
-          onChange={e => setBusca(e.target.value)}
-        />
+      <div className="relative mb-6 flex flex-col gap-2">
+        <div className="relative">
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 w-4 h-4 sm:w-5 sm:h-5" />
+          <input
+            className="pl-9 sm:pl-10 pr-4 py-2 sm:py-3 rounded-lg border border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-950 shadow-sm w-full focus:outline-none focus:ring-2 focus:ring-blue-400 text-sm sm:text-base transition"
+            placeholder="Buscar produto geral..."
+            value={busca}
+            onChange={e => setBusca(e.target.value)}
+          />
+        </div>
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+          <select
+            className="rounded-lg border border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-950 shadow-sm w-full focus:outline-none focus:ring-2 focus:ring-blue-400 text-sm transition px-3 py-2"
+            value={filtroTipoA}
+            onChange={e => setFiltroTipoA(e.target.value)}
+          >
+            <option value="">Filtrar Tipo A</option>
+            {[...new Set(data.map(row => row.a_tipo).filter(Boolean))].map(tipo => (
+              <option key={tipo} value={tipo}>{tipo}</option>
+            ))}
+          </select>
+          <select
+            className="rounded-lg border border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-950 shadow-sm w-full focus:outline-none focus:ring-2 focus:ring-blue-400 text-sm transition px-3 py-2"
+            value={filtroTipoB}
+            onChange={e => setFiltroTipoB(e.target.value)}
+          >
+            <option value="">Filtrar Tipo B</option>
+            {[...new Set(data.map(row => row.b_tipo).filter(Boolean))].map(tipo => (
+              <option key={tipo} value={tipo}>{tipo}</option>
+            ))}
+          </select>
+        </div>
       </div>
       {/* Mobile: Cards, Desktop: Tabela */}
       <div className="mt-4">
@@ -195,8 +223,10 @@ export default function AssociacoesPage() {
                 <th className="p-3 font-semibold text-left w-40 min-w-[8rem]">Tipo A</th>
                 <th className="p-3 font-semibold text-left">Produto B</th>
                 <th className="p-3 font-semibold text-left w-40 min-w-[8rem]">Tipo B</th>
-                <th className="p-3 font-semibold text-left">Comprados juntos</th>
-                <th className="p-3 font-semibold text-left">Probabilidade de compra</th>
+                <th className="p-3 font-semibold text-left">Vendas Produto A</th>
+                <th className="p-3 font-semibold text-left">Vendas Produto B</th>
+                <th className="p-3 font-semibold text-left">Vendido juntos</th>
+                <th className="p-3 font-semibold text-left">Probabilidade de Venda</th>
               </tr>
             </thead>
             <tbody>
@@ -215,6 +245,8 @@ export default function AssociacoesPage() {
                     <td className="p-3 text-gray-700 dark:text-gray-300 text-left w-40 min-w-[8rem]">{row.a_tipo}</td>
                     <td className="p-3 font-bold text-blue-700 dark:text-blue-200">{row.b_name}</td>
                     <td className="p-3 text-gray-700 dark:text-gray-300 text-left w-40 min-w-[8rem]">{row.b_tipo}</td>
+                    <td className="p-3 text-gray-700 dark:text-gray-300 text-center">{row.vendas_produto_a}</td>
+                    <td className="p-3 text-gray-700 dark:text-gray-300 text-center">{row.vendas_produto_b}</td>
                     <td className="p-3 text-gray-700 dark:text-gray-300 text-center">{row.support_count} vezes</td>
                     <td className="p-3 text-gray-700 dark:text-gray-300 text-center">{(row.confidence * 100).toFixed(0)}%</td>
                   </tr>
