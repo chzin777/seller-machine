@@ -48,7 +48,7 @@ export default function Home() {
           <LayoutDashboard className="w-5 h-5 sm:w-7 sm:h-7" />
         </div>
         <div className="min-w-0 flex-1">
-          <h1 className="text-2xl sm:text-3xl font-extrabold leading-tight truncate">Painel Comercial</h1>
+          <h1 className="text-2xl sm:text-3xl font-extrabold leading-tight truncate pt-12">Painel Comercial</h1>
           <p className="text-gray-500 dark:text-gray-400 text-xs sm:text-sm mt-1 line-clamp-2 sm:line-clamp-none">Indicadores, gráficos e clientes da plataforma.</p>
         </div>
       </div>

@@ -294,8 +294,86 @@ export default function MapaCalorVendas({ vendasPorFilial = [] }: MapaCalorVenda
         </CardContent>
       </Card>
 
-      {/* Tabela de dados por região */}
-      <Card className="shadow-lg border-0 bg-white/50 dark:bg-gray-900/50 backdrop-blur-xl">
+      {/* Mobile: Cards, Desktop: Tabela */}
+      {/* Mobile: Cards */}
+      <div className="flex flex-col gap-3 sm:gap-4 lg:hidden">
+        {loading ? (
+          <div className="text-center py-8 text-gray-400 bg-white dark:bg-gray-950 rounded-xl shadow border border-gray-100 dark:border-gray-900">Carregando...</div>
+        ) : dadosVendas.length === 0 ? (
+          <div className="text-center py-8 text-gray-400 bg-white dark:bg-gray-950 rounded-xl shadow border border-gray-100 dark:border-gray-900">Nenhum dado de vendas disponível</div>
+        ) : (
+          dadosPaginados.map((item, i) => (
+            <div key={i} className="rounded-xl shadow-lg border border-gray-100 dark:border-gray-900 bg-white dark:bg-gray-950 p-4 flex flex-col gap-3">
+              <div className="flex items-center gap-2 mb-2">
+                <div className="flex-1 min-w-0">
+                  <div className="flex items-center gap-2 mb-1">
+                    <span className="w-6 h-6 bg-blue-600 text-white rounded-full text-xs font-bold flex items-center justify-center">{item.cidade[0]}</span>
+                    <span className="font-bold text-blue-800 dark:text-blue-100 text-sm truncate">{item.cidade}</span>
+                  </div>
+                  <span className="text-xs text-blue-600 dark:text-blue-300 ml-8">{item.estado}</span>
+                </div>
+              </div>
+              <div className="grid grid-cols-2 gap-2 mt-2">
+                <div className="bg-blue-50 dark:bg-blue-900/30 rounded-lg px-3 py-2">
+                  <span className="text-blue-600 dark:text-blue-300 font-medium text-xs">Clientes</span>
+                  <p className="text-blue-900 dark:text-blue-200 font-bold text-sm">{formatarNumero(item.totalClientes)}</p>
+                </div>
+                <div className="bg-green-50 dark:bg-green-900/30 rounded-lg px-3 py-2">
+                  <span className="text-green-600 dark:text-green-300 font-medium text-xs">Vendas</span>
+                  <p className="text-green-900 dark:text-green-200 font-bold text-sm">{formatarNumero(item.totalVendas)}</p>
+                </div>
+              </div>
+              <div className="bg-gray-50 dark:bg-gray-900/50 rounded-lg px-3 py-2 mt-2 flex items-center justify-between">
+                <span className="text-xs text-gray-600 dark:text-gray-400">Receita</span>
+                <span className="font-bold text-green-700 dark:text-green-300 text-sm">{formatarMoeda(item.receitaTotal)}</span>
+              </div>
+            </div>
+          ))
+        )}
+        {/* Paginação para Mobile */}
+        {dadosVendas.length > porPagina && (
+          <div className="mt-4 flex flex-col gap-3">
+            <div className="flex items-center justify-center gap-2">
+              <label htmlFor="porPaginaMobile" className="text-sm text-gray-700 dark:text-gray-300">Por página:</label>
+              <select
+                id="porPaginaMobile"
+                className="border rounded px-2 py-1 bg-white dark:bg-gray-900 text-blue-700 dark:text-blue-200 text-sm"
+                value={porPagina}
+                onChange={e => {
+                  setPorPagina(Number(e.target.value));
+                  setPagina(1);
+                }}
+              >
+                <option value={5}>5</option>
+                <option value={10}>10</option>
+                <option value={15}>15</option>
+                <option value={20}>20</option>
+              </select>
+            </div>
+            <div className="flex items-center justify-center gap-3">
+              <button
+                className="px-4 py-2 rounded-lg bg-blue-600 text-white disabled:opacity-50 disabled:bg-gray-400 hover:bg-blue-700 transition-colors text-sm font-medium"
+                onClick={() => setPagina(p => Math.max(1, p - 1))}
+                disabled={pagina === 1}
+              >
+                ← Anterior
+              </button>
+              <span className="text-sm text-gray-700 dark:text-gray-300 px-3 py-2 bg-gray-100 dark:bg-gray-800 rounded-lg font-medium">
+                {pagina} de {totalPaginas}
+              </span>
+              <button
+                className="px-4 py-2 rounded-lg bg-blue-600 text-white disabled:opacity-50 disabled:bg-gray-400 hover:bg-blue-700 transition-colors text-sm font-medium"
+                onClick={() => setPagina(p => Math.min(totalPaginas, p + 1))}
+                disabled={pagina === totalPaginas}
+              >
+                Próxima →
+              </button>
+            </div>
+          </div>
+        )}
+      </div>
+      {/* Desktop: Tabela */}
+      <Card className="shadow-lg border-0 bg-white/50 dark:bg-gray-900/50 backdrop-blur-xl hidden lg:block">
         <CardHeader>
           <CardTitle className="text-lg font-bold text-blue-900 dark:text-blue-200">
             Vendas por Região
