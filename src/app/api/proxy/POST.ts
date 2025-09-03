@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 
-const API_BASE = 'https://api-maquina-de-vendas-production.up.railway.app';
+const API_BASE = 'https://api-seller-machine-production.up.railway.app';
 
 export async function POST(req: NextRequest) {
   const { url, body } = await req.json();

@@ -10,10 +10,10 @@ import GenericTiltedCard from '../blocks/Components/GenericTiltedCard/GenericTil
 const MapaComponent = dynamic(() => import('../components/MapaComponente'), {
   ssr: false,
   loading: () => (
-    <div className="h-96 bg-gray-100 dark:bg-gray-800 rounded-lg flex items-center justify-center">
+  <div className="h-96 bg-gray-100 rounded-lg flex items-center justify-center">
       <div className="text-center">
         <div className="w-8 h-8 border-4 border-blue-600 border-t-transparent rounded-full animate-spin mx-auto mb-2"></div>
-        <p className="text-gray-600 dark:text-gray-400">Carregando mapa...</p>
+  <p className="text-gray-600">Carregando mapa...</p>
       </div>
     </div>
   )
@@ -223,12 +223,12 @@ export default function MapaCalorVendas({ vendasPorFilial = [] }: MapaCalorVenda
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
         {/* Receita Total */}
         <GenericTiltedCard className="col-span-1">
-          <Card className="shadow-lg border border-green-200/60 bg-gradient-to-br from-green-50/80 to-white/80 dark:from-green-900/20 dark:to-gray-950/80 backdrop-blur-sm h-full kpi-container">
+          <Card className="shadow-lg border border-green-200/60 bg-white h-full kpi-container">
             <CardHeader className="flex flex-row items-start justify-between pb-1 pt-3 px-3 flex-shrink-0">
-              <CardTitle className="text-xs sm:text-sm md:text-base font-bold text-green-900 dark:text-green-200 leading-tight w-full">Receita Total</CardTitle>
+              <CardTitle className="text-xs sm:text-sm md:text-base font-bold text-green-800 leading-tight w-full">Receita Total</CardTitle>
             </CardHeader>
             <CardContent className="kpi-content px-3 pt-2 pb-3">
-              <div className="font-extrabold tracking-tight text-green-900 dark:text-green-100 flex items-center gap-1 sm:gap-2 kpi-number-responsive kpi-number">
+              <div className="font-extrabold tracking-tight text-green-800 flex items-center gap-1 sm:gap-2 kpi-number-responsive kpi-number">
                 <span className="text-[0.8em] flex-shrink-0">R$</span>
                 <span className="break-all" title={formatarMoeda(totalReceita)}>
                   {totalReceita.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
@@ -240,12 +240,12 @@ export default function MapaCalorVendas({ vendasPorFilial = [] }: MapaCalorVenda
 
         {/* Total de Clientes */}
         <GenericTiltedCard className="col-span-1">
-          <Card className="shadow-lg border border-blue-200/60 bg-gradient-to-br from-blue-50/80 to-white/80 dark:from-blue-900/20 dark:to-gray-950/80 backdrop-blur-sm h-full kpi-container">
+          <Card className="shadow-lg border border-blue-200/60 bg-white h-full kpi-container">
             <CardHeader className="flex flex-row items-start justify-between pb-1 pt-3 px-3 flex-shrink-0">
-              <CardTitle className="text-xs sm:text-sm md:text-base font-bold text-blue-900 dark:text-blue-200 leading-tight w-full">Total de Clientes</CardTitle>
+              <CardTitle className="text-xs sm:text-sm md:text-base font-bold text-blue-800 leading-tight w-full">Total de Clientes</CardTitle>
             </CardHeader>
             <CardContent className="kpi-content px-3 pt-2 pb-3">
-              <div className="font-extrabold tracking-tight text-blue-900 dark:text-blue-100 kpi-number-responsive kpi-number">
+              <div className="font-extrabold tracking-tight text-blue-800 kpi-number-responsive kpi-number">
                 {totalClientes.toLocaleString('pt-BR')}
               </div>
             </CardContent>
@@ -254,12 +254,12 @@ export default function MapaCalorVendas({ vendasPorFilial = [] }: MapaCalorVenda
 
         {/* Total de Vendas */}
         <GenericTiltedCard className="col-span-1">
-          <Card className="shadow-lg border border-purple-200/60 bg-gradient-to-br from-purple-50/80 to-white/80 dark:from-purple-900/20 dark:to-gray-950/80 backdrop-blur-sm h-full kpi-container">
+          <Card className="shadow-lg border border-purple-200/60 bg-white h-full kpi-container">
             <CardHeader className="flex flex-row items-start justify-between pb-1 pt-3 px-3 flex-shrink-0">
-              <CardTitle className="text-xs sm:text-sm md:text-base font-bold text-purple-900 dark:text-purple-200 leading-tight w-full">Total de Vendas</CardTitle>
+              <CardTitle className="text-xs sm:text-sm md:text-base font-bold text-purple-800 leading-tight w-full">Total de Vendas</CardTitle>
             </CardHeader>
             <CardContent className="kpi-content px-3 pt-2 pb-3">
-              <div className="font-extrabold tracking-tight text-purple-900 dark:text-purple-100 kpi-number-responsive kpi-number">
+              <div className="font-extrabold tracking-tight text-purple-800 kpi-number-responsive kpi-number">
                 {totalVendas.toLocaleString('pt-BR')}
               </div>
             </CardContent>
@@ -268,22 +268,22 @@ export default function MapaCalorVendas({ vendasPorFilial = [] }: MapaCalorVenda
       </div>
 
       {/* Mapa de calor */}
-      <Card className="shadow-xl border-0 bg-white/50 dark:bg-gray-900/50 backdrop-blur-xl rounded-2xl overflow-hidden">
+  <Card className="shadow-xl border-0 bg-white rounded-2xl overflow-hidden">
         <CardHeader className="pb-4">
-          <CardTitle className="flex items-center gap-2 text-lg font-bold text-blue-900 dark:text-blue-200">
+          <CardTitle className="flex items-center gap-2 text-lg font-bold text-blue-800">
             <MapPin className="w-5 h-5" />
             Mapa de Calor - Vendas por Região
           </CardTitle>
-          <p className="text-sm text-gray-600 dark:text-gray-400">
+          <p className="text-sm text-gray-600">
             Visualize a distribuição geográfica das suas vendas
           </p>
         </CardHeader>
         <CardContent className="p-0">
           {loading ? (
-            <div className="h-96 bg-gray-100 dark:bg-gray-800 flex items-center justify-center">
+            <div className="h-96 bg-gray-100 flex items-center justify-center">
               <div className="text-center">
                 <div className="w-8 h-8 border-4 border-blue-600 border-t-transparent rounded-full animate-spin mx-auto mb-2"></div>
-                <p className="text-gray-600 dark:text-gray-400">Carregando dados...</p>
+                <p className="text-gray-600">Carregando dados...</p>
               </div>
             </div>
           ) : (
@@ -298,34 +298,34 @@ export default function MapaCalorVendas({ vendasPorFilial = [] }: MapaCalorVenda
       {/* Mobile: Cards */}
       <div className="flex flex-col gap-3 sm:gap-4 lg:hidden">
         {loading ? (
-          <div className="text-center py-8 text-gray-400 bg-white dark:bg-gray-950 rounded-xl shadow border border-gray-100 dark:border-gray-900">Carregando...</div>
+          <div className="text-center py-8 text-gray-400 bg-white rounded-xl shadow border border-gray-100 ">Carregando...</div>
         ) : dadosVendas.length === 0 ? (
-          <div className="text-center py-8 text-gray-400 bg-white dark:bg-gray-950 rounded-xl shadow border border-gray-100 dark:border-gray-900">Nenhum dado de vendas disponível</div>
+          <div className="text-center py-8 text-gray-400 bg-white  rounded-xl shadow border border-gray-100 ">Nenhum dado de vendas disponível</div>
         ) : (
           dadosPaginados.map((item, i) => (
-            <div key={i} className="rounded-xl shadow-lg border border-gray-100 dark:border-gray-900 bg-white dark:bg-gray-950 p-4 flex flex-col gap-3">
+            <div key={i} className="rounded-xl shadow-lg border border-gray-100  bg-white  p-4 flex flex-col gap-3">
               <div className="flex items-center gap-2 mb-2">
                 <div className="flex-1 min-w-0">
                   <div className="flex items-center gap-2 mb-1">
                     <span className="w-6 h-6 bg-blue-600 text-white rounded-full text-xs font-bold flex items-center justify-center">{item.cidade[0]}</span>
-                    <span className="font-bold text-blue-800 dark:text-blue-100 text-sm truncate">{item.cidade}</span>
+                    <span className="font-bold text-blue-800 text-sm truncate">{item.cidade}</span>
                   </div>
-                  <span className="text-xs text-blue-600 dark:text-blue-300 ml-8">{item.estado}</span>
+                  <span className="text-xs text-blue-600 ml-8">{item.estado}</span>
                 </div>
               </div>
               <div className="grid grid-cols-2 gap-2 mt-2">
-                <div className="bg-blue-50 dark:bg-blue-900/30 rounded-lg px-3 py-2">
-                  <span className="text-blue-600 dark:text-blue-300 font-medium text-xs">Clientes</span>
-                  <p className="text-blue-900 dark:text-blue-200 font-bold text-sm">{formatarNumero(item.totalClientes)}</p>
+                <div className="bg-blue-50 rounded-lg px-3 py-2">
+                  <span className="text-blue-600 font-medium text-xs">Clientes</span>
+                  <p className="text-blue-800 font-bold text-sm">{formatarNumero(item.totalClientes)}</p>
                 </div>
-                <div className="bg-green-50 dark:bg-green-900/30 rounded-lg px-3 py-2">
-                  <span className="text-green-600 dark:text-green-300 font-medium text-xs">Vendas</span>
-                  <p className="text-green-900 dark:text-green-200 font-bold text-sm">{formatarNumero(item.totalVendas)}</p>
+                <div className="bg-green-50 rounded-lg px-3 py-2">
+                  <span className="text-green-600 font-medium text-xs">Vendas</span>
+                  <p className="text-green-800 font-bold text-sm">{formatarNumero(item.totalVendas)}</p>
                 </div>
               </div>
-              <div className="bg-gray-50 dark:bg-gray-900/50 rounded-lg px-3 py-2 mt-2 flex items-center justify-between">
-                <span className="text-xs text-gray-600 dark:text-gray-400">Receita</span>
-                <span className="font-bold text-green-700 dark:text-green-300 text-sm">{formatarMoeda(item.receitaTotal)}</span>
+              <div className="bg-gray-50 rounded-lg px-3 py-2 mt-2 flex items-center justify-between">
+                <span className="text-xs text-gray-600">Receita</span>
+                <span className="font-bold text-green-700 text-sm">{formatarMoeda(item.receitaTotal)}</span>
               </div>
             </div>
           ))
@@ -334,10 +334,10 @@ export default function MapaCalorVendas({ vendasPorFilial = [] }: MapaCalorVenda
         {dadosVendas.length > porPagina && (
           <div className="mt-4 flex flex-col gap-3">
             <div className="flex items-center justify-center gap-2">
-              <label htmlFor="porPaginaMobile" className="text-sm text-gray-700 dark:text-gray-300">Por página:</label>
+              <label htmlFor="porPaginaMobile" className="text-sm text-gray-700 ">Por página:</label>
               <select
                 id="porPaginaMobile"
-                className="border rounded px-2 py-1 bg-white dark:bg-gray-900 text-blue-700 dark:text-blue-200 text-sm"
+                className="border rounded px-2 py-1 bg-white text-blue-700 text-sm"
                 value={porPagina}
                 onChange={e => {
                   setPorPagina(Number(e.target.value));
@@ -358,7 +358,7 @@ export default function MapaCalorVendas({ vendasPorFilial = [] }: MapaCalorVenda
               >
                 ← Anterior
               </button>
-              <span className="text-sm text-gray-700 dark:text-gray-300 px-3 py-2 bg-gray-100 dark:bg-gray-800 rounded-lg font-medium">
+              <span className="text-sm text-gray-700 px-3 py-2 bg-gray-100  rounded-lg font-medium">
                 {pagina} de {totalPaginas}
               </span>
               <button
@@ -373,9 +373,9 @@ export default function MapaCalorVendas({ vendasPorFilial = [] }: MapaCalorVenda
         )}
       </div>
       {/* Desktop: Tabela */}
-      <Card className="shadow-lg border-0 bg-white/50 dark:bg-gray-900/50 backdrop-blur-xl hidden lg:block">
+  <Card className="shadow-lg border-0 bg-white hidden lg:block">
         <CardHeader>
-          <CardTitle className="text-lg font-bold text-blue-900 dark:text-blue-200">
+          <CardTitle className="text-lg font-bold text-blue-900">
             Vendas por Região
           </CardTitle>
         </CardHeader>
@@ -383,7 +383,7 @@ export default function MapaCalorVendas({ vendasPorFilial = [] }: MapaCalorVenda
           <div className="overflow-x-auto">
             <table className="w-full text-sm">
               <thead>
-                <tr className="bg-blue-50 dark:bg-blue-900 text-blue-900 dark:text-blue-200 border-b">
+                <tr className="bg-white text-blue-800 border-b">
                   <th className="p-3 text-left font-semibold">Cidade</th>
                   <th className="p-3 text-left font-semibold">Estado</th>
                   <th className="p-3 text-right font-semibold">Clientes</th>
@@ -398,7 +398,7 @@ export default function MapaCalorVendas({ vendasPorFilial = [] }: MapaCalorVenda
                   </tr>
                 ) : dadosVendas.length === 0 ? (
                   <tr>
-                    <td colSpan={5} className="p-8 text-center text-gray-500 dark:text-gray-400">
+                    <td colSpan={5} className="p-8 text-center text-gray-500">
                       Nenhum dado de vendas disponível
                     </td>
                   </tr>
@@ -406,21 +406,21 @@ export default function MapaCalorVendas({ vendasPorFilial = [] }: MapaCalorVenda
                   dadosPaginados.map((item, index) => (
                     <tr 
                       key={index} 
-                      className="border-b border-gray-100 dark:border-gray-800 hover:bg-blue-50/40 dark:hover:bg-blue-900/20 transition-colors"
+                      className="border-b border-gray-100 hover:bg-blue-50/40 transition-colors"
                     >
-                      <td className="p-3 font-medium text-gray-800 dark:text-gray-100">
+                      <td className="p-3 font-medium text-gray-800">
                         {item.cidade}
                       </td>
-                      <td className="p-3 text-gray-600 dark:text-gray-300">
+                      <td className="p-3 text-gray-600 ">
                         {item.estado}
                       </td>
-                      <td className="p-3 text-right text-gray-600 dark:text-gray-300">
+                      <td className="p-3 text-right text-gray-600">
                         {formatarNumero(item.totalClientes)}
                       </td>
-                      <td className="p-3 text-right text-gray-600 dark:text-gray-300">
+                      <td className="p-3 text-right text-gray-600">
                         {formatarNumero(item.totalVendas)}
                       </td>
-                      <td className="p-3 text-right font-semibold text-green-600 dark:text-green-400 truncate max-w-32" title={formatarMoeda(item.receitaTotal)}>
+                      <td className="p-3 text-right font-semibold text-green-600 truncate max-w-32" title={formatarMoeda(item.receitaTotal)}>
                         {formatarMoeda(item.receitaTotal)}
                       </td>
                     </tr>
@@ -432,10 +432,10 @@ export default function MapaCalorVendas({ vendasPorFilial = [] }: MapaCalorVenda
                   <td colSpan={5} className="py-4">
                     <div className="flex flex-col sm:flex-row justify-center items-center gap-4">
                       <div className="flex items-center gap-2">
-                        <label htmlFor="porPagina" className="text-sm text-gray-700 dark:text-gray-300">Exibir por página:</label>
+                        <label htmlFor="porPagina" className="text-sm text-gray-700 ">Exibir por página:</label>
                         <select
                           id="porPagina"
-                          className="border rounded px-2 py-1 bg-white dark:bg-gray-900 text-blue-700 dark:text-blue-200"
+                          className="border border-blue-600 rounded px-2 py-1 bg-white text-blue-800 focus:outline-none focus:ring-1 focus:ring-blue-600"
                           value={porPagina}
                           onChange={e => {
                             setPorPagina(Number(e.target.value));
@@ -453,13 +453,13 @@ export default function MapaCalorVendas({ vendasPorFilial = [] }: MapaCalorVenda
                       {dadosVendas.length > porPagina && (
                         <div className="flex items-center gap-2">
                           <button
-                            className="px-3 py-1 rounded border bg-white dark:bg-gray-900 text-blue-700 dark:text-blue-200 disabled:opacity-50 hover:cursor-pointer"
+                            className="px-3 py-1 rounded border bg-white text-blue-700 disabled:opacity-50 hover:cursor-pointer"
                             onClick={() => setPagina(p => Math.max(1, p - 1))}
                             disabled={pagina === 1}
                           >Anterior</button>
-                          <span className="text-sm text-gray-700 dark:text-gray-300">Página {pagina} de {totalPaginas}</span>
+                          <span className="text-sm text-gray-700">Página {pagina} de {totalPaginas}</span>
                           <button
-                            className="px-3 py-1 rounded border bg-white dark:bg-gray-900 text-blue-700 dark:text-blue-200 disabled:opacity-50 hover:cursor-pointer"
+                            className="px-3 py-1 rounded border bg-white text-blue-700 disabled:opacity-50 hover:cursor-pointer"
                             onClick={() => setPagina(p => Math.min(totalPaginas, p + 1))}
                             disabled={pagina === totalPaginas}
                           >Próxima</button>

@@ -97,18 +97,18 @@ export default function ClientesPage() {
   return (
     <main className="max-w-6xl mx-auto py-6 px-3 sm:px-6">
       <div className="flex items-center gap-3 mb-6 sm:mb-8">
-        <div className="flex items-center justify-center w-10 h-10 sm:w-12 sm:h-12 rounded-xl bg-blue-100 dark:bg-blue-900 text-blue-700 dark:text-blue-200 shadow flex-shrink-0">
+        <div className="flex items-center justify-center w-10 h-10 sm:w-12 sm:h-12 rounded-xl bg-blue-100 text-blue-700 shadow flex-shrink-0">
           <Users className="w-5 h-5 sm:w-7 sm:h-7" />
         </div>
         <div className="min-w-0 flex-1">
-          <h1 className="text-2xl sm:text-3xl font-extrabold leading-tight truncate">Clientes</h1>
-          <p className="text-gray-500 dark:text-gray-400 text-xs sm:text-sm mt-1 line-clamp-2 sm:line-clamp-none">Veja a lista de clientes cadastrados e seus dados principais.</p>
+          <h1 className="text-2xl sm:text-3xl font-extrabold leading-tight truncate text-[#1e3a8a]">Clientes</h1>
+          <p className="text-gray-600 text-xs sm:text-sm mt-1 line-clamp-2 sm:line-clamp-none">Veja a lista de clientes cadastrados e seus dados principais.</p>
         </div>
       </div>
       <div className="relative mb-6">
         <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 w-4 h-4 sm:w-5 sm:h-5" />
         <input
-          className="pl-9 sm:pl-10 pr-4 py-2 sm:py-3 rounded-lg border border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-950 shadow-sm w-full focus:outline-none focus:ring-2 focus:ring-blue-400 text-sm sm:text-base transition"
+          className="pl-9 sm:pl-10 pr-4 py-2 sm:py-3 rounded-lg border border-gray-200 bg-white shadow-sm w-full focus:outline-none focus:ring-2 focus:ring-blue-400 text-sm sm:text-base transition"
           placeholder="Buscar cliente..."
           value={busca}
           onChange={e => setBusca(e.target.value)}
@@ -119,35 +119,35 @@ export default function ClientesPage() {
         {/* Mobile: Cards */}
         <div className="flex flex-col gap-3 sm:gap-4 lg:hidden">
           {loading ? (
-            <div className="text-center py-8 text-gray-400 bg-white dark:bg-gray-950 rounded-xl shadow border border-gray-100 dark:border-gray-900">Carregando...</div>
+            <div className="text-center py-8 text-gray-400 bg-white rounded-xl shadow border border-gray-100">Carregando...</div>
           ) : erro ? (
-            <div className="text-center py-8 text-red-500 bg-white dark:bg-gray-950 rounded-xl shadow border border-gray-100 dark:border-gray-900">{erro}</div>
+            <div className="text-center py-8 text-red-500 bg-white rounded-xl shadow border border-gray-100">{erro}</div>
           ) : filtrados.length === 0 ? (
-            <div className="text-center py-8 text-gray-400 bg-white dark:bg-gray-950 rounded-xl shadow border border-gray-100 dark:border-gray-900">Nenhum cliente encontrado.</div>
+            <div className="text-center py-8 text-gray-400 bg-white rounded-xl shadow border border-gray-100">Nenhum cliente encontrado.</div>
           ) : (
              paginados.map((c, i) => (
-              <div key={i} className="rounded-xl shadow-lg border border-gray-100 dark:border-gray-900 bg-white dark:bg-gray-950 p-4 flex flex-col gap-3">
+              <div key={i} className="rounded-xl shadow-lg border border-gray-100 bg-white p-4 flex flex-col gap-3">
                 <div className="flex items-start gap-3 mb-2">
                   <div className="w-10 h-10 bg-gradient-to-br from-blue-500 to-blue-600 rounded-full flex items-center justify-center text-white font-bold text-sm flex-shrink-0">
                     {c.nome.split(' ').map(n => n[0]).join('').toUpperCase().slice(0, 2)}
                   </div>
                   <div className="min-w-0 flex-1">
-                    <h3 className="font-bold text-blue-800 dark:text-blue-100 text-base leading-tight truncate">{c.nome}</h3>
-                    <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">{formatarCpfCnpj(c.cpfCnpj)}</p>
+                    <h3 className="font-bold text-blue-800 text-base leading-tight truncate">{c.nome}</h3>
+                    <p className="text-xs text-gray-500 mt-1">{formatarCpfCnpj(c.cpfCnpj)}</p>
                   </div>
                 </div>
                 <div className="grid grid-cols-2 gap-2 text-xs">
-                  <div className="bg-blue-50 dark:bg-blue-900/30 rounded-lg px-3 py-2">
-                    <span className="text-blue-600 dark:text-blue-300 font-medium">Cidade</span>
-                    <p className="text-blue-900 dark:text-blue-200 font-semibold mt-1">{c.cidade} - {c.estado}</p>
+                  <div className="bg-blue-50 rounded-lg px-3 py-2">
+                    <span className="text-blue-600 font-medium">Cidade</span>
+                    <p className="text-blue-900 font-semibold mt-1">{c.cidade} - {c.estado}</p>
                   </div>
-                  <div className="bg-green-50 dark:bg-green-900/30 rounded-lg px-3 py-2">
-                    <span className="text-green-600 dark:text-green-300 font-medium">Telefone</span>
-                    <p className="text-green-900 dark:text-green-200 font-semibold mt-1">{formatarTelefone(c.telefone) || 'N/A'}</p>
+                  <div className="bg-green-50 rounded-lg px-3 py-2">
+                    <span className="text-green-600 font-medium">Telefone</span>
+                    <p className="text-green-900 font-semibold mt-1">{formatarTelefone(c.telefone) || 'N/A'}</p>
                   </div>
                 </div>
                 {c.logradouro && (
-                  <div className="text-xs text-gray-600 dark:text-gray-400 bg-gray-50 dark:bg-gray-900/50 rounded-lg px-3 py-2">
+                  <div className="text-xs text-gray-600 bg-gray-50 rounded-lg px-3 py-2">
                     <span className="font-medium">Endereço: </span>
                     {c.logradouro}, {c.numero} - {c.bairro} - CEP: {c.cep}
                   </div>
@@ -157,10 +157,10 @@ export default function ClientesPage() {
           )}
         </div>
         {/* Desktop: Tabela */}
-        <div className="hidden lg:block overflow-x-auto rounded-xl shadow-lg bg-white dark:bg-gray-950 border border-gray-100 dark:border-gray-900">
+        <div className="hidden lg:block overflow-x-auto rounded-xl shadow-lg bg-white border border-gray-100">
           <table className="w-full text-sm">
             <thead>
-              <tr className="bg-blue-50 dark:bg-blue-900 text-blue-900 dark:text-blue-200">
+              <tr className="bg-blue-50 text-blue-900">
                  <th className="p-3 font-semibold text-left">Nome</th>
                  <th className="p-3 font-semibold text-left">CPF/CNPJ</th>
                  <th className="p-3 font-semibold text-left">Cidade</th>
@@ -183,12 +183,12 @@ export default function ClientesPage() {
                  </tr>
                ) : (
                  paginados.map((c, i) => (
-                   <tr key={i} className="border-t border-gray-100 dark:border-gray-900 hover:bg-blue-50/40 dark:hover:bg-blue-900/40 transition">
-                     <td className="p-3 font-medium text-gray-800 dark:text-gray-100">{c.nome}</td>
-                     <td className="p-3 text-gray-700 dark:text-gray-300">{formatarCpfCnpj(c.cpfCnpj)}</td>
-                     <td className="p-3 text-gray-700 dark:text-gray-300">{c.cidade}</td>
-                     <td className="p-3 text-gray-700 dark:text-gray-300">{c.estado}</td>
-                     <td className="p-3 text-gray-700 dark:text-gray-300">{formatarTelefone(c.telefone)}</td>
+                   <tr key={i} className="border-t border-gray-100 hover:bg-blue-50/40 transition">
+                     <td className="p-3 font-medium text-gray-800">{c.nome}</td>
+                     <td className="p-3 text-gray-700">{formatarCpfCnpj(c.cpfCnpj)}</td>
+                     <td className="p-3 text-gray-700">{c.cidade}</td>
+                     <td className="p-3 text-gray-700">{c.estado}</td>
+                     <td className="p-3 text-gray-700">{formatarTelefone(c.telefone)}</td>
                    </tr>
                  ))
                )}
@@ -198,10 +198,10 @@ export default function ClientesPage() {
                 <td colSpan={5} className="py-4">
                   <div className="flex flex-col sm:flex-row justify-center items-center gap-4">
                     <div className="flex items-center gap-2">
-                      <label htmlFor="porPagina" className="text-sm text-gray-700 dark:text-gray-300">Exibir por página:</label>
+                      <label htmlFor="porPagina" className="text-sm text-gray-700">Exibir por página:</label>
                       <select
                         id="porPagina"
-                        className="border rounded px-2 py-1 bg-white dark:bg-gray-900 text-blue-700 dark:text-blue-200"
+                        className="border rounded px-2 py-1 bg-white text-blue-700"
                         value={porPagina}
                         onChange={e => {
                           setPorPagina(Number(e.target.value));
@@ -219,13 +219,13 @@ export default function ClientesPage() {
                     {filtrados.length > porPagina && (
                       <div className="flex items-center gap-2">
                         <button
-                          className="px-3 py-1 rounded border bg-white dark:bg-gray-900 text-blue-700 dark:text-blue-200 disabled:opacity-50 hover:cursor-pointer"
+                          className="px-3 py-1 rounded border bg-white text-blue-700 disabled:opacity-50 hover:cursor-pointer"
                           onClick={() => setPagina(p => Math.max(1, p - 1))}
                           disabled={pagina === 1}
                         >Anterior</button>
-                        <span className="text-sm text-gray-700 dark:text-gray-300">Página {pagina} de {totalPaginas}</span>
+                        <span className="text-sm text-gray-700">Página {pagina} de {totalPaginas}</span>
                         <button
-                          className="px-3 py-1 rounded border bg-white dark:bg-gray-900 text-blue-700 dark:text-blue-200 disabled:opacity-50 hover:cursor-pointer"
+                          className="px-3 py-1 rounded border bg-white text-blue-700 disabled:opacity-50 hover:cursor-pointer"
                           onClick={() => setPagina(p => Math.min(totalPaginas, p + 1))}
                           disabled={pagina === totalPaginas}
                         >Próxima</button>
@@ -241,10 +241,10 @@ export default function ClientesPage() {
         {filtrados.length > porPagina && (
           <div className="lg:hidden mt-4 flex flex-col gap-3">
             <div className="flex items-center justify-center gap-2">
-              <label htmlFor="porPaginaMobile" className="text-sm text-gray-700 dark:text-gray-300">Por página:</label>
+              <label htmlFor="porPaginaMobile" className="text-sm text-gray-700">Por página:</label>
               <select
                 id="porPaginaMobile"
-                className="border rounded px-2 py-1 bg-white dark:bg-gray-900 text-blue-700 dark:text-blue-200 text-sm"
+                className="border rounded px-2 py-1 bg-white text-blue-700 text-sm"
                 value={porPagina}
                 onChange={e => {
                   setPorPagina(Number(e.target.value));
@@ -265,7 +265,7 @@ export default function ClientesPage() {
               >
                 ← Anterior
               </button>
-              <span className="text-sm text-gray-700 dark:text-gray-300 px-3 py-2 bg-gray-100 dark:bg-gray-800 rounded-lg font-medium">
+              <span className="text-sm text-gray-700 px-3 py-2 bg-gray-100 rounded-lg font-medium">
                 {pagina} de {totalPaginas}
               </span>
               <button

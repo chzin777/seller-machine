@@ -12,10 +12,10 @@ const defaultRules = {
 };
 
 const defaultTiers = [
-  { name: "Diamante", range: "13 - 15", icon: "💎", color: "bg-purple-100 dark:bg-purple-900/30 text-purple-700 dark:text-purple-300" },
-  { name: "Ouro", range: "10 - 12", icon: "🥇", color: "bg-yellow-100 dark:bg-yellow-900/30 text-yellow-700 dark:text-yellow-300" },
-  { name: "Prata", range: "7 - 9", icon: "🥈", color: "bg-gray-100 dark:bg-gray-700/30 text-gray-700 dark:text-gray-300" },
-  { name: "Bronze", range: "3 - 6", icon: "🥉", color: "bg-orange-100 dark:bg-orange-900/30 text-orange-700 dark:text-orange-300" },
+  { name: "Diamante", range: "13 - 15", icon: "💎", color: "bg-purple-100 text-purple-700 border-purple-300" },
+  { name: "Ouro", range: "10 - 12", icon: "🥇", color: "bg-yellow-100 text-yellow-700 border-yellow-300" },
+  { name: "Prata", range: "7 - 9", icon: "🥈", color: "bg-white text-gray-700 border-gray-300" },
+  { name: "Bronze", range: "3 - 6", icon: "🥉", color: "bg-orange-100 text-orange-700 border-orange-300 border-orange-300" },
 ];
 
 type CustomRule = {
@@ -70,7 +70,7 @@ export default function ConfigurarRFVPage() {
   const [windowDays, setWindowDays] = useState(180);
   const [customRules, setCustomRules] = useState<CustomRule[]>([]);
 
-  const API_BASE_URL = 'https://api-maquina-de-vendas-production.up.railway.app';
+  const API_BASE_URL = 'https://api-seller-machine-production.up.railway.app';
 
   const [segments, setSegments] = useState<any[]>([]);
   const [isLoadingSegments, setIsLoadingSegments] = useState(false);
@@ -547,12 +547,12 @@ export default function ConfigurarRFVPage() {
   };
 
   return (
-    <div className="max-w-5xl w-full mx-auto py-6 px-2 sm:py-10 sm:px-4 min-h-screen">
+  <div className="max-w-5xl w-full mx-auto py-6 px-2 sm:py-10 sm:px-4 min-h-screen bg-white">
       {isLoadingData ? (
         <div className="flex items-center justify-center min-h-[400px]">
           <div className="text-center">
             <Loader2 className="w-8 h-8 animate-spin text-blue-600 mx-auto mb-4" />
-            <p className="text-gray-600 dark:text-gray-400">Carregando configurações...</p>
+            <p className="text-gray-600">Carregando configurações...</p>
           </div>
         </div>
       ) : (
@@ -561,11 +561,11 @@ export default function ConfigurarRFVPage() {
           <div className="mb-8">
             <div className="flex items-center justify-between mb-4">
               <div>
-                <h1 className="text-3xl font-bold text-blue-900 dark:text-blue-200 mb-2 flex items-center gap-3">
-                  <Settings className="w-8 h-8 text-blue-700 dark:text-blue-200" />
+                <h1 className="text-3xl font-bold text-blue-900 mb-2 flex items-center gap-3">
+                  <Settings className="w-8 h-8 text-blue-700" />
                   Análise RFV - Configuração
                 </h1>
-                <p className="text-gray-600 dark:text-gray-400 text-lg">
+                <p className="text-gray-600 text-lg">
                   Configure as regras e segmentos para classificar seus clientes baseado no comportamento de Recência, Frequência e Monetário.
                 </p>
               </div>
@@ -573,7 +573,7 @@ export default function ConfigurarRFVPage() {
                 <Button
                   onClick={createNewConfiguration}
                   variant="outline"
-                  className="border-green-200 dark:border-green-700 text-green-700 dark:text-green-300 hover:bg-green-50 hover:cursor-pointer dark:hover:bg-green-900/40"
+                  className="border-green-600 text-green-700 bg-white hover:bg-green-50 hover:border-green-700 hover:cursor-pointer focus:ring-2 hover:text-green-900 focus:ring-green-200 focus:border-green-700 font-semibold shadow-md transition-transform duration-150 hover:scale-105"
                 >
                   <Plus className="w-4 h-4 mr-2" />
                   Nova Configuração
@@ -581,7 +581,7 @@ export default function ConfigurarRFVPage() {
                 <Button
                   onClick={() => setShowManagement(!showManagement)}
                   variant="outline"
-                  className="border-blue-200 dark:border-blue-700 text-blue-700 dark:text-blue-300 hover:bg-blue-50 hover:cursor-pointer dark:hover:bg-blue-900/40"
+                  className="border-blue-600 text-blue-700 bg-white hover:bg-blue-50 hover:border-blue-700 hover:cursor-pointer hover:text-blue-900 focus:ring-2 focus:ring-blue-200 focus:border-blue-700 font-semibold shadow-md transition-transform duration-150 hover:scale-105"
                 >
                   <Settings className="w-4 h-4 mr-2" />
                   {showManagement ? 'Ocultar' : 'Gerenciar'} Configurações
@@ -591,9 +591,9 @@ export default function ConfigurarRFVPage() {
 
             {/* Management Panel */}
             {showManagement && (
-              <Card className="mb-6 border border-yellow-200 dark:border-yellow-700 bg-yellow-50/30 dark:bg-yellow-900/10">
+              <Card className="mb-6 border border-yellow-200 bg-yellow-50/30">
                 <CardHeader>
-                  <CardTitle className="text-yellow-800 dark:text-yellow-200 flex items-center gap-2">
+                  <CardTitle className="text-yellow-800 flex items-center gap-2">
                     <Settings className="w-5 h-5" />
                     Gerenciar Configurações
                   </CardTitle>
@@ -606,19 +606,19 @@ export default function ConfigurarRFVPage() {
                     </div>
                   ) : parameterSets.length === 0 ? (
                     <div className="text-center py-8">
-                      <p className="text-gray-600 dark:text-gray-400">
+                      <p className="text-gray-600">
                         Nenhuma configuração encontrada. Crie sua primeira configuração!
                       </p>
                     </div>
                   ) : (
                     <div className="space-y-4">
                       {parameterSets.map((parameterSet) => (
-                        <div key={parameterSet.id} className="flex items-center justify-between p-4 bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700">
+                        <div key={parameterSet.id} className="flex items-center justify-between p-4 bg-white rounded-lg border border-gray-200">
                           <div className="flex-1">
-                            <h3 className="font-semibold text-gray-900 dark:text-gray-100">
+                            <h3 className="font-semibold text-gray-900">
                               {parameterSet.name}
                             </h3>
-                            <div className="text-sm text-gray-600 dark:text-gray-400 mt-1">
+                            <div className="text-sm text-gray-600 mt-1">
                               <p>Estratégia: {parameterSet.calculation_strategy === 'automatic' ? 'Automática' : 'Manual'}</p>
                               <p>Janela: {parameterSet.windowDays} dias</p>
                               <p>Criada em: {new Date(parameterSet.effectiveFrom).toLocaleDateString()}</p>
@@ -629,7 +629,7 @@ export default function ConfigurarRFVPage() {
                               onClick={() => loadConfiguration(parameterSet.id!)}
                               size="sm"
                               variant="outline"
-                              className="border-blue-200 dark:border-blue-700 text-blue-700 dark:text-blue-300 hover:bg-blue-50 hover:cursor-pointer dark:hover:bg-blue-900/40"
+                              className="border-blue-200 text-blue-700 bg-white hover:bg-blue-50 hover:cursor-pointer transition-transform duration-150 hover:scale-105"
                             >
                               Editar
                             </Button>
@@ -641,7 +641,7 @@ export default function ConfigurarRFVPage() {
                               }}
                               size="sm"
                               variant="outline"
-                              className="border-red-200 dark:border-red-700 text-red-700 dark:text-red-300 hover:bg-red-50 hover:cursor-pointer dark:hover:bg-red-900/40"
+                              className="border-red-200 text-red-700 bg-white hover:bg-red-50 hover:cursor-pointer transition-transform duration-150 hover:scale-105"
                             >
                               <Trash2 className="w-4 h-4" />
                             </Button>
@@ -656,18 +656,18 @@ export default function ConfigurarRFVPage() {
 
             {/* Configuration Selector */}
             {parameterSets.length > 0 ? (
-              <Card className="mb-6 border border-blue-100 dark:border-blue-900 bg-blue-50/30 dark:bg-blue-900/10">
+              <Card className="mb-6 border border-blue-100 bg-blue-50/30">
                 <CardContent className="pt-4">
                   <div className="flex items-center gap-4">
                     <div className="flex-1">
-                      <label className="block text-sm font-medium text-blue-900 dark:text-blue-100 mb-2">
+                      <label className="block text-sm font-medium text-blue-900 mb-2">
                         Configuração Atual:
                       </label>
                       <Select 
                         value={currentParameterSet?.id?.toString() || ''} 
                         onValueChange={(value) => value && loadConfiguration(parseInt(value))}
                       >
-                        <SelectTrigger className="bg-white dark:bg-gray-800 border-blue-200 dark:border-blue-700">
+                        <SelectTrigger className="bg-white border-blue-200">
                           <SelectValue placeholder="Selecione uma configuração" />
                         </SelectTrigger>
                         <SelectContent>
@@ -680,26 +680,26 @@ export default function ConfigurarRFVPage() {
                       </Select>
                     </div>
                     <div className="flex-1">
-                      <label className="block text-sm font-medium text-blue-900 dark:text-blue-100 mb-2">
+                      <label className="block text-sm font-medium text-blue-900 mb-2">
                         Nome da Configuração:
                       </label>
                       <input
                         type="text"
-                        className="w-full px-3 py-2 border rounded-lg bg-white dark:bg-gray-800 border-blue-200 dark:border-blue-700 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                        className="w-full px-3 py-2 border rounded-lg bg-white border-blue-200 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                         value={configName}
                         onChange={(e) => setConfigName(e.target.value)}
                         placeholder="Nome da configuração"
                       />
                     </div>
                     <div className="w-32">
-                      <label className="block text-sm font-medium text-blue-900 dark:text-blue-100 mb-2">
+                      <label className="block text-sm font-medium text-blue-900 mb-2">
                         Janela (dias):
                       </label>
                       <input
                         type="number"
                         min="30"
                         max="365"
-                        className="w-full px-3 py-2 border rounded-lg bg-white dark:bg-gray-800 border-blue-200 dark:border-blue-700 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                        className="w-full px-3 py-2 border rounded-lg bg-white border-blue-200 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                         value={windowDays}
                         onChange={(e) => setWindowDays(parseInt(e.target.value) || 180)}
                       />
@@ -709,7 +709,7 @@ export default function ConfigurarRFVPage() {
                         onClick={() => window.open(`${API_BASE_URL}/api/rfv/segments`, '_blank')}
                         variant="outline"
                         size="sm"
-                        className="text-purple-600 border-purple-200 hover:bg-purple-50 hover:cursor-pointer dark:text-purple-400 dark:border-purple-700 dark:hover:bg-purple-900/20"
+                        className="text-purple-600 border-purple-200 bg-white hover:bg-purple-50 hover:cursor-pointer transition-transform duration-150 hover:scale-105"
                       >
                         👁️ Ver Segmentos
                       </Button>
@@ -718,41 +718,41 @@ export default function ConfigurarRFVPage() {
                 </CardContent>
               </Card>
             ) : (
-              <Card className="mb-6 border border-orange-100 dark:border-orange-900 bg-orange-50/30 dark:bg-orange-900/10">
+              <Card className="mb-6 border border-orange-300 bg-orange-100">
                 <CardContent className="pt-4">
                   <div className="flex items-center gap-4">
                     <div className="flex-1">
                       <div className="flex items-center gap-2 mb-2">
-                        <Info className="w-5 h-5 text-orange-600 dark:text-orange-400" />
-                        <h3 className="font-semibold text-orange-900 dark:text-orange-100">
+                        <Info className="w-5 h-5 text-orange-500" />
+                        <h3 className="font-semibold text-orange-600">
                           Primeira Configuração RFV
                         </h3>
                       </div>
-                      <p className="text-sm text-orange-700 dark:text-orange-300">
+                      <p className="text-sm text-orange-700">
                         Você está criando sua primeira configuração RFV. Configure as regras abaixo e clique em &quot;Salvar&quot; para começar.
                       </p>
                     </div>
                     <div className="flex-1">
-                      <label className="block text-sm font-medium text-orange-900 dark:text-orange-100 mb-2">
+                      <label className="block text-sm font-medium text-orange-900 mb-2">
                         Nome da Nova Configuração:
                       </label>
                       <input
                         type="text"
-                        className="w-full px-3 py-2 border rounded-lg bg-white dark:bg-gray-800 border-orange-200 dark:border-orange-700 focus:ring-2 focus:ring-orange-500 focus:border-transparent"
+                        className="w-full px-3 py-2 border rounded-lg bg-white border-orange-400 text-orange-900 focus:ring-2 focus:ring-orange-500 focus:border-transparent"
                         value={configName}
                         onChange={(e) => setConfigName(e.target.value)}
                         placeholder="Ex: Configuração RFV Principal"
                       />
                     </div>
                     <div className="w-32">
-                      <label className="block text-sm font-medium text-orange-900 dark:text-orange-100 mb-2">
+                      <label className="block text-sm font-medium text-orange-900 mb-2">
                         Janela (dias):
                       </label>
                       <input
                         type="number"
                         min="30"
                         max="365"
-                        className="w-full px-3 py-2 border rounded-lg bg-white dark:bg-gray-800 border-orange-200 dark:border-orange-700 focus:ring-2 focus:ring-orange-500 focus:border-transparent"
+                        className="w-full px-3 py-2 border rounded-lg bg-white border-orange-400 text-orange-900 focus:ring-2 focus:ring-orange-500 focus:border-transparent"
                         value={windowDays}
                         onChange={(e) => setWindowDays(parseInt(e.target.value) || 180)}
                       />
@@ -777,7 +777,7 @@ export default function ConfigurarRFVPage() {
                     disabled={isLoadingSegments}
                     variant="outline"
                     size="sm"
-                    className="text-green-600 border-green-200 hover:bg-green-50 hover:cursor-pointer dark:text-green-400 dark:border-green-700 dark:hover:bg-green-900/20"
+                    className="text-green-600 border-green-200 bg-white hover:bg-green-50 hover:cursor-pointer transition-transform duration-150 hover:scale-105"
                   >
                     {isLoadingSegments ? (
                       <Loader2 className="w-4 h-4 animate-spin" />
@@ -825,7 +825,7 @@ export default function ConfigurarRFVPage() {
                                 onClick={() => group.config?.id && activateParameterSet(group.config.id)}
                                 variant="outline"
                                 size="sm"
-                                className="text-purple-600 border-purple-200 hover:bg-purple-50 hover:cursor-pointer dark:text-purple-400 dark:border-purple-700 dark:hover:bg-purple-900/20"
+                                className="text-purple-600 border-purple-200 bg-white hover:bg-purple-50 hover:cursor-pointer transition-transform duration-150 hover:scale-105"
                               >
                                 ⭐ Tornar Ativa
                               </Button>
@@ -837,7 +837,7 @@ export default function ConfigurarRFVPage() {
                                 }}
                                 variant="outline"
                                 size="sm"
-                                className="text-red-600 border-red-200 hover:bg-red-50 hover:cursor-pointer dark:text-red-400 dark:border-red-700 dark:hover:bg-red-900/20"
+                                className="text-red-600 border-red-200 bg-white hover:bg-red-50 hover:cursor-pointer transition-transform duration-150 hover:scale-105"
                               >
                                 🗑️ Excluir Config
                               </Button>
@@ -846,7 +846,7 @@ export default function ConfigurarRFVPage() {
                           
                           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
                             {group.segments.map((segment: any) => (
-                              <div key={segment.id} className="border border-gray-200 dark:border-gray-600 rounded-lg p-3 bg-gray-50 dark:bg-gray-800/50">
+                              <div key={segment.id} className="border border-gray-200  rounded-lg p-3 bg-gray-50 dark:bg-gray-800/50">
                                 <div className="space-y-2">
                                   <div className="flex items-center justify-between">
                                     <h4 className="font-semibold text-gray-900 dark:text-gray-100 text-sm">
@@ -871,7 +871,7 @@ export default function ConfigurarRFVPage() {
                                     <Button
                                       variant="outline"
                                       size="sm"
-                                      className="text-blue-600 border-blue-200 hover:bg-blue-50 hover:cursor-pointer dark:text-blue-400 dark:border-blue-700 dark:hover:bg-blue-900/20 text-xs px-2 py-1 h-6"
+                                      className="text-blue-600 border-blue-200 bg-white hover:bg-blue-50 hover:cursor-pointer transition-transform duration-150 hover:scale-105 text-xs px-2 py-1 h-6"
                                       onClick={() => {
                                         console.log('Editando segmento:', segment);
                                       }}
@@ -881,7 +881,7 @@ export default function ConfigurarRFVPage() {
                                     <Button
                                       variant="outline"
                                       size="sm"
-                                      className="text-red-600 border-red-200 hover:bg-red-50 hover:cursor-pointer dark:text-red-400 dark:border-red-700 dark:hover:bg-red-900/20 text-xs px-2 py-1 h-6"
+                                      className="text-red-600 border-red-200 bg-white hover:bg-red-50 hover:cursor-pointer transition-transform duration-150 hover:scale-105 text-xs px-2 py-1 h-6"
                                       onClick={() => {
                                         if (confirm(`Deseja remover o segmento "${segment.name}"?`)) {
                                           deleteCustomSegment(segment.id).then(() => loadSegments());
@@ -905,26 +905,26 @@ export default function ConfigurarRFVPage() {
           )}
 
       {/* Info Card */}
-      <Card className="shadow-lg border border-blue-100 dark:border-blue-900 bg-gradient-to-r from-blue-50 to-indigo-50 dark:from-blue-900/20 dark:to-indigo-900/20 mb-8">
+      <Card className="shadow-lg border border-blue-100 bg-gradient-to-r from-blue-50 to-indigo-50 mb-8">
         <CardContent className="pt-6">
           <div className="flex items-start gap-3">
-            <Info className="w-5 h-5 text-blue-600 dark:text-blue-400 mt-0.5 flex-shrink-0" />
+            <Info className="w-5 h-5 text-blue-600 mt-0.5 flex-shrink-0" />
             <div>
-              <h3 className="font-semibold text-blue-900 dark:text-blue-100 mb-2">Como funciona a Análise RFV?</h3>
-              <p className="text-sm text-blue-700 dark:text-blue-300 mb-2">
+              <h3 className="font-semibold text-blue-900 mb-2">Como funciona a Análise RFV?</h3>
+              <p className="text-sm text-blue-700 mb-2">
                 A análise RFV classifica clientes em scores de 1 a 5 para cada dimensão:
               </p>
-              <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 text-sm">
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 text-sm text-blue-900">
                 <div className="flex items-center gap-2">
-                  <Clock className="w-4 h-4 text-blue-600 dark:text-blue-400" />
+                  <Clock className="w-4 h-4 text-blue-600" />
                   <span><strong>Recência:</strong> Há quanto tempo comprou</span>
                 </div>
                 <div className="flex items-center gap-2">
-                  <ShoppingCart className="w-4 h-4 text-blue-600 dark:text-blue-400" />
+                  <ShoppingCart className="w-4 h-4 text-blue-600" />
                   <span><strong>Frequência:</strong> Quantas vezes comprou</span>
                 </div>
                 <div className="flex items-center gap-2">
-                  <DollarSign className="w-4 h-4 text-blue-600 dark:text-blue-400" />
+                  <DollarSign className="w-4 h-4 text-blue-600" />
                   <span><strong>Monetário:</strong> Quanto gastou no total</span>
                 </div>
               </div>
@@ -934,31 +934,31 @@ export default function ConfigurarRFVPage() {
       </Card>
 
       {/* Rules Card */}
-      <Card className="shadow-lg border border-gray-100 dark:border-gray-900 bg-white dark:bg-gray-950 mb-8">
+      <Card className="shadow-lg border border-gray-200 bg-white mb-8">
         <CardHeader>
-          <CardTitle className="text-xl font-bold flex items-center gap-2">
-            <SlidersHorizontal className="w-6 h-6 text-blue-700 dark:text-blue-200" />
+          <CardTitle className="text-xl font-bold flex items-center gap-2 text-blue-900">
+            <SlidersHorizontal className="w-6 h-6 text-blue-700" />
             1. Definir Regras de Pontuação
           </CardTitle>
-          <p className="text-sm text-gray-600 dark:text-gray-400">
+          <p className="text-sm text-gray-700">
             Primeiro, defina os intervalos de valores para cada score de 1 a 5. Esses scores serão usados tanto para segmentação automática quanto manual.
           </p>
         </CardHeader>
         <CardContent>
           <div className="space-y-8">
             {/* Recency */}
-            <div className="p-4 border border-blue-100 dark:border-blue-900 rounded-lg bg-blue-50/30 dark:bg-blue-900/10">
+            <div className="p-4 border border-blue-200 rounded-lg bg-blue-50 text-black">
               <div className="flex items-center gap-2 mb-4">
-                <Clock className="w-5 h-5 text-blue-600 dark:text-blue-400" />
-                <h3 className="font-semibold text-blue-900 dark:text-blue-100">Regras de Recência (dias)</h3>
+                <Clock className="w-5 h-5 text-blue-600" />
+                <h3 className="font-semibold text-blue-900">Regras de Recência (dias)</h3>
               </div>
               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4">
                 <div className="text-center">
-                  <div className="text-xs font-medium text-green-700 dark:text-green-400 mb-2">Score 5 (Excelente)</div>
-                  <div className="text-sm text-gray-600 dark:text-gray-400 mb-2">Menos de</div>
+                  <div className="text-xs font-medium text-green-700 mb-2">Score 5 (Excelente)</div>
+                  <div className="text-sm text-gray-700 mb-2">Menos de</div>
                   <input 
                     type="number" 
-                    className="w-full px-3 py-2 border rounded-lg text-center bg-white dark:bg-gray-800 border-gray-300 dark:border-gray-600 focus:ring-2 focus:ring-blue-500 focus:border-transparent" 
+                    className="w-full px-3 py-2 border rounded-lg text-center bg-white border-gray-300 focus:ring-2 focus:ring-blue-500 focus:border-transparent" 
                     value={recency[0]} 
                     min={1} 
                     max={recency[1]-1} 
@@ -967,19 +967,19 @@ export default function ConfigurarRFVPage() {
                   <div className="text-xs text-gray-500 mt-1">dias</div>
                 </div>
                 <div className="text-center">
-                  <div className="text-xs font-medium text-blue-700 dark:text-blue-400 mb-2">Score 4 (Bom)</div>
-                  <div className="text-sm text-gray-600 dark:text-gray-400 mb-2">Entre</div>
+                  <div className="text-xs font-medium text-blue-700 mb-2">Score 4 (Bom)</div>
+                  <div className="text-sm text-gray-700 mb-2">Entre</div>
                   <div className="flex items-center gap-1">
                     <input 
                       type="number" 
-                      className="w-full px-2 py-2 border rounded-lg text-center bg-gray-100 dark:bg-gray-700 border-gray-300 dark:border-gray-600" 
+                      className="w-full px-2 py-2 border rounded-lg text-center bg-white border-gray-300" 
                       value={recency[0]+1} 
-                      readOnly 
+                      onChange={e => handleRecency(0, +e.target.value)} 
                     />
                     <span className="text-xs">e</span>
                     <input 
                       type="number" 
-                      className="w-full px-2 py-2 border rounded-lg text-center bg-white dark:bg-gray-800 border-gray-300 dark:border-gray-600 focus:ring-2 focus:ring-blue-500 focus:border-transparent" 
+                      className="w-full px-2 py-2 border rounded-lg text-center bg-white border-gray-300 focus:ring-2 focus:ring-blue-500 focus:border-transparent" 
                       value={recency[1]} 
                       min={recency[0]+1} 
                       max={recency[2]-1} 
@@ -989,19 +989,19 @@ export default function ConfigurarRFVPage() {
                   <div className="text-xs text-gray-500 mt-1">dias</div>
                 </div>
                 <div className="text-center">
-                  <div className="text-xs font-medium text-yellow-700 dark:text-yellow-400 mb-2">Score 3 (Regular)</div>
-                  <div className="text-sm text-gray-600 dark:text-gray-400 mb-2">Entre</div>
+                  <div className="text-xs font-medium text-yellow-700 mb-2">Score 3 (Regular)</div>
+                  <div className="text-sm text-gray-700 mb-2">Entre</div>
                   <div className="flex items-center gap-1">
                     <input 
                       type="number" 
-                      className="w-full px-2 py-2 border rounded-lg text-center bg-gray-100 dark:bg-gray-700 border-gray-300 dark:border-gray-600" 
+                      className="w-full px-2 py-2 border rounded-lg text-center bg-white border-gray-300" 
                       value={recency[1]+1} 
-                      readOnly 
+                      onChange={e => handleRecency(1, +e.target.value)} 
                     />
                     <span className="text-xs">e</span>
                     <input 
                       type="number" 
-                      className="w-full px-2 py-2 border rounded-lg text-center bg-white dark:bg-gray-800 border-gray-300 dark:border-gray-600 focus:ring-2 focus:ring-blue-500 focus:border-transparent" 
+                      className="w-full px-2 py-2 border rounded-lg text-center bg-white border-gray-300 focus:ring-2 focus:ring-blue-500 focus:border-transparent" 
                       value={recency[2]} 
                       min={recency[1]+1} 
                       max={recency[3]-1} 
@@ -1011,19 +1011,19 @@ export default function ConfigurarRFVPage() {
                   <div className="text-xs text-gray-500 mt-1">dias</div>
                 </div>
                 <div className="text-center">
-                  <div className="text-xs font-medium text-orange-700 dark:text-orange-400 mb-2">Score 2 (Fraco)</div>
-                  <div className="text-sm text-gray-600 dark:text-gray-400 mb-2">Entre</div>
+                  <div className="text-xs font-medium text-orange-700 mb-2">Score 2 (Fraco)</div>
+                  <div className="text-sm text-gray-700 mb-2">Entre</div>
                   <div className="flex items-center gap-1">
                     <input 
                       type="number" 
-                      className="w-full px-2 py-2 border rounded-lg text-center bg-gray-100 dark:bg-gray-700 border-gray-300 dark:border-gray-600" 
+                      className="w-full px-2 py-2 border rounded-lg text-center bg-white border-gray-300" 
                       value={recency[2]+1} 
-                      readOnly 
+                      onChange={e => handleRecency(2, +e.target.value)} 
                     />
                     <span className="text-xs">e</span>
                     <input 
                       type="number" 
-                      className="w-full px-2 py-2 border rounded-lg text-center bg-white dark:bg-gray-800 border-gray-300 dark:border-gray-600 focus:ring-2 focus:ring-blue-500 focus:border-transparent" 
+                      className="w-full px-2 py-2 border rounded-lg text-center bg-white border-gray-300 focus:ring-2 focus:ring-blue-500 focus:border-transparent" 
                       value={recency[3]} 
                       min={recency[2]+1} 
                       onChange={e => handleRecency(3, +e.target.value)} 
@@ -1032,9 +1032,9 @@ export default function ConfigurarRFVPage() {
                   <div className="text-xs text-gray-500 mt-1">dias</div>
                 </div>
                 <div className="text-center">
-                  <div className="text-xs font-medium text-red-700 dark:text-red-400 mb-2">Score 1 (Crítico)</div>
-                  <div className="text-sm text-gray-600 dark:text-gray-400 mb-2">Mais de</div>
-                  <div className="px-3 py-2 border rounded-lg text-center bg-gray-100 dark:bg-gray-700 border-gray-300 dark:border-gray-600 font-medium">
+                  <div className="text-xs font-medium text-red-700 mb-2">Score 1 (Crítico)</div>
+                  <div className="text-sm text-gray-700 mb-2">Mais de</div>
+                  <div className="px-3 py-2 border rounded-lg text-center bg-white 00 border-gray-300  font-medium">
                     {recency[3]}
                   </div>
                   <div className="text-xs text-gray-500 mt-1">dias</div>
@@ -1043,18 +1043,18 @@ export default function ConfigurarRFVPage() {
             </div>
 
             {/* Frequency */}
-            <div className="p-4 border border-green-100 dark:border-green-900 rounded-lg bg-green-50/30 dark:bg-green-900/10">
+            <div className="p-4 border border-green-200 rounded-lg bg-green-50 text-black">
               <div className="flex items-center gap-2 mb-4">
-                <ShoppingCart className="w-5 h-5 text-green-600 dark:text-green-400" />
-                <h3 className="font-semibold text-green-900 dark:text-green-100">Regras de Frequência (compras)</h3>
+                <ShoppingCart className="w-5 h-5 text-green-600" />
+                <h3 className="font-semibold text-green-900">Regras de Frequência (compras)</h3>
               </div>
               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4">
                 <div className="text-center">
-                  <div className="text-xs font-medium text-green-700 dark:text-green-400 mb-2">Score 5 (Excelente)</div>
-                  <div className="text-sm text-gray-600 dark:text-gray-400 mb-2">Mais de</div>
+                  <div className="text-xs font-medium text-green-700 mb-2">Score 5 (Excelente)</div>
+                  <div className="text-sm text-gray-700 mb-2">Mais de</div>
                   <input 
                     type="number" 
-                    className="w-full px-3 py-2 border rounded-lg text-center bg-white dark:bg-gray-800 border-gray-300 dark:border-gray-600 focus:ring-2 focus:ring-green-500 focus:border-transparent" 
+                    className="w-full px-3 py-2 border rounded-lg text-center bg-white border-gray-300 focus:ring-2 focus:ring-green-500 focus:border-transparent" 
                     value={frequency[4]} 
                     min={frequency[3]+1} 
                     onChange={e => handleFrequency(4, +e.target.value)} 
@@ -1062,55 +1062,55 @@ export default function ConfigurarRFVPage() {
                   <div className="text-xs text-gray-500 mt-1">compras</div>
                 </div>
                 <div className="text-center">
-                  <div className="text-xs font-medium text-blue-700 dark:text-blue-400 mb-2">Score 4 (Bom)</div>
-                  <div className="text-sm text-gray-600 dark:text-gray-400 mb-2">Entre</div>
+                  <div className="text-xs font-medium text-blue-700 mb-2">Score 4 (Bom)</div>
+                  <div className="text-sm text-gray-700 mb-2">Entre</div>
                   <div className="flex items-center gap-1">
                     <input 
                       type="number" 
-                      className="w-full px-2 py-2 border rounded-lg text-center bg-white dark:bg-gray-800 border-gray-300 dark:border-gray-600 focus:ring-2 focus:ring-green-500 focus:border-transparent" 
+                      className="w-full px-2 py-2 border rounded-lg text-center bg-white border-gray-300" 
                       value={frequency[3]} 
                       min={frequency[2]+1} 
                       max={frequency[4]} 
                       onChange={e => handleFrequency(3, +e.target.value)} 
                     />
                     <span className="text-xs">e</span>
-                    <div className="w-full px-2 py-2 border rounded-lg text-center bg-gray-100 dark:bg-gray-700 border-gray-300 dark:border-gray-600 font-medium">
+                    <div className="w-full px-2 py-2 border rounded-lg text-center bg-white 00 border-gray-300  font-medium">
                       {frequency[4]}
                     </div>
                   </div>
                   <div className="text-xs text-gray-500 mt-1">compras</div>
                 </div>
                 <div className="text-center">
-                  <div className="text-xs font-medium text-yellow-700 dark:text-yellow-400 mb-2">Score 3 (Regular)</div>
-                  <div className="text-sm text-gray-600 dark:text-gray-400 mb-2">Entre</div>
+                  <div className="text-xs font-medium text-yellow-700 mb-2">Score 3 (Regular)</div>
+                  <div className="text-sm text-gray-700 mb-2">Entre</div>
                   <div className="flex items-center gap-1">
                     <input 
                       type="number" 
-                      className="w-full px-2 py-2 border rounded-lg text-center bg-white dark:bg-gray-800 border-gray-300 dark:border-gray-600 focus:ring-2 focus:ring-green-500 focus:border-transparent" 
+                      className="w-full px-2 py-2 border rounded-lg text-center bg-white border-gray-300" 
                       value={frequency[2]} 
                       min={frequency[1]+1} 
                       max={frequency[3]} 
                       onChange={e => handleFrequency(2, +e.target.value)} 
                     />
                     <span className="text-xs">e</span>
-                    <div className="w-full px-2 py-2 border rounded-lg text-center bg-gray-100 dark:bg-gray-700 border-gray-300 dark:border-gray-600 font-medium">
+                    <div className="w-full px-2 py-2 border rounded-lg text-center bg-white 00 border-gray-300  font-medium">
                       {frequency[3]}
                     </div>
                   </div>
                   <div className="text-xs text-gray-500 mt-1">compras</div>
                 </div>
                 <div className="text-center">
-                  <div className="text-xs font-medium text-orange-700 dark:text-orange-400 mb-2">Score 2 (Fraco)</div>
-                  <div className="text-sm text-gray-600 dark:text-gray-400 mb-2">Exatamente</div>
-                  <div className="px-3 py-2 border rounded-lg text-center bg-gray-100 dark:bg-gray-700 border-gray-300 dark:border-gray-600 font-medium">
+                  <div className="text-xs font-medium text-orange-700 mb-2">Score 2 (Fraco)</div>
+                  <div className="text-sm text-gray-700 mb-2">Exatamente</div>
+                  <div className="px-3 py-2 border rounded-lg text-center bg-white 00 border-gray-300  font-medium">
                     {frequency[1]}
                   </div>
                   <div className="text-xs text-gray-500 mt-1">compras</div>
                 </div>
                 <div className="text-center">
-                  <div className="text-xs font-medium text-red-700 dark:text-red-400 mb-2">Score 1 (Crítico)</div>
-                  <div className="text-sm text-gray-600 dark:text-gray-400 mb-2">Apenas</div>
-                  <div className="px-3 py-2 border rounded-lg text-center bg-gray-100 dark:bg-gray-700 border-gray-300 dark:border-gray-600 font-medium">
+                  <div className="text-xs font-medium text-red-700 mb-2">Score 1 (Crítico)</div>
+                  <div className="text-sm text-gray-700 mb-2">Apenas</div>
+                  <div className="px-3 py-2 border rounded-lg text-center bg-white 00 border-gray-300  font-medium">
                     {frequency[0]}
                   </div>
                   <div className="text-xs text-gray-500 mt-1">compra</div>
@@ -1119,53 +1119,53 @@ export default function ConfigurarRFVPage() {
             </div>
 
             {/* Monetary */}
-            <div className="p-4 border border-purple-100 dark:border-purple-900 rounded-lg bg-purple-50/30 dark:bg-purple-900/10">
+            <div className="p-4 border border-purple-200 rounded-lg bg-purple-50 text-black">
               <div className="flex items-center gap-2 mb-4">
-                <DollarSign className="w-5 h-5 text-purple-600 dark:text-purple-400" />
-                <h3 className="font-semibold text-purple-900 dark:text-purple-100">Regras Monetárias (valor)</h3>
+                <DollarSign className="w-5 h-5 text-purple-600" />
+                <h3 className="font-semibold text-purple-900">Regras Monetárias (valor)</h3>
               </div>
               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4">
                 <div className="text-center">
-                  <div className="text-xs font-medium text-green-700 dark:text-green-400 mb-2">Score 5 (Excelente)</div>
-                  <div className="text-sm text-gray-600 dark:text-gray-400 mb-2">Mais de R$</div>
+                  <div className="text-xs font-medium text-green-700 mb-2">Score 5 (Excelente)</div>
+                  <div className="text-sm text-gray-700 mb-2">Mais de R$</div>
                   <input 
                     type="number" 
-                    className="w-full px-3 py-2 border rounded-lg text-center bg-white dark:bg-gray-800 border-gray-300 dark:border-gray-600 focus:ring-2 focus:ring-purple-500 focus:border-transparent" 
+                    className="w-full px-3 py-2 border rounded-lg text-center bg-white border-gray-300 focus:ring-2 focus:ring-purple-500 focus:border-transparent text-black" 
                     value={monetary[3]} 
                     min={monetary[2]+1} 
                     onChange={e => handleMonetary(3, +e.target.value)} 
                   />
                 </div>
                 <div className="text-center">
-                  <div className="text-xs font-medium text-blue-700 dark:text-blue-400 mb-2">Score 4 (Bom)</div>
-                  <div className="text-sm text-gray-600 dark:text-gray-400 mb-2">Entre R$</div>
+                  <div className="text-xs font-medium text-blue-700 mb-2">Score 4 (Bom)</div>
+                  <div className="text-sm text-gray-700 mb-2">Entre R$</div>
                   <div className="flex items-center gap-1">
                     <input 
                       type="number" 
-                      className="w-full px-2 py-2 border rounded-lg text-center bg-gray-100 dark:bg-gray-700 border-gray-300 dark:border-gray-600" 
+                      className="w-full px-2 py-2 border rounded-lg text-center bg-white border-gray-300" 
                       value={monetary[2]+1} 
-                      readOnly 
+                      onChange={e => handleMonetary(2, +e.target.value)} 
                     />
                     <span className="text-xs">e</span>
-                    <div className="w-full px-2 py-2 border rounded-lg text-center bg-gray-100 dark:bg-gray-700 border-gray-300 dark:border-gray-600 font-medium">
+                    <div className="w-full px-2 py-2 border rounded-lg text-center bg-white border-gray-300 font-medium">
                       {monetary[3]}
                     </div>
                   </div>
                 </div>
                 <div className="text-center">
-                  <div className="text-xs font-medium text-yellow-700 dark:text-yellow-400 mb-2">Score 3 (Regular)</div>
-                  <div className="text-sm text-gray-600 dark:text-gray-400 mb-2">Entre R$</div>
+                  <div className="text-xs font-medium text-yellow-700 mb-2">Score 3 (Regular)</div>
+                  <div className="text-sm text-gray-700 mb-2">Entre R$</div>
                   <div className="flex items-center gap-1">
                     <input 
                       type="number" 
-                      className="w-full px-2 py-2 border rounded-lg text-center bg-gray-100 dark:bg-gray-700 border-gray-300 dark:border-gray-600" 
+                      className="w-full px-2 py-2 border rounded-lg text-center bg-white border-gray-300" 
                       value={monetary[1]+1} 
-                      readOnly 
+                      onChange={e => handleMonetary(1, +e.target.value)} 
                     />
                     <span className="text-xs">e</span>
                     <input 
                       type="number" 
-                      className="w-full px-2 py-2 border rounded-lg text-center bg-white dark:bg-gray-800 border-gray-300 dark:border-gray-600 focus:ring-2 focus:ring-purple-500 focus:border-transparent" 
+                      className="w-full px-2 py-2 border rounded-lg text-center bg-white border-gray-300 focus:ring-2 focus:ring-purple-500 focus:border-transparent" 
                       value={monetary[2]} 
                       min={monetary[1]+1} 
                       onChange={e => handleMonetary(2, +e.target.value)} 
@@ -1173,19 +1173,19 @@ export default function ConfigurarRFVPage() {
                   </div>
                 </div>
                 <div className="text-center">
-                  <div className="text-xs font-medium text-orange-700 dark:text-orange-400 mb-2">Score 2 (Fraco)</div>
-                  <div className="text-sm text-gray-600 dark:text-gray-400 mb-2">Entre R$</div>
+                  <div className="text-xs font-medium text-orange-700 mb-2">Score 2 (Fraco)</div>
+                  <div className="text-sm text-gray-700 mb-2">Entre R$</div>
                   <div className="flex items-center gap-1">
                     <input 
                       type="number" 
-                      className="w-full px-2 py-2 border rounded-lg text-center bg-gray-100 dark:bg-gray-700 border-gray-300 dark:border-gray-600" 
+                      className="w-full px-2 py-2 border rounded-lg text-center bg-white border-gray-300" 
                       value={monetary[0]+1} 
-                      readOnly 
+                      onChange={e => handleMonetary(1, +e.target.value)} 
                     />
                     <span className="text-xs">e</span>
                     <input 
                       type="number" 
-                      className="w-full px-2 py-2 border rounded-lg text-center bg-white dark:bg-gray-800 border-gray-300 dark:border-gray-600 focus:ring-2 focus:ring-purple-500 focus:border-transparent" 
+                      className="w-full px-2 py-2 border rounded-lg text-center bg-white border-gray-300 focus:ring-2 focus:ring-purple-500 focus:border-transparent" 
                       value={monetary[1]} 
                       min={monetary[0]+1} 
                       max={monetary[2]-1} 
@@ -1194,9 +1194,9 @@ export default function ConfigurarRFVPage() {
                   </div>
                 </div>
                 <div className="text-center">
-                  <div className="text-xs font-medium text-red-700 dark:text-red-400 mb-2">Score 1 (Crítico)</div>
-                  <div className="text-sm text-gray-600 dark:text-gray-400 mb-2">R$ ou menos</div>
-                  <div className="px-3 py-2 border rounded-lg text-center bg-gray-100 dark:bg-gray-700 border-gray-300 dark:border-gray-600 font-medium">
+                  <div className="text-xs font-medium text-red-700 mb-2">Score 1 (Crítico)</div>
+                  <div className="text-sm text-gray-700 mb-2">R$ ou menos</div>
+                  <div className="px-3 py-2 border rounded-lg text-center bg-white border-gray-300  font-medium">
                     {monetary[0]}
                   </div>
                 </div>
@@ -1207,19 +1207,19 @@ export default function ConfigurarRFVPage() {
       </Card>
 
       {/* Segmentation Method */}
-      <Card className="shadow-lg border border-gray-100 dark:border-gray-900 bg-white dark:bg-gray-950 mb-8">
+      <Card className="shadow-lg border border-gray-200 bg-white mb-8">
         <CardHeader>
-          <CardTitle className="text-xl font-bold flex items-center gap-2">
-            <Trophy className="w-6 h-6 text-blue-700 dark:text-blue-200" />
+          <CardTitle className="text-xl font-bold flex items-center gap-2 text-blue-900">
+            <Trophy className="w-6 h-6 text-blue-700" />
             2. Método de Segmentação
           </CardTitle>
-          <p className="text-sm text-gray-600 dark:text-gray-400">
+          <p className="text-sm text-gray-700">
             Escolha como agrupar os clientes baseado nos scores definidos acima.
           </p>
         </CardHeader>
         <CardContent>
           <div className="space-y-6">
-            <div className="flex items-center gap-4 p-4 border-2 border-blue-200 dark:border-blue-800 rounded-lg bg-blue-50/50 dark:bg-blue-900/20">
+            <div className="flex items-center gap-4 p-4 border-2 border-blue-200 rounded-lg bg-blue-50/50">
               <input 
                 type="radio" 
                 id="auto" 
@@ -1230,16 +1230,16 @@ export default function ConfigurarRFVPage() {
                 className="w-4 h-4 text-blue-600 focus:ring-blue-500"
               />
               <div className="flex-1">
-                <label htmlFor="auto" className="font-semibold text-blue-900 dark:text-blue-100 cursor-pointer">
+                <label htmlFor="auto" className="font-semibold text-blue-900 cursor-pointer">
                   ✨ Tierização Automática (Recomendado)
                 </label>
-                <p className="text-sm text-blue-700 dark:text-blue-300 mt-1">
+                <p className="text-sm text-blue-700 mt-1">
                   O sistema usa um modelo padrão baseado na soma dos scores (R+F+V) para classificar clientes em tiers.
                 </p>
               </div>
             </div>
 
-            <div className="flex items-center gap-4 p-4 border border-gray-200 dark:border-gray-700 rounded-lg">
+            <div className="flex items-center gap-4 p-4 border border-gray-200 rounded-lg">
               <input 
                 type="radio" 
                 id="manual" 
@@ -1250,10 +1250,10 @@ export default function ConfigurarRFVPage() {
                 className="w-4 h-4 text-blue-600 focus:ring-blue-500"
               />
               <div className="flex-1">
-                <label htmlFor="manual" className="font-semibold text-gray-900 dark:text-gray-100 cursor-pointer">
+                <label htmlFor="manual" className="font-semibold text-gray-900 cursor-pointer">
                   🔧 Segmentação Manual
                 </label>
-                <p className="text-sm text-gray-600 dark:text-gray-400 mt-1">
+                <p className="text-sm text-gray-700 mt-1">
                   Crie suas próprias regras customizadas com condições específicas (ex: R Score &gt;= 4 E F Score = 5).
                 </p>
               </div>
@@ -1261,8 +1261,8 @@ export default function ConfigurarRFVPage() {
 
             {mode === "auto" ? (
               <div className="mt-6">
-                <h3 className="font-semibold text-gray-900 dark:text-gray-100 mb-4">Tiers de Classificação Padrão</h3>
-                <p className="text-sm text-gray-600 dark:text-gray-400 mb-4">
+                <h3 className="font-semibold text-gray-900 mb-4">Tiers de Classificação Padrão</h3>
+                <p className="text-sm text-gray-600 mb-4">
                   No modo automático, os clientes são classificados baseado na soma dos scores R, F e V:
                 </p>
                 <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
@@ -1280,7 +1280,7 @@ export default function ConfigurarRFVPage() {
             ) : (
               <div className="mt-6 space-y-6">
                 <div className="flex items-center justify-between mb-4">
-                  <h3 className="font-semibold text-gray-900 dark:text-gray-100">Construtor de Regras Customizadas</h3>
+                  <h3 className="font-semibold text-gray-900 ">Construtor de Regras Customizadas</h3>
                   <Button 
                     onClick={addCustomRule}
                     className="bg-green-600 hover:bg-green-700 hover:cursor-pointer text-white font-semibold px-4 py-2 rounded-lg flex items-center gap-2"
@@ -1289,7 +1289,7 @@ export default function ConfigurarRFVPage() {
                     Nova Regra
                   </Button>
                 </div>
-                <p className="text-sm text-gray-600 dark:text-gray-400 mb-4">
+                <p className="text-sm text-gray-600 mb-4">
                   Crie regras específicas para segmentar seus clientes baseado nos scores R, F e V.
                 </p>
                 
@@ -1300,18 +1300,18 @@ export default function ConfigurarRFVPage() {
                 ) : (
                   <div className="space-y-4">
                     {customRules.map((rule, ruleIndex) => (
-                      <Card key={rule.id} className="border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800/50">
+                      <Card key={rule.id} className="border border-gray-200 bg-white">
                         <CardContent className="pt-4">
                           <div className="space-y-4">
                             {/* Rule Header */}
                             <div className="flex items-center justify-between">
                               <div className="flex-1">
-                                <label className="block text-xs font-medium text-gray-700 dark:text-gray-300 mb-1">
+                                <label className="block text-xs font-semibold text-blue-900 mb-1">
                                   Nome do Segmento
                                 </label>
                                 <input
                                   type="text"
-                                  className="w-full px-3 py-2 border rounded-lg bg-white dark:bg-gray-800 border-gray-300 dark:border-gray-600 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                                  className="w-full px-3 py-2 border rounded-lg bg-white border-blue-300 text-blue-900 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-sm h-10"
                                   value={rule.segmentName}
                                   onChange={(e) => updateRuleName(rule.id, e.target.value)}
                                   placeholder="Ex: Clientes VIP"
@@ -1320,7 +1320,7 @@ export default function ConfigurarRFVPage() {
                               <Button
                                 onClick={() => removeCustomRule(rule.id)}
                                 variant="outline"
-                                className="ml-4 text-red-600 border-red-200 hover:bg-red-50 hover:cursor-pointer dark:text-red-400 dark:border-red-700 dark:hover:bg-red-900/20"
+                                className="ml-4 text-red-600 border-red-200 bg-white hover:bg-red-50 hover:cursor-pointer transition-transform duration-150 hover:scale-105"
                               >
                                 <Trash2 className="w-4 h-4" />
                               </Button>
@@ -1329,14 +1329,14 @@ export default function ConfigurarRFVPage() {
                             {/* Conditions */}
                             <div className="space-y-3">
                               <div className="flex items-center justify-between">
-                                <label className="text-xs font-medium text-gray-700 dark:text-gray-300">
+                                <label className="text-xs font-semibold text-blue-900">
                                   Condições
                                 </label>
                                 <Button
                                   onClick={() => addCondition(rule.id)}
                                   variant="outline"
                                   size="sm"
-                                  className="text-blue-600 border-blue-200 hover:bg-blue-50 hover:cursor-pointer dark:text-blue-400 dark:border-blue-700 dark:hover:bg-blue-900/20"
+                                  className="text-blue-600 border-blue-200 bg-white hover:bg-blue-50 hover:cursor-pointer transition-transform duration-150 hover:scale-105"
                                 >
                                   <Plus className="w-3 h-3 mr-1" />
                                   Condição
@@ -1344,69 +1344,65 @@ export default function ConfigurarRFVPage() {
                               </div>
                               
                               {rule.conditions.map((condition, conditionIndex) => (
-                                <div key={condition.id} className="flex items-center gap-2 p-3 border border-gray-200 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800">
+                                <div key={condition.id} className="flex items-center gap-2 p-3 border border-gray-200 rounded-lg bg-white">
                                   {conditionIndex > 0 && (
                                     <div className="flex items-center gap-2 mr-2">
                                       <Select 
                                         value={rule.connector} 
                                         onValueChange={(value) => updateRuleConnector(rule.id, value as 'E' | 'OU')}
                                       >
-                                        <SelectTrigger className="w-16 h-8 text-xs">
-                                          <SelectValue />
+                                        <SelectTrigger className="w-24 h-10 text-sm bg-white border-blue-300 text-blue-900 focus:border-blue-500 hover:border-blue-500">
+                                          <SelectValue className="text-sm" />
                                         </SelectTrigger>
                                         <SelectContent>
-                                          <SelectItem value="E">E</SelectItem>
-                                          <SelectItem value="OU">OU</SelectItem>
+                                          <SelectItem value="E" className="text-sm">E</SelectItem>
+                                          <SelectItem value="OU" className="text-sm">OU</SelectItem>
                                         </SelectContent>
                                       </Select>
                                     </div>
                                   )}
-                                  
                                   <Select 
                                     value={condition.dimension} 
                                     onValueChange={(value) => updateCondition(rule.id, condition.id, { dimension: value as 'R' | 'F' | 'V' })}
                                   >
-                                    <SelectTrigger className="w-24 h-8 text-xs">
-                                      <SelectValue />
+                                    <SelectTrigger className="w-32 h-10 text-sm bg-white border-blue-300 text-blue-900 focus:border-blue-500 hover:border-blue-500">
+                                      <SelectValue className="text-sm" />
                                     </SelectTrigger>
                                     <SelectContent>
-                                      <SelectItem value="R">R (Recência)</SelectItem>
-                                      <SelectItem value="F">F (Frequência)</SelectItem>
-                                      <SelectItem value="V">V (Monetário)</SelectItem>
+                                      <SelectItem value="R" className="text-sm">R (Recência)</SelectItem>
+                                      <SelectItem value="F" className="text-sm">F (Frequência)</SelectItem>
+                                      <SelectItem value="V" className="text-sm">V (Monetário)</SelectItem>
                                     </SelectContent>
                                   </Select>
-                                  
                                   <Select 
                                     value={condition.operator} 
                                     onValueChange={(value) => updateCondition(rule.id, condition.id, { operator: value as any })}
                                   >
-                                    <SelectTrigger className="w-20 h-8 text-xs">
-                                      <SelectValue />
+                                    <SelectTrigger className="w-24 h-10 text-sm bg-white border-blue-300 text-blue-900 focus:border-blue-500 hover:border-blue-500">
+                                      <SelectValue className="text-sm" />
                                     </SelectTrigger>
                                     <SelectContent>
-                                      <SelectItem value=">=">&gt;=</SelectItem>
-                                      <SelectItem value="<=">&lt;=</SelectItem>
-                                      <SelectItem value="=">=</SelectItem>
-                                      <SelectItem value=">">&gt;</SelectItem>
-                                      <SelectItem value="<">&lt;</SelectItem>
+                                      <SelectItem value=">=" className="text-sm">&gt;=</SelectItem>
+                                      <SelectItem value="<=" className="text-sm">&lt;=</SelectItem>
+                                      <SelectItem value="=" className="text-sm">=</SelectItem>
+                                      <SelectItem value=">" className="text-sm">&gt;</SelectItem>
+                                      <SelectItem value="<" className="text-sm">&lt;</SelectItem>
                                     </SelectContent>
                                   </Select>
-                                  
                                   <input
                                     type="number"
                                     min="1"
                                     max="5"
-                                    className="w-16 px-2 py-1 border rounded text-center text-xs bg-white dark:bg-gray-800 border-gray-300 dark:border-gray-600"
+                                    className="w-24 h-10 px-2 py-1 border rounded text-center text-sm bg-white border-blue-300 text-blue-900 focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                                     value={condition.value}
                                     onChange={(e) => updateCondition(rule.id, condition.id, { value: +e.target.value })}
                                   />
-                                  
                                   {rule.conditions.length > 1 && (
                                     <Button
                                       onClick={() => removeCondition(rule.id, condition.id)}
                                       variant="outline"
                                       size="sm"
-                                      className="text-red-600 border-red-200 hover:bg-red-50 hover:cursor-pointer dark:text-red-400 dark:border-red-700 dark:hover:bg-red-900/20 w-8 h-8 p-0"
+                                      className="text-red-600 border-red-200 bg-white hover:bg-red-50 hover:cursor-pointer transition-transform duration-150 hover:scale-105 w-8 h-8 p-0"
                                     >
                                       <Trash2 className="w-3 h-3" />
                                     </Button>
@@ -1416,11 +1412,11 @@ export default function ConfigurarRFVPage() {
                             </div>
 
                             {/* Rule Preview */}
-                            <div className="p-3 bg-blue-50 dark:bg-blue-900/20 rounded-lg border border-blue-200 dark:border-blue-800">
-                              <div className="text-xs font-medium text-blue-800 dark:text-blue-200 mb-1">
+                            <div className="p-3 bg-blue-50 rounded-lg border border-blue-200">
+                              <div className="text-xs font-semibold text-blue-900 mb-1">
                                 Prévia da Regra:
                               </div>
-                              <div className="text-sm text-blue-700 dark:text-blue-300 font-mono">
+                              <div className="text-sm text-blue-800 font-mono">
                                 {rule.conditions.map((condition, index) => (
                                   <span key={condition.id}>
                                     {index > 0 && ` ${rule.connector} `}
@@ -1447,7 +1443,7 @@ export default function ConfigurarRFVPage() {
           <Button 
             variant="outline" 
             onClick={resetToDefaults}
-            className="border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 hover:bg-gray-50 hover:cursor-pointer dark:hover:bg-gray-800"
+            className="border-gray-300 text-gray-700 bg-white hover:bg-gray-50 hover:cursor-pointer transition-transform duration-150 hover:scale-105 hover:text-blue-900"
           >
             🔄 Restaurar Padrões
           </Button>
@@ -1456,7 +1452,7 @@ export default function ConfigurarRFVPage() {
             onClick={executeRFVAnalysis}
             disabled={isLoading}
             variant="outline"
-            className="border-green-200 dark:border-green-700 text-green-700 dark:text-green-300 hover:bg-green-50 hover:cursor-pointer dark:hover:bg-green-900/40"
+            className="border-green-200 text-green-700 bg-white hover:bg-green-50 hover:cursor-pointer transition-transform duration-150 hover:scale-105 hover:text-green-900"
             title={!currentParameterSet ? "Salve uma configuração primeiro para executar análise com parâmetros específicos, ou execute com parâmetros padrão" : ""}
           >
             {isLoading ? (
@@ -1475,7 +1471,7 @@ export default function ConfigurarRFVPage() {
         <div className="flex gap-3 order-1 sm:order-2">
           <Button 
             variant="outline" 
-            className="border-blue-200 dark:border-blue-700 text-blue-700 dark:text-blue-300 hover:bg-blue-50 hover:cursor-pointer dark:hover:bg-blue-900/40"
+            className="border-blue-200 text-blue-700 bg-white hover:bg-blue-50 hover:cursor-pointer transition-transform duration-150 hover:scale-105 hover:text-blue-900"
           >
             Cancelar
           </Button>

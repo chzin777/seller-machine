@@ -57,12 +57,12 @@ export default function Home() {
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-3 sm:gap-4 w-full min-w-0">
           {/* Receita Total */}
           <GenericTiltedCard className="col-span-1">
-            <Card className="shadow-lg border border-green-200/60 bg-gradient-to-br from-green-50/80 to-white/80 dark:from-green-900/20 dark:to-gray-950/80 backdrop-blur-sm h-full kpi-container">
+            <Card className="shadow-lg border border-green-200/60 bg-white h-full kpi-container">
               <CardHeader className="flex flex-row items-start justify-between pb-1 pt-3 px-3 flex-shrink-0">
-                <CardTitle className="text-xs sm:text-sm md:text-base font-bold text-green-900 dark:text-green-200 leading-tight w-full">Receita Total</CardTitle>
+                <CardTitle className="text-xs sm:text-sm md:text-base font-bold text-green-800 leading-tight w-full">Receita Total</CardTitle>
               </CardHeader>
               <CardContent className="kpi-content px-3 pt-2 pb-3">
-                <div className="font-extrabold tracking-tight text-green-900 dark:text-green-100 flex items-center gap-1 sm:gap-2 kpi-number-responsive kpi-number">
+                <div className="font-extrabold tracking-tight text-green-800 flex items-center gap-1 sm:gap-2 kpi-number-responsive kpi-number">
                   {data.loading ? (
                     <Skeleton className="h-8 sm:h-10 w-24 sm:w-32" />
                   ) : data.receitaTotal !== null ? (
@@ -74,12 +74,12 @@ export default function Home() {
           </GenericTiltedCard>
           {/* Ticket Médio por NF */}
           <GenericTiltedCard className="col-span-1">
-            <Card className="shadow-lg border border-yellow-200/60 bg-gradient-to-br from-yellow-50/80 to-white/80 dark:from-yellow-900/20 dark:to-gray-950/80 backdrop-blur-sm h-full kpi-container">
+            <Card className="shadow-lg border border-yellow-200/60 bg-white h-full kpi-container">
               <CardHeader className="flex flex-row items-start justify-between pb-1 pt-3 px-3 flex-shrink-0">
-                <CardTitle className="text-xs sm:text-sm md:text-base font-bold text-yellow-900 dark:text-yellow-200 leading-tight w-full">Ticket Médio por NF</CardTitle>
+                <CardTitle className="text-xs sm:text-sm md:text-base font-bold text-yellow-700 leading-tight w-full">Ticket Médio por NF</CardTitle>
               </CardHeader>
               <CardContent className="kpi-content px-3 pt-2 pb-3">
-                <div className="font-extrabold tracking-tight text-yellow-900 dark:text-yellow-100 kpi-number-responsive kpi-number">
+                <div className="font-extrabold tracking-tight text-yellow-700 kpi-number-responsive kpi-number">
                   {data.ticketMedio !== null ? `R$ ${data.ticketMedio.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}` : '--'}
                 </div>
               </CardContent>
@@ -87,12 +87,12 @@ export default function Home() {
           </GenericTiltedCard>
           {/* Itens Vendidos */}
           <GenericTiltedCard className="col-span-1">
-            <Card className="shadow-lg border border-indigo-200/60 bg-gradient-to-br from-indigo-50/80 to-white/80 dark:from-indigo-900/20 dark:to-gray-950/80 backdrop-blur-sm h-full kpi-container">
+            <Card className="shadow-lg border border-indigo-200/60 bg-white h-full kpi-container">
               <CardHeader className="flex flex-row items-start justify-between pb-1 pt-3 px-3 flex-shrink-0">
-                <CardTitle className="text-xs sm:text-sm md:text-base font-bold text-indigo-900 dark:text-indigo-200 leading-tight w-full">Itens Vendidos</CardTitle>
+                <CardTitle className="text-xs sm:text-sm md:text-base font-bold text-indigo-800 leading-tight w-full">Itens Vendidos</CardTitle>
               </CardHeader>
               <CardContent className="kpi-content px-3 pt-2 pb-3">
-                <div className="font-extrabold tracking-tight text-indigo-900 dark:text-indigo-100 kpi-number-responsive kpi-number">
+                <div className="font-extrabold tracking-tight text-indigo-800 kpi-number-responsive kpi-number">
                   {data.itensVendidos !== null ? data.itensVendidos.toLocaleString('pt-BR') : '--'}
                 </div>
               </CardContent>
@@ -100,12 +100,12 @@ export default function Home() {
           </GenericTiltedCard>
           {/* Clientes Ativos */}
           <GenericTiltedCard className="col-span-1">
-            <Card className="shadow-lg border border-blue-200/60 bg-gradient-to-br from-blue-50/80 to-white/80 dark:from-blue-900/20 dark:to-gray-950/80 backdrop-blur-sm h-full kpi-container">
+            <Card className="shadow-lg border border-blue-200/60 bg-white h-full kpi-container">
               <CardHeader className="flex flex-row items-start justify-between pb-1 pt-3 px-3 flex-shrink-0">
-                <CardTitle className="text-xs sm:text-sm md:text-base font-bold text-blue-900 dark:text-blue-200 leading-tight w-full">Clientes Ativos (90 dias)</CardTitle>
+                <CardTitle className="text-xs sm:text-sm md:text-base font-bold text-blue-800 leading-tight w-full">Clientes Ativos (90 dias)</CardTitle>
               </CardHeader>
               <CardContent className="kpi-content px-3 pt-2 pb-3">
-                <div className="font-extrabold tracking-tight text-blue-900 dark:text-blue-100 kpi-number-responsive kpi-number">
+                <div className="font-extrabold tracking-tight text-blue-800 kpi-number-responsive kpi-number">
                   {data.clientesAtivos !== null ? data.clientesAtivos : '--'}
                 </div>
               </CardContent>
@@ -113,12 +113,12 @@ export default function Home() {
           </GenericTiltedCard>
           {/* Clientes Inativos */}
           <GenericTiltedCard className="col-span-1">
-            <Card className="shadow-lg border border-red-200/60 bg-gradient-to-br from-red-50/80 to-white/80 dark:from-red-900/20 dark:to-gray-950/80 backdrop-blur-sm h-full kpi-container">
+            <Card className="shadow-lg border border-red-200/60 bg-white h-full kpi-container">
               <CardHeader className="flex flex-row items-start justify-between pb-1 pt-3 px-3 flex-shrink-0">
-                <CardTitle className="text-xs sm:text-sm md:text-base font-bold text-red-900 dark:text-red-200 leading-tight w-full">Clientes Inativos (90 dias)</CardTitle>
+                <CardTitle className="text-xs sm:text-sm md:text-base font-bold text-red-800 leading-tight w-full">Clientes Inativos (90 dias)</CardTitle>
               </CardHeader>
               <CardContent className="kpi-content px-3 pt-2 pb-3">
-                <div className="font-extrabold tracking-tight text-red-900 dark:text-red-100 kpi-number-responsive kpi-number">
+                <div className="font-extrabold tracking-tight text-red-800 kpi-number-responsive kpi-number">
                   {data.clientesInativos !== null ? data.clientesInativos : '--'}
                 </div>
               </CardContent>
@@ -130,8 +130,8 @@ export default function Home() {
         <div className="grid grid-cols-1 xl:grid-cols-2 gap-6 sm:gap-8 w-full min-w-0">
           {/* Gráfico Receita Mensal */}
           <div className="w-full min-w-0">
-            <Card className="shadow-xl border-0 bg-white/50 dark:bg-gray-900/50 backdrop-blur-xl rounded-2xl overflow-hidden h-full">
-              <div className="bg-gradient-to-r from-emerald-500/10 via-blue-500/10 to-purple-500/10 dark:from-emerald-400/20 dark:via-blue-400/20 dark:to-purple-400/20 p-4 sm:p-6 border-b border-emerald-200/30 dark:border-emerald-700/30">
+            <Card className="shadow-xl border border-emerald-200/30 bg-white rounded-2xl overflow-hidden h-full">
+              <div className="p-4 sm:p-6 border-b border-emerald-200/30">
                 <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
                   <div className="flex items-center gap-3 min-w-0 flex-1">
                     <div className="w-8 h-8 sm:w-10 sm:h-10 rounded-xl bg-gradient-to-br from-emerald-500 to-blue-600 flex items-center justify-center shadow-lg flex-shrink-0">
@@ -140,10 +140,10 @@ export default function Home() {
                       </svg>
                     </div>
                     <div className="min-w-0 flex-1">
-                      <h3 className="text-lg sm:text-xl font-bold bg-gradient-to-r from-emerald-600 to-blue-600 bg-clip-text text-transparent dark:from-emerald-400 dark:to-blue-400 truncate">
+                      <h3 className="text-lg sm:text-xl font-bold text-emerald-800 truncate">
                         Receita Mensal {data.receitaMensal?.ano ? `(${data.receitaMensal.ano})` : ''}
                       </h3>
-                      <p className="text-xs sm:text-sm text-gray-600 dark:text-gray-300 mt-1 line-clamp-2">Evolução da receita ao longo do ano</p>
+                      <p className="text-xs sm:text-sm text-gray-600 mt-1 line-clamp-2">Evolução da receita ao longo do ano</p>
                     </div>
                   </div>
                   {/* Indicador de tendência */}
@@ -166,7 +166,7 @@ export default function Home() {
                                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 13l-5 5m0 0l-5-5m5 5V6" />
                               </svg>
                             )}
-                            <span className={`text-xs font-semibold ${tendencia ? 'text-emerald-700 dark:text-emerald-300' : 'text-red-600 dark:text-red-400'}`}>
+                            <span className={`text-xs font-semibold ${tendencia ? 'text-emerald-700' : 'text-red-600'}`}>
                               {Math.abs(percentual).toFixed(1)}%
                             </span>
                           </>
@@ -260,8 +260,8 @@ export default function Home() {
           </div>
           {/* Gráfico Vendas x Receita */}
           <div className="w-full min-w-0">
-            <Card className="shadow-xl border-0 bg-white/50 dark:bg-gray-900/50 backdrop-blur-xl rounded-2xl overflow-hidden h-full">
-              <div className="bg-gradient-to-r from-blue-500/10 via-purple-500/10 to-pink-500/10 dark:from-blue-400/20 dark:via-purple-400/20 dark:to-pink-400/20 p-4 sm:p-6 border-b border-blue-200/30 dark:border-blue-700/30">
+            <Card className="shadow-xl border border-blue-200/30 bg-white rounded-2xl overflow-hidden h-full">
+              <div className="p-4 sm:p-6 border-b border-blue-200/30">
                 <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
                   <div className="flex items-center gap-3 min-w-0 flex-1">
                     <div className="w-8 h-8 sm:w-10 sm:h-10 rounded-xl bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center shadow-lg flex-shrink-0">
@@ -270,10 +270,10 @@ export default function Home() {
                       </svg>
                     </div>
                     <div className="min-w-0 flex-1">
-                      <h3 className="text-lg sm:text-xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent dark:from-blue-400 dark:to-purple-400 truncate">
+                      <h3 className="text-lg sm:text-xl font-bold text-blue-800 truncate">
                         Vendas x Receita
                       </h3>
-                      <p className="text-xs sm:text-sm text-gray-600 dark:text-gray-300 mt-1">Performance por filial</p>
+                      <p className="text-xs sm:text-sm text-gray-600 mt-1">Performance por filial</p>
                     </div>
                   </div>
                   {/* Total de filiais */}
@@ -282,7 +282,7 @@ export default function Home() {
                       <svg className="w-3 h-3 sm:w-4 sm:h-4 text-blue-600 dark:text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
                       </svg>
-                      <span className="text-xs font-semibold text-blue-700 dark:text-blue-300">
+                      <span className="text-xs font-semibold text-blue-700">
                         {data.vendasPorFilial.length} {data.vendasPorFilial.length === 1 ? 'Filial' : 'Filiais'}
                       </span>
                     </div>
@@ -415,8 +415,8 @@ export default function Home() {
 
         {/* Gráfico Receita por Tipo de Produto */}
         <div className="w-full min-w-0">
-          <Card className="shadow-xl border-0 bg-white/50 dark:bg-gray-900/50 backdrop-blur-xl rounded-2xl overflow-hidden h-full">
-            <div className="bg-gradient-to-r from-violet-500/10 via-indigo-500/10 to-cyan-500/10 dark:from-violet-400/20 dark:via-indigo-400/20 dark:to-cyan-400/20 p-4 sm:p-6 border-b border-violet-200/30 dark:border-violet-700/30">
+          <Card className="shadow-xl border border-violet-200/30 bg-white rounded-2xl overflow-hidden h-full">
+            <div className="p-4 sm:p-6 border-b border-violet-200/30">
               <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
                 <div className="flex items-center gap-3 min-w-0 flex-1">
                   <div className="w-8 h-8 sm:w-10 sm:h-10 rounded-xl bg-gradient-to-br from-violet-500 to-cyan-600 flex items-center justify-center shadow-lg flex-shrink-0">
@@ -425,10 +425,10 @@ export default function Home() {
                     </svg>
                   </div>
                   <div className="min-w-0 flex-1">
-                    <h3 className="text-lg sm:text-xl font-bold bg-gradient-to-r from-violet-600 to-cyan-600 bg-clip-text text-transparent dark:from-violet-400 dark:to-cyan-400 truncate">
+                    <h3 className="text-lg sm:text-xl font-bold text-violet-800 truncate">
                       Receita por Tipo de Produto
                     </h3>
-                    <p className="text-xs sm:text-sm text-gray-600 dark:text-gray-300 mt-1">Distribuição de vendas por categoria</p>
+                    <p className="text-xs sm:text-sm text-gray-600 mt-1">Distribuição de vendas por categoria</p>
                   </div>
                 </div>
                 {/* Total de categorias */}
@@ -437,7 +437,7 @@ export default function Home() {
                     <svg className="w-3 h-3 sm:w-4 sm:h-4 text-violet-600 dark:text-violet-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A1.994 1.994 0 013 12V7a4 4 0 014-4z" />
                     </svg>
-                    <span className="text-xs font-semibold text-violet-700 dark:text-violet-300">
+                    <span className="text-xs font-semibold text-violet-700">
                       {data.receitaPorTipo.length} {data.receitaPorTipo.length === 1 ? 'Categoria' : 'Categorias'}
                     </span>
                   </div>

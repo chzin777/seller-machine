@@ -2,8 +2,6 @@
 
 import Header from "../components/header";
 import Logo from "../../components/Logo";
-import DarkVeil from "../blocks/Backgrounds/DarkVeil/DarkVeil";
-import SimpleDarkVeil from "../blocks/Backgrounds/SimpleDarkVeil/SimpleDarkVeil";
 import { LoadingProvider, useLoading } from "../components/LoadingContext";
 import { DataProvider } from "../components/DataProvider";
 import { ServiceWorkerProvider } from "../components/ServiceWorkerProvider";
@@ -16,14 +14,12 @@ import { useRouter, usePathname } from "next/navigation";
 
 
 function getNavLinks(userConta?: string) {
-	   const baseLinks = [
-			   { type: "toggle", label: "Menu", icon: Menu },
-			   { href: "/", label: "Dashboard", icon: LayoutDashboard },
-			   { href: "/mapa-vendas", label: "Mapa de Vendas", icon: Map },
-			   { href: "/associacoes", label: "Associações", icon: Link2 },
-			   { href: "/clientes", label: "Clientes", icon: Users },
-			   { href: "/configurar-rfv", label: "Configurar RFV", icon: BarChart3 },
-	   ];
+	const baseLinks = [
+		{ type: "toggle", label: "Menu", icon: Menu },
+		{ href: "/", label: "Dashboard", icon: LayoutDashboard },
+		{ href: "/mapa-vendas", label: "Mapa de Vendas", icon: Map },
+		{ href: "/configurar-rfv", label: "Configurar RFV", icon: BarChart3 },
+	];
 	if (userConta === "Admin") {
 		baseLinks.push({ href: "/usuarios", label: "Usuários", icon: UserCog });
 	}
@@ -39,10 +35,10 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
 			className="w-full h-full min-h-screen dark"
 		>
 			<head>
-				<meta name="color-scheme" content="dark" />
+				   <meta name="color-scheme" content="light" />
 			</head>
-			<body className="bg-gray-900 text-gray-100 min-h-screen w-full h-full m-0 p-0 font-sans overflow-x-hidden"
-				style={{ background: '#111827' }}>
+			   <body className="bg-white text-gray-900 min-h-screen w-full h-full m-0 p-0 font-sans overflow-x-hidden"
+				   style={{ background: '#fff' }}>
 				<ServiceWorkerProvider>
 					<LoadingProvider>
 						<DataProvider>
@@ -97,30 +93,12 @@ function LayoutContent({ children }: { children: React.ReactNode }) {
 			<ProgressBar isLoading={isLoading} progress={progress} />
 			
 			<div className="flex min-h-screen w-full relative overflow-x-hidden" style={{ minHeight: '100vh' }}>
-					   {/* DarkVeil Background Global - apenas para páginas que não são de login */}
-					   {!isLoginPage && (
-						   <>
-							   <SimpleDarkVeil 
-								   className="brightness-75" 
-								   hueShift={20}
-								   noiseIntensity={0.02}
-								   speed={0.8}
-							   />
-							   {/* Fallback original caso SimpleDarkVeil falhe */}
-							   <DarkVeil 
-								   className="brightness-70" 
-								   hueShift={20}
-								   noiseIntensity={0.05}
-								   speed={1.3}
-							   />
-						   </>
-					   )}
+					   {/* Removido background DarkVeil/SimpleDarkVeil para tema branco */}
 					   {/* Sidebar Desktop - UI Profissional */}
 					   {!isLoginPage && (
 						   <aside
 							   ref={sidebarRef}
-							   className={`hidden sm:flex fixed left-0 top-0 h-screen transition-all duration-300 ${sidebarOpen ? "w-64" : "w-20"}
-								   bg-white dark:bg-gray-950 border-r border-blue-100 dark:border-gray-800 flex-col py-6 px-2 shadow-xl z-40`}
+							   className={`hidden sm:flex fixed left-0 top-0 h-screen transition-all duration-300 ${sidebarOpen ? "w-64" : "w-20"} bg-white border-r-4 border-blue-700 flex-col py-6 px-2 shadow-xl z-40`}
 							   aria-label="Menu lateral"
 							   style={{
 								   boxShadow: sidebarOpen ? "4px 0 32px 0 rgba(0,0,0,0.13)" : undefined,
@@ -134,7 +112,7 @@ function LayoutContent({ children }: { children: React.ReactNode }) {
 							   <div className="flex flex-col items-center gap-6 mb-10 relative">
 								   <div className="flex items-center justify-center w-full">
 									   <Logo
-										   className={`block transition-all duration-300 mx-auto text-[#1e293b] dark:text-white ${sidebarOpen ? "scale-100" : "scale-90"}`}
+										   className={`block transition-all duration-300 mx-auto text-[#1e293b] ${sidebarOpen ? "scale-100" : "scale-90"}`}
 										   width={sidebarOpen ? 140 : 36}
 										   height={sidebarOpen ? 48 : 36}
 										   style={{ height: sidebarOpen ? 48 : 36, maxWidth: sidebarOpen ? 140 : 36, marginBottom: 0 }}
@@ -152,7 +130,7 @@ function LayoutContent({ children }: { children: React.ReactNode }) {
 												   key={"toggle-menu"}
 												   type="button"
 												   onClick={() => setSidebarOpen((v) => !v)}
-												   className="flex items-center justify-center w-full h-12 rounded-lg transition-colors bg-blue-50 dark:bg-blue-900/20 text-blue-700 dark:text-blue-200 focus:outline-none focus:ring-2 focus:ring-blue-400 mb-2 hover:bg-blue-100 dark:hover:bg-blue-900/40 hover:cursor-pointer"
+												   className="flex items-center justify-center w-full h-12 rounded-lg transition-colors bg-blue-50  text-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-400 mb-2 hover:bg-blue-100  hover:cursor-pointer"
 												   aria-label="Alternar menu lateral"
 											   >
 												   <span className="mx-auto flex items-center justify-center"><Icon className="w-6 h-6" /></span>
@@ -171,11 +149,15 @@ function LayoutContent({ children }: { children: React.ReactNode }) {
 										   <a
 											   key={link.href}
 											   href={link.href}
-											   className={`group flex items-center gap-3 rounded-lg px-3 py-3 font-medium transition-all duration-200 hover:bg-blue-100/70 dark:hover:bg-blue-900/50 hover:text-blue-700 dark:hover:text-blue-200 text-blue-900 dark:text-blue-200 ${isActive ? "bg-blue-700 text-white font-semibold shadow-lg" : ""} pl-5`}
+											   className={`group flex items-center gap-3 rounded-lg px-3 py-3 font-medium transition-all duration-200 pl-5
+												   ${isActive ? "bg-blue-700 text-white font-semibold shadow-lg" : "text-blue-700 hover:bg-blue-700 hover:text-white"}
+											   `}
 											   style={isActive ? { boxShadow: "0 2px 16px 0 rgba(29,78,216,0.15)" } : {}}
 											   aria-current={isActive ? "page" : undefined}
 										   >
-											   <Icon className="w-5 h-5 flex-shrink-0" />
+											   <Icon className={`w-5 h-5 flex-shrink-0 transition-colors
+												   ${isActive ? "text-white" : "text-blue-700 group-hover:text-white"}
+											   `} />
 											   <span className={`transition-all duration-300 origin-left ${sidebarOpen ? "opacity-100 ml-2 scale-x-100" : "opacity-0 ml-0 scale-x-0 w-0"}`} style={{ width: sidebarOpen ? "auto" : 0, overflow: "hidden", whiteSpace: "nowrap" }}>{link.label}</span>
 										   </a>
 									   );
@@ -183,7 +165,7 @@ function LayoutContent({ children }: { children: React.ReactNode }) {
 							   </nav>
 							   {/* Divider */}
 							   {/* Divider */}
-							   <div className="my-4 border-t border-blue-200 dark:border-blue-800" />
+							   <div className="my-4 border-t border-blue-200" />
 						   </aside>
 					   )}
 
@@ -192,7 +174,7 @@ function LayoutContent({ children }: { children: React.ReactNode }) {
 						<div className="sm:hidden fixed top-0 left-0 w-full z-50">
 							<div className="flex items-center justify-between bg-gray-50/95 dark:bg-gray-900/95 backdrop-blur-md px-3 py-3 shadow-lg border-b border-gray-200/50 dark:border-gray-800/50">
 								<button
-									className="flex items-center gap-2 text-blue-700 dark:text-blue-200 focus:outline-none hover:cursor-pointer p-2 rounded-lg hover:bg-blue-50 dark:hover:bg-blue-900/30 transition-colors"
+									className="flex items-center gap-2 text-blue-700 dark:text-blue-200 focus:outline-none hover:cursor-pointer p-2 rounded-lg hover:bg-blue-50 transition-colors"
 									onClick={() => setSidebarOpen((v) => !v)}
 									aria-label="Abrir menu"
 									type="button"
@@ -216,7 +198,7 @@ function LayoutContent({ children }: { children: React.ReactNode }) {
 										onClick={() => setSidebarOpen(false)}
 									/>
 									{/* Menu lateral */}
-									<div className="fixed left-0 top-0 h-full w-80 max-w-[85vw] bg-white dark:bg-gray-900 shadow-2xl border-r border-blue-100 dark:border-gray-800 flex flex-col py-4 px-3 animate-fade-in z-50 overflow-y-auto">
+									   <div className="fixed left-0 top-0 h-full w-80 max-w-[85vw] bg-white shadow-2xl border-r-4 border-blue-700 flex flex-col py-4 px-3 animate-fade-in z-50 overflow-y-auto">
 										<div className="flex items-center justify-between mb-4 px-2">
 											<Logo
 												className="text-[#1e293b] dark:text-white"
@@ -226,7 +208,7 @@ function LayoutContent({ children }: { children: React.ReactNode }) {
 												aria-label="Logo Máquina de Vendas"
 											/>
 											<button
-												className="text-gray-400 hover:text-blue-700 dark:hover:text-blue-200 p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors"
+												className="text-gray-400 hover:text-blue-700 p-2 rounded-lg hover:bg-gray-100 transition-colors"
 												onClick={() => setSidebarOpen(false)}
 												aria-label="Fechar menu"
 												type="button"
@@ -235,7 +217,7 @@ function LayoutContent({ children }: { children: React.ReactNode }) {
 											</button>
 										</div>
 										{/* Bloco do usuário */}
-										<div className="flex items-center gap-3 px-4 py-4 border border-blue-100 dark:border-blue-800 bg-gradient-to-r from-blue-50 to-indigo-50 dark:from-blue-900/40 dark:to-indigo-900/40 rounded-xl mb-4">
+										<div className="flex items-center gap-3 px-4 py-4 border border-blue-100 bg-gradient-to-r from-blue-50 to-indigo-50 rounded-xl mb-4">
 											<div className="w-12 h-12 rounded-full bg-gradient-to-br from-blue-600 to-blue-700 flex items-center justify-center text-white font-bold text-lg shadow-lg">
 												{userName ? userName.split(' ').map((n) => n[0]).join('').toUpperCase().slice(0, 2) : 'U'}
 											</div>
@@ -264,44 +246,47 @@ function LayoutContent({ children }: { children: React.ReactNode }) {
 														<a
 															key={link.href}
 															href={link.href}
-															className={`flex items-center gap-4 rounded-xl px-4 py-3 font-medium transition-all duration-200 hover:bg-blue-700/10 hover:text-blue-700 text-blue-700 dark:text-blue-200 ${isActive ? "bg-gradient-to-r from-blue-700 to-blue-600 text-white font-semibold shadow-lg" : ""
-																}`}
-															style={
-																isActive
-																	? { boxShadow: "0 4px 20px 0 rgba(29,78,216,0.25)" }
-																	: {}
-															}
-															aria-current={isActive ? "page" : undefined}
-															onClick={() => setSidebarOpen(false)}
-														>
-															<Icon className="w-5 h-5 flex-shrink-0" />
-															<span className="text-base">{link.label}</span>
-														</a>
+															   className={`group flex items-center gap-4 rounded-xl px-4 py-3 font-medium transition-all duration-200
+																   ${isActive ? "bg-blue-700 text-white font-semibold shadow-lg" : "text-blue-700 hover:bg-blue-700 hover:text-white"}
+															   `}
+															   style={
+																   isActive
+																	   ? { boxShadow: "0 4px 20px 0 rgba(29,78,216,0.25)" }
+																	   : {}
+															   }
+															   aria-current={isActive ? "page" : undefined}
+															   onClick={() => setSidebarOpen(false)}
+														   >
+															   <Icon className={`w-5 h-5 flex-shrink-0 transition-colors
+																   ${isActive ? "text-white" : "text-blue-700 group-hover:text-white"}
+															   `} />
+															   <span className="text-base">{link.label}</span>
+														   </a>
 													);
 												})}
 										</nav>
 										{/* Opções extras do usuário */}
 										<div className="mt-auto border-t border-blue-100 dark:border-blue-800 pt-4 flex flex-col gap-1">
-											   <a href="/configuracoes" className="flex items-center gap-3 px-4 py-3 text-sm text-gray-700 dark:text-gray-200 rounded-lg hover:bg-blue-50 dark:hover:bg-blue-900/40 transition-colors hover:cursor-pointer" onClick={() => setSidebarOpen(false)}>
+											   <a href="/configuracoes" className="flex items-center gap-3 px-4 py-3 text-sm text-gray-700 dark:text-gray-200 rounded-lg hover:bg-blue-50 transition-colors hover:cursor-pointer" onClick={() => setSidebarOpen(false)}>
 												   <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
 													   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" />
 													   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
 												   </svg>
 												   Configurações
 											   </a>
-											<a href="/ajuda" className="flex items-center gap-3 px-4 py-3 text-sm text-gray-700 dark:text-gray-200 rounded-lg hover:bg-blue-50 dark:hover:bg-blue-900/40 transition-colors hover:cursor-pointer" onClick={() => setSidebarOpen(false)}>
+											<a href="/ajuda" className="flex items-center gap-3 px-4 py-3 text-sm text-gray-700 dark:text-gray-200 rounded-lg hover:bg-blue-50 transition-colors hover:cursor-pointer" onClick={() => setSidebarOpen(false)}>
 												<svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
 													<path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8.228 9c.549-1.165 2.03-2 3.772-2 2.21 0 4 1.343 4 3 0 1.4-1.278 2.575-3.006 2.907-.542.104-.994.54-.994 1.093m0 3h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
 												</svg>
 												Ajuda
 											</a>
-											<a href="/feedback" className="flex items-center gap-3 px-4 py-3 text-sm text-gray-700 dark:text-gray-200 rounded-lg hover:bg-blue-50 dark:hover:bg-blue-900/40 transition-colors hover:cursor-pointer" onClick={() => setSidebarOpen(false)}>
+											<a href="/feedback" className="flex items-center gap-3 px-4 py-3 text-sm text-gray-700 hover:bg-blue-50  transition-colors hover:cursor-pointer" onClick={() => setSidebarOpen(false)}>
 												<svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
 													<path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 8h10M7 12h4m1 8l-4-4H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-3l-4 4z" />
 												</svg>
 												Feedback
 											</a>
-											<button onClick={() => { localStorage.removeItem('user'); window.location.href = '/login'; }} className="flex items-center gap-3 w-full text-left px-4 py-3 text-sm text-red-600 dark:text-red-400 rounded-lg hover:bg-red-50 dark:hover:bg-red-900/40 transition-colors hover:cursor-pointer mt-2">
+											<button onClick={() => { localStorage.removeItem('user'); window.location.href = '/login'; }} className="flex items-center gap-3 w-full text-left px-4 py-3 text-sm text-red-600 dark:text-red-400 rounded-lg hover:bg-red-50 transition-colors hover:cursor-pointer mt-2">
 												<svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
 													<path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
 												</svg>
@@ -324,7 +309,7 @@ function LayoutContent({ children }: { children: React.ReactNode }) {
 							   <Header userName={userName} />
 						)}
 						<main
-							className={`flex-1 overflow-y-auto overflow-x-hidden relative z-0 ${isLoginPage ? "p-0 bg-gradient-to-br from-gray-50 via-blue-50 to-white dark:from-gray-900 dark:via-gray-950 dark:to-gray-900" : "pt-16 sm:pt-6 p-3 sm:p-6 md:p-8"
+							className={`flex-1 overflow-y-auto overflow-x-hidden relative z-0 ${isLoginPage ? "p-0 bg-gradient-to-br from-gray-50 via-blue-50 to-white" : "pt-16 sm:pt-6 p-3 sm:p-6 md:p-8"
 								}`}
 							style={isLoginPage ? {} : { background: "transparent", backgroundColor: "transparent" }}
 						>

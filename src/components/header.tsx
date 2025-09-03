@@ -40,7 +40,7 @@ export default function Header({ userName }: HeaderProps) {
   }
 
   return (
-    <header className="hidden sm:flex h-16 items-center justify-between px-8 border-b bg-transparent dark:bg-transparent">
+    <header className="hidden sm:flex h-16 items-center justify-between px-8 border-b bg-transparent">
       <div className="font-semibold text-lg ml-16 sm:ml-20">
       </div>
       <div className="flex items-center gap-4 relative">
@@ -49,7 +49,7 @@ export default function Header({ userName }: HeaderProps) {
           className="flex items-center gap-2 focus:outline-none group"
           onClick={() => setMenuOpen((v) => !v)}
         >
-          <span className="text-sm text-gray-500 dark:text-gray-300 group-hover:text-blue-700 dark:group-hover:text-blue-200 transition-colors hover:cursor-pointer">
+          <span className="text-sm text-gray-500 group-hover:text-blue-700 transition-colors hover:cursor-pointer">
             {isClient && userName ? userName : 'Usuário'}
           </span>
           <div className="w-8 h-8 rounded-full bg-blue-100 dark:bg-blue-900 flex items-center justify-center text-blue-700 dark:text-blue-200 font-bold border border-blue-200 dark:border-blue-800 hover:cursor-pointer">
