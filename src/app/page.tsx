@@ -54,19 +54,19 @@ export default function Home() {
       </div>
       <div className="max-w-7xl mx-auto flex flex-col gap-6 sm:gap-8 px-3 sm:px-6 overflow-x-hidden">
         {/* Linha de cards Receita Total, Ticket Médio, Itens Vendidos, Clientes Ativos e Inativos */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-3 sm:gap-4 w-full min-w-0">
+  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-4 sm:gap-5 w-full min-w-0">
           {/* Receita Total */}
           <GenericTiltedCard className="col-span-1">
             <Card className="shadow-lg border border-green-200/60 bg-white h-full kpi-container">
-              <CardHeader className="flex flex-row items-start justify-between pb-1 pt-3 px-3 flex-shrink-0">
-                <CardTitle className="text-xs sm:text-sm md:text-base font-bold text-green-800 leading-tight w-full">Receita Total</CardTitle>
+              <CardHeader className="flex flex-row items-start pb-1 pt-4 px-3 flex-shrink-0 justify-center">
+                <CardTitle className="text-sm sm:text-base md:text-xl font-bold text-green-800 leading-tight w-full text-center">Receita Total</CardTitle>
               </CardHeader>
-              <CardContent className="kpi-content px-3 pt-2 pb-3">
-                <div className="font-extrabold tracking-tight text-green-800 flex items-center gap-1 sm:gap-2 kpi-number-responsive kpi-number">
+              <CardContent className="kpi-content px-3 pt-0 pb-4 flex flex-col items-center justify-center">
+                <div className="font-extrabold tracking-tight text-green-800 flex items-center gap-1 sm:gap-2 kpi-number-responsive kpi-number text-xl sm:text-2xl md:text-3xl text-center">
                   {data.loading ? (
                     <Skeleton className="h-8 sm:h-10 w-24 sm:w-32" />
                   ) : data.receitaTotal !== null ? (
-                    <><span className="text-[0.8em] flex-shrink-0">R$</span><span className="break-all">{data.receitaTotal.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</span></>
+                    <><span className="text-[0.8em] flex-shrink-0">R$</span><span className="break-all">{formatCompact(data.receitaTotal)}</span></>
                   ) : '--'}
                 </div>
               </CardContent>
@@ -75,12 +75,12 @@ export default function Home() {
           {/* Ticket Médio por NF */}
           <GenericTiltedCard className="col-span-1">
             <Card className="shadow-lg border border-yellow-200/60 bg-white h-full kpi-container">
-              <CardHeader className="flex flex-row items-start justify-between pb-1 pt-3 px-3 flex-shrink-0">
-                <CardTitle className="text-xs sm:text-sm md:text-base font-bold text-yellow-700 leading-tight w-full">Ticket Médio por NF</CardTitle>
+              <CardHeader className="flex flex-row items-start pb-1 pt-4 px-3 flex-shrink-0 justify-center">
+                <CardTitle className="text-sm sm:text-base md:text-xl font-bold text-yellow-700 leading-tight w-full text-center">Ticket Médio por NF</CardTitle>
               </CardHeader>
-              <CardContent className="kpi-content px-3 pt-2 pb-3">
-                <div className="font-extrabold tracking-tight text-yellow-700 kpi-number-responsive kpi-number">
-                  {data.ticketMedio !== null ? `R$ ${data.ticketMedio.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}` : '--'}
+              <CardContent className="kpi-content px-3 pt-0 pb-4 flex flex-col items-center justify-center">
+                <div className="font-extrabold tracking-tight text-yellow-700 kpi-number-responsive kpi-number text-xl sm:text-2xl md:text-3xl text-center">
+                  {data.ticketMedio !== null ? `R$ ${formatCompact(data.ticketMedio)}` : '--'}
                 </div>
               </CardContent>
             </Card>
@@ -88,12 +88,12 @@ export default function Home() {
           {/* Itens Vendidos */}
           <GenericTiltedCard className="col-span-1">
             <Card className="shadow-lg border border-indigo-200/60 bg-white h-full kpi-container">
-              <CardHeader className="flex flex-row items-start justify-between pb-1 pt-3 px-3 flex-shrink-0">
-                <CardTitle className="text-xs sm:text-sm md:text-base font-bold text-indigo-800 leading-tight w-full">Itens Vendidos</CardTitle>
+              <CardHeader className="flex flex-row items-start pb-1 pt-4 px-3 flex-shrink-0 justify-center">
+                <CardTitle className="text-sm sm:text-base md:text-xl font-bold text-indigo-800 leading-tight w-full text-center">Itens Vendidos</CardTitle>
               </CardHeader>
-              <CardContent className="kpi-content px-3 pt-2 pb-3">
-                <div className="font-extrabold tracking-tight text-indigo-800 kpi-number-responsive kpi-number">
-                  {data.itensVendidos !== null ? data.itensVendidos.toLocaleString('pt-BR') : '--'}
+              <CardContent className="kpi-content px-3 pt-0 pb-4 flex flex-col items-center justify-center">
+                <div className="font-extrabold tracking-tight text-indigo-800 kpi-number-responsive kpi-number text-xl sm:text-2xl md:text-3xl text-center">
+                  {data.itensVendidos !== null ? formatCompact(data.itensVendidos) : '--'}
                 </div>
               </CardContent>
             </Card>
@@ -101,12 +101,12 @@ export default function Home() {
           {/* Clientes Ativos */}
           <GenericTiltedCard className="col-span-1">
             <Card className="shadow-lg border border-blue-200/60 bg-white h-full kpi-container">
-              <CardHeader className="flex flex-row items-start justify-between pb-1 pt-3 px-3 flex-shrink-0">
-                <CardTitle className="text-xs sm:text-sm md:text-base font-bold text-blue-800 leading-tight w-full">Clientes Ativos (90 dias)</CardTitle>
+              <CardHeader className="flex flex-row items-start pb-1 pt-4 px-3 flex-shrink-0 justify-center">
+                <CardTitle className="text-sm sm:text-base md:text-xl font-bold text-blue-800 leading-tight w-full text-center">Clientes Ativos</CardTitle>
               </CardHeader>
-              <CardContent className="kpi-content px-3 pt-2 pb-3">
-                <div className="font-extrabold tracking-tight text-blue-800 kpi-number-responsive kpi-number">
-                  {data.clientesAtivos !== null ? data.clientesAtivos : '--'}
+              <CardContent className="kpi-content px-3 pt-0 pb-4 flex flex-col items-center justify-center">
+                <div className="font-extrabold tracking-tight text-blue-800 kpi-number-responsive kpi-number text-xl sm:text-2xl md:text-3xl text-center">
+                  {data.clientesAtivos !== null ? formatCompact(data.clientesAtivos) : '--'}
                 </div>
               </CardContent>
             </Card>
@@ -114,12 +114,12 @@ export default function Home() {
           {/* Clientes Inativos */}
           <GenericTiltedCard className="col-span-1">
             <Card className="shadow-lg border border-red-200/60 bg-white h-full kpi-container">
-              <CardHeader className="flex flex-row items-start justify-between pb-1 pt-3 px-3 flex-shrink-0">
-                <CardTitle className="text-xs sm:text-sm md:text-base font-bold text-red-800 leading-tight w-full">Clientes Inativos (90 dias)</CardTitle>
+              <CardHeader className="flex flex-row items-start pb-1 pt-4 px-3 flex-shrink-0 justify-center">
+                <CardTitle className="text-sm sm:text-base md:text-xl font-bold text-red-800 leading-tight w-full text-center">Clientes Inativos</CardTitle>
               </CardHeader>
-              <CardContent className="kpi-content px-3 pt-2 pb-3">
-                <div className="font-extrabold tracking-tight text-red-800 kpi-number-responsive kpi-number">
-                  {data.clientesInativos !== null ? data.clientesInativos : '--'}
+              <CardContent className="kpi-content px-3 pt-0 pb-4 flex flex-col items-center justify-center">
+                <div className="font-extrabold tracking-tight text-red-800 kpi-number-responsive kpi-number text-xl sm:text-2xl md:text-3xl text-center flex items-center justify-center w-full">
+                  {data.clientesInativos !== null ? formatCompact(data.clientesInativos) : '--'}
                 </div>
               </CardContent>
             </Card>
@@ -181,7 +181,7 @@ export default function Home() {
                   {data.receitaMensal?.receitaPorMes && (
                     <ResponsiveContainer width="100%" height="100%">
                       <BarChart 
-                        data={Object.entries(data.receitaMensal.receitaPorMes).map(([mes, valor]) => ({ mes, valor }))}
+                        data={Object.entries(data.receitaMensal.receitaPorMes).map(([mes, valor]) => ({ mes: abreviarMes(mes), valor }))}
                         margin={{ top: 20, right: 15, left: 10, bottom: 40 }}
                       >
                         <defs>
@@ -198,7 +198,7 @@ export default function Home() {
                         />
                         <XAxis 
                           dataKey="mes" 
-                          tick={{ fontSize: 10, fill: '#6b7280', fontWeight: '500' }}
+                          tick={{ fontSize: 12, fill: '#6b7280', fontWeight: '500' }}
                           tickLine={false}
                           axisLine={false}
                           dy={10}
@@ -206,7 +206,7 @@ export default function Home() {
                         />
                         <YAxis 
                           tickFormatter={(v) => `R$ ${formatCompact(v)}`} 
-                          tick={{ fontSize: 10, fill: '#6b7280', fontWeight: '500' }}
+                          tick={{ fontSize: 12, fill: '#6b7280', fontWeight: '500' }}
                           tickLine={false}
                           axisLine={false}
                           dx={-5}
@@ -217,7 +217,7 @@ export default function Home() {
                           labelStyle={{ 
                             color: '#1f2937', 
                             fontWeight: '600',
-                            fontSize: '12px'
+                            fontSize: '14px'
                           }}
                           contentStyle={{ 
                             backgroundColor: '#ffffff', 
@@ -225,7 +225,7 @@ export default function Home() {
                             borderRadius: '12px',
                             boxShadow: '0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04)',
                             color: '#374151',
-                            fontSize: '11px'
+                            fontSize: '13px'
                           }}
                           itemStyle={{
                             color: '#374151'
@@ -278,7 +278,7 @@ export default function Home() {
                   </div>
                   {/* Total de filiais */}
                   {data.vendasPorFilial.length > 0 && (
-                    <div className="flex items-center gap-2 px-2 sm:px-3 py-1 sm:py-1.5 rounded-full bg-blue-50 dark:bg-blue-900/30 border border-blue-200 dark:border-blue-700 self-start">
+                    <div className="flex items-center gap-2 px-2 sm:px-3 py-1 sm:py-1.5 rounded-full bg-blue-50 border border-blue-200 self-start">
                       <svg className="w-3 h-3 sm:w-4 sm:h-4 text-blue-600 dark:text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
                       </svg>
@@ -295,7 +295,7 @@ export default function Home() {
                     <ResponsiveContainer width="100%" height="100%">
                       <BarChart 
                         data={data.vendasPorFilial.map((f) => ({
-                          filial: f.filial?.nome || '',
+                          filial: extrairSegundoNome(f.filial?.nome || ''),
                           receita: Number(f.receitaTotal),
                           quantidadeNotas: f.quantidadeNotas
                         }))}
@@ -319,7 +319,7 @@ export default function Home() {
                         />
                         <XAxis 
                           dataKey="filial" 
-                          tick={{ fontSize: 10, fill: '#6b7280', fontWeight: '500' }}
+                          tick={{ fontSize: 12, fill: '#6b7280', fontWeight: '500' }}
                           tickLine={false}
                           axisLine={false}
                           dy={10}
@@ -327,7 +327,7 @@ export default function Home() {
                         />
                         <YAxis
                           yAxisId="left"
-                          tick={{ fontSize: 10, fill: '#059669', fontWeight: '500' }}
+                          tick={{ fontSize: 12, fill: '#059669', fontWeight: '500' }}
                           tickFormatter={(v) => `R$ ${formatCompact(v)}`}
                           tickLine={false}
                           axisLine={false}
@@ -337,7 +337,7 @@ export default function Home() {
                         <YAxis
                           yAxisId="right"
                           orientation="right"
-                          tick={{ fontSize: 10, fill: '#2563eb', fontWeight: '500' }}
+                          tick={{ fontSize: 12, fill: '#2563eb', fontWeight: '500' }}
                           tickFormatter={(v) => `${formatCompact(v)}`}
                           tickLine={false}
                           axisLine={false}
@@ -353,7 +353,7 @@ export default function Home() {
                           labelStyle={{ 
                             color: '#1f2937', 
                             fontWeight: '600',
-                            fontSize: '12px'
+                            fontSize: '14px'
                           }}
                           contentStyle={{ 
                             backgroundColor: '#ffffff', 
@@ -361,7 +361,7 @@ export default function Home() {
                             borderRadius: '12px',
                             boxShadow: '0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04)',
                             color: '#374151',
-                            fontSize: '11px'
+                            fontSize: '13px'
                           }}
                           itemStyle={{
                             color: '#374151'
@@ -387,8 +387,9 @@ export default function Home() {
                         <Legend 
                           wrapperStyle={{ 
                             paddingTop: '15px',
-                            fontSize: '11px',
-                            fontWeight: '500'
+                            fontSize: '13px',
+                            fontWeight: '500',
+                            color: '#000000'
                           }}
                         />
                       </BarChart>
@@ -469,14 +470,14 @@ export default function Home() {
                       <XAxis
                         type="number"
                         tickFormatter={(v) => `R$ ${formatCompact(v)}`}
-                        tick={{ fontSize: 10, fill: '#6b7280', fontWeight: '500' }}
+                        tick={{ fontSize: 12, fill: '#6b7280', fontWeight: '500' }}
                         tickLine={false}
                         axisLine={false}
                       />
                       <YAxis
                         dataKey="tipo"
                         type="category"
-                        tick={{ fontSize: 10, fill: '#6b7280', fontWeight: '600' }}
+                        tick={{ fontSize: 12, fill: '#6b7280', fontWeight: '600' }}
                         tickLine={false}
                         axisLine={false}
                         width={70}
@@ -486,7 +487,7 @@ export default function Home() {
                         labelStyle={{ 
                           color: '#1f2937', 
                           fontWeight: '600',
-                          fontSize: '12px'
+                          fontSize: '14px'
                         }}
                         contentStyle={{ 
                           backgroundColor: '#ffffff', 
@@ -494,7 +495,7 @@ export default function Home() {
                           borderRadius: '12px',
                           boxShadow: '0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04)',
                           color: '#374151',
-                          fontSize: '11px'
+                          fontSize: '13px'
                         }}
                         itemStyle={{
                           color: '#374151'
@@ -531,9 +532,34 @@ export default function Home() {
   );
 }
 
+
+// Função para abreviar nomes de meses em português
+function abreviarMes(mes: string) {
+  const mapa: Record<string, string> = {
+    'Janeiro': 'Jan',
+    'Fevereiro': 'Fev',
+    'Março': 'Mar',
+    'Abril': 'Abr',
+    'Maio': 'Mai',
+    'Junho': 'Jun',
+    'Julho': 'Jul',
+    'Agosto': 'Ago',
+    'Setembro': 'Set',
+    'Outubro': 'Out',
+    'Novembro': 'Nov',
+    'Dezembro': 'Dez',
+  };
+  return mapa[mes] || mes;
+}
+
+// Função para extrair o segundo nome (cidade) da filial
+function extrairSegundoNome(nome: string) {
+  const partes = nome.trim().split(' ');
+  return partes.length > 1 ? partes[1] : nome;
+}
+
 // Label customizado para PieChart, afasta cada texto de acordo com o índice
 //
-
 function formatCompact(value: number) {
   if (value === null || value === undefined) return '';
   const abs = Math.abs(value);
@@ -541,13 +567,13 @@ function formatCompact(value: number) {
     let v = (value / 1e9).toFixed(2).replace('.', ',');
     v = v.replace(/,00$/, '');
     v = v.replace(/,0$/, '');
-    return v + 'BI';
+    return v + 'B';
   }
   if (abs >= 1e6) {
     let v = (value / 1e6).toFixed(2).replace('.', ',');
     v = v.replace(/,00$/, '');
     v = v.replace(/,0$/, '');
-    return v + 'MI';
+    return v + 'M';
   }
   if (abs >= 1e3) {
     let v = (value / 1e3).toFixed(1).replace('.', ',');

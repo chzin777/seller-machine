@@ -61,16 +61,16 @@ export default function LoginPage() {
         <path d="M0 600 Q 300 350 600 600 T 800 600 V 600 H 0 Z" fill="url(#mountain2)" fillOpacity="0.85" />
       </svg>
       {/* Card de login */}
-  <div className="relative z-10 w-full max-w-md mx-auto bg-white/95 dark:bg-gray-900/95 rounded-2xl shadow-2xl p-6 sm:p-8 flex flex-col items-center backdrop-blur-lg">
-        <h1 className="text-2xl sm:text-3xl font-bold mb-6 text-center text-blue-900 dark:text-blue-200">Login</h1>
+  <div className="relative z-10 w-full max-w-md mx-auto bg-white/95 rounded-2xl shadow-2xl p-6 sm:p-8 flex flex-col items-center backdrop-blur-lg">
+        <h1 className="text-2xl sm:text-3xl font-bold mb-6 text-center text-blue-900">Login</h1>
         <form onSubmit={handleSubmit} className="w-full space-y-5">
           <div className="flex flex-col gap-2">
-            <label className="text-blue-800 dark:text-blue-200 font-semibold flex items-center gap-2 text-sm sm:text-base">
+            <label className="text-blue-800 font-semibold flex items-center gap-2 text-sm sm:text-base">
               Email
             </label>
             <input
               type="email"
-              className="w-full px-4 py-3 border-2 border-blue-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 bg-blue-50 text-blue-900 dark:bg-blue-950 dark:text-blue-100 placeholder-blue-400 text-base transition-colors"
+              className="w-full px-4 py-3 border-2 border-blue-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 bg-blue-50 text-blue-900 placeholder-blue-400 text-base transition-colors"
               placeholder="user@example.com"
               value={form.email}
               onChange={e => setForm(f => ({ ...f, email: e.target.value }))}
@@ -78,19 +78,19 @@ export default function LoginPage() {
             />
           </div>
           <div className="flex flex-col gap-2">
-            <label className="text-blue-800 dark:text-blue-200 font-semibold flex items-center gap-2 text-sm sm:text-base">
+            <label className="text-blue-800 font-semibold flex items-center gap-2 text-sm sm:text-base">
               Senha
             </label>
             <input
               type="password"
-              className="w-full px-4 py-3 border-2 border-blue-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 bg-blue-50 text-blue-900 dark:bg-blue-950 dark:text-blue-100 placeholder-blue-400 text-base transition-colors"
+              className="w-full px-4 py-3 border-2 border-blue-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 bg-blue-50 text-blue-900 placeholder-blue-400 text-base transition-colors"
               placeholder="••••••••"
               value={form.senha}
               onChange={e => setForm(f => ({ ...f, senha: e.target.value }))}
               required
             />
           </div>
-          <div className="flex items-center justify-between text-xs sm:text-sm text-blue-700 dark:text-blue-300">
+          <div className="flex items-center justify-between text-xs sm:text-sm text-blue-700">
             <label className="flex items-center gap-2 cursor-pointer">
               <Checkbox
                 checked={lembrar}
@@ -99,7 +99,7 @@ export default function LoginPage() {
               />
               Lembrar-me
             </label>
-            <a href="#" className="hover:underline opacity-60 cursor-not-allowed">Esqueci a senha</a>
+            <a href="#" className="hover:underline opacity-60 cursor-not-allowed">Esqueceu a senha?</a>
           </div>
           <button
             type="submit"
@@ -110,7 +110,7 @@ export default function LoginPage() {
           </button>
         </form>
         {msg && (
-          <div className="text-center text-sm mt-4 text-blue-700 dark:text-blue-300 p-3 bg-blue-50 dark:bg-blue-900/30 rounded-lg w-full">
+          <div className="text-center text-sm mt-4 text-blue-700 p-3 bg-blue-50 rounded-lg w-full">
             {msg}
           </div>
         )}

@@ -172,9 +172,9 @@ function LayoutContent({ children }: { children: React.ReactNode }) {
 					{/* Menu Mobile */}
 					{!isLoginPage && (
 						<div className="sm:hidden fixed top-0 left-0 w-full z-50">
-							<div className="flex items-center justify-between bg-gray-50/95 dark:bg-gray-900/95 backdrop-blur-md px-3 py-3 shadow-lg border-b border-gray-200/50 dark:border-gray-800/50">
+							<div className="flex items-center justify-between bg-gray-50/95 backdrop-blur-md px-3 py-3 shadow-lg border-b border-gray-200/50">
 								<button
-									className="flex items-center gap-2 text-blue-700 dark:text-blue-200 focus:outline-none hover:cursor-pointer p-2 rounded-lg hover:bg-blue-50 transition-colors"
+									className="flex items-center gap-2 text-blue-700 focus:outline-none hover:cursor-pointer p-2 rounded-lg hover:bg-blue-50 transition-colors"
 									onClick={() => setSidebarOpen((v) => !v)}
 									aria-label="Abrir menu"
 									type="button"
@@ -182,7 +182,7 @@ function LayoutContent({ children }: { children: React.ReactNode }) {
 									<Menu className="w-6 h-6" />
 								</button>
 								<Logo
-									className="block mx-auto text-[#1e293b] dark:text-white"
+									className="block mx-auto text-[#1e293b]"
 									width={110}
 									height={40}
 									style={{ height: 40, maxWidth: 110 }}
@@ -201,7 +201,7 @@ function LayoutContent({ children }: { children: React.ReactNode }) {
 									   <div className="fixed left-0 top-0 h-full w-80 max-w-[85vw] bg-white shadow-2xl border-r-4 border-blue-700 flex flex-col py-4 px-3 animate-fade-in z-50 overflow-y-auto">
 										<div className="flex items-center justify-between mb-4 px-2">
 											<Logo
-												className="text-[#1e293b] dark:text-white"
+												className="text-[#1e293b]"
 												width={120}
 												height={42}
 												style={{ height: 42, maxWidth: 120 }}
@@ -222,8 +222,8 @@ function LayoutContent({ children }: { children: React.ReactNode }) {
 												{userName ? userName.split(' ').map((n) => n[0]).join('').toUpperCase().slice(0, 2) : 'U'}
 											</div>
 											<div className="flex-1 min-w-0">
-												<span className="font-semibold text-base text-blue-900 dark:text-blue-100 block truncate">{userName || 'Usuário'}</span>
-												<span className="text-xs text-blue-600 dark:text-blue-300">Conectado</span>
+												<span className="font-semibold text-base text-blue-900 block truncate">{userName || 'Usuário'}</span>
+												<span className="text-xs text-blue-600 ">Conectado</span>
 											</div>
 										</div>
 										{/* Links de navegação principais */}
@@ -266,15 +266,15 @@ function LayoutContent({ children }: { children: React.ReactNode }) {
 												})}
 										</nav>
 										{/* Opções extras do usuário */}
-										<div className="mt-auto border-t border-blue-100 dark:border-blue-800 pt-4 flex flex-col gap-1">
-											   <a href="/configuracoes" className="flex items-center gap-3 px-4 py-3 text-sm text-gray-700 dark:text-gray-200 rounded-lg hover:bg-blue-50 transition-colors hover:cursor-pointer" onClick={() => setSidebarOpen(false)}>
+										<div className="mt-auto border-t border-blue-100 pt-4 flex flex-col gap-1">
+											   <a href="/configuracoes" className="flex items-center gap-3 px-4 py-3 text-sm text-gray-700 rounded-lg hover:bg-blue-50 transition-colors hover:cursor-pointer" onClick={() => setSidebarOpen(false)}>
 												   <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
 													   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" />
 													   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
 												   </svg>
 												   Configurações
 											   </a>
-											<a href="/ajuda" className="flex items-center gap-3 px-4 py-3 text-sm text-gray-700 dark:text-gray-200 rounded-lg hover:bg-blue-50 transition-colors hover:cursor-pointer" onClick={() => setSidebarOpen(false)}>
+											<a href="/ajuda" className="flex items-center gap-3 px-4 py-3 text-sm text-gray-700 rounded-lg hover:bg-blue-50 transition-colors hover:cursor-pointer" onClick={() => setSidebarOpen(false)}>
 												<svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
 													<path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8.228 9c.549-1.165 2.03-2 3.772-2 2.21 0 4 1.343 4 3 0 1.4-1.278 2.575-3.006 2.907-.542.104-.994.54-.994 1.093m0 3h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
 												</svg>
@@ -286,7 +286,7 @@ function LayoutContent({ children }: { children: React.ReactNode }) {
 												</svg>
 												Feedback
 											</a>
-											<button onClick={() => { localStorage.removeItem('user'); window.location.href = '/login'; }} className="flex items-center gap-3 w-full text-left px-4 py-3 text-sm text-red-600 dark:text-red-400 rounded-lg hover:bg-red-50 transition-colors hover:cursor-pointer mt-2">
+											<button onClick={() => { localStorage.removeItem('user'); window.location.href = '/login'; }} className="flex items-center gap-3 w-full text-left px-4 py-3 text-sm text-red-600 rounded-lg hover:bg-red-50 transition-colors hover:cursor-pointer mt-2">
 												<svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
 													<path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
 												</svg>
@@ -317,7 +317,7 @@ function LayoutContent({ children }: { children: React.ReactNode }) {
 						</main>
 						{/* Rodapé "quieto" no fim da tela, fora do login */}
 						{!isLoginPage && (
-							<footer className="w-full text-center text-xs text-blue-900 dark:text-blue-200 bg-transparent py-2 select-none">
+							<footer className="w-full text-center text-xs text-blue-900 bg-transparent py-2 select-none">
 								© 2025 Máquina de Vendas
 							</footer>
 						)}
