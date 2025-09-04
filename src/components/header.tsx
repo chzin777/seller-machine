@@ -46,7 +46,7 @@ export default function Header({ userName }: HeaderProps) {
       <div className="flex items-center gap-4 relative">
         {/* Botão só mostra avatar no mobile, nome/avatar no desktop */}
         <button
-          className="flex items-center gap-2 focus:outline-none group"
+          className="flex items-center gap-2 focus:outline-none group hover:cursor-pointer"
           onClick={() => setMenuOpen((v) => !v)}
         >
           <span className="text-sm text-gray-500 group-hover:text-blue-700 transition-colors hover:cursor-pointer">

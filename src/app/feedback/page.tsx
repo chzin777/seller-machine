@@ -7,7 +7,7 @@ export default function FeedbackPage() {
       <p className="mb-6 text-gray-700">Sua opinião é muito importante para nós! Utilize o formulário abaixo para enviar sugestões, elogios ou relatar problemas encontrados na plataforma Seller Machine.</p>
       <form className="space-y-4">
         <textarea className="w-full min-h-[120px] p-3 border-2 border-blue-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 bg-blue-50 placeholder-blue-400 resize-y sm:resize-none" placeholder="Digite seu feedback aqui..." />
-        <button type="submit" className="bg-blue-700 hover:bg-blue-800 text-white font-bold py-2 px-6 rounded-lg transition-colors">Enviar</button>
+        <button type="submit" className="bg-blue-700 hover:bg-blue-800 text-white font-bold py-2 px-6 rounded-lg transition-colors hover:cursor-pointer">Enviar</button>
       </form>
       <div className="mt-8 text-sm text-blue-700">Esta página está em construção. Em breve, mais novidades!</div>
     </div>

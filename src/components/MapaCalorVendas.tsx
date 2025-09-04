@@ -352,7 +352,7 @@ export default function MapaCalorVendas({ vendasPorFilial = [] }: MapaCalorVenda
             </div>
             <div className="flex items-center justify-center gap-3">
               <button
-                className="px-4 py-2 rounded-lg bg-blue-600 text-white disabled:opacity-50 disabled:bg-gray-400 hover:bg-blue-700 transition-colors text-sm font-medium"
+                className="px-4 py-2 rounded-lg bg-blue-600 text-white disabled:opacity-50 disabled:bg-gray-400 hover:bg-blue-700 transition-colors text-sm font-medium hover:cursor-pointer"
                 onClick={() => setPagina(p => Math.max(1, p - 1))}
                 disabled={pagina === 1}
               >
@@ -362,7 +362,7 @@ export default function MapaCalorVendas({ vendasPorFilial = [] }: MapaCalorVenda
                 {pagina} de {totalPaginas}
               </span>
               <button
-                className="px-4 py-2 rounded-lg bg-blue-600 text-white disabled:opacity-50 disabled:bg-gray-400 hover:bg-blue-700 transition-colors text-sm font-medium"
+                className="px-4 py-2 rounded-lg bg-blue-600 text-white disabled:opacity-50 disabled:bg-gray-400 hover:bg-blue-700 transition-colors text-sm font-medium hover:cursor-pointer"
                 onClick={() => setPagina(p => Math.min(totalPaginas, p + 1))}
                 disabled={pagina === totalPaginas}
               >

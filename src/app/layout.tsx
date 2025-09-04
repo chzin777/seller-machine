@@ -6,6 +6,7 @@ import { LoadingProvider, useLoading } from "../components/LoadingContext";
 import { DataProvider } from "../components/DataProvider";
 import { ServiceWorkerProvider } from "../components/ServiceWorkerProvider";
 import { PerformanceMonitor } from "../components/PerformanceMonitor";
+import { ToastProvider } from "../components/ui/toast";
 import ProgressBar from "../components/ui/progress-bar";
 import { LayoutDashboard, Link2, Users, Menu, UserCog, X, Map, BarChart3 } from "lucide-react";
 import { useState, useRef, useEffect } from "react";
@@ -18,6 +19,8 @@ function getNavLinks(userConta?: string) {
 		{ type: "toggle", label: "Menu", icon: Menu },
 		{ href: "/", label: "Dashboard", icon: LayoutDashboard },
 		{ href: "/mapa-vendas", label: "Mapa de Vendas", icon: Map },
+		{ href: "/associacoes", label: "Associações", icon: Link2 },
+		{ href: "/clientes", label: "Clientes", icon: Users },
 		{ href: "/configurar-rfv", label: "Configurar RFV", icon: BarChart3 },
 	];
 	if (userConta === "Admin") {
@@ -32,7 +35,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
 		<html
 			lang="pt-BR"
 			suppressHydrationWarning
-			className="w-full h-full min-h-screen dark"
+			className="w-full h-full min-h-screen"
 		>
 			<head>
 				   <meta name="color-scheme" content="light" />
@@ -42,8 +45,10 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
 				<ServiceWorkerProvider>
 					<LoadingProvider>
 						<DataProvider>
-							<LayoutContent>{children}</LayoutContent>
-							<PerformanceMonitor />
+							<ToastProvider>
+								<LayoutContent>{children}</LayoutContent>
+								<PerformanceMonitor />
+							</ToastProvider>
 						</DataProvider>
 					</LoadingProvider>
 				</ServiceWorkerProvider>
@@ -208,7 +213,7 @@ function LayoutContent({ children }: { children: React.ReactNode }) {
 												aria-label="Logo Máquina de Vendas"
 											/>
 											<button
-												className="text-gray-400 hover:text-blue-700 p-2 rounded-lg hover:bg-gray-100 transition-colors"
+												className="text-gray-400 hover:text-blue-700 p-2 rounded-lg hover:bg-gray-100 transition-colors hover:cursor-pointer"
 												onClick={() => setSidebarOpen(false)}
 												aria-label="Fechar menu"
 												type="button"

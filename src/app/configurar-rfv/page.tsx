@@ -1,1498 +1,1984 @@
-"use client";
-import { useState, useEffect } from "react";
-import { Card, CardHeader, CardTitle, CardContent } from "../../components/ui/card";
-import { Button } from "../../components/ui/button";
-import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from "../../components/ui/select";
-import { Settings, SlidersHorizontal, Clock, ShoppingCart, DollarSign, Trophy, Info, Plus, Trash2, Loader2 } from "lucide-react";
+'use client';
 
-const defaultRules = {
-  recency: [30, 60, 90, 180],
-  frequency: [1, 2, 3, 6, 10],
-  monetary: [50, 200, 500, 1000],
-};
+import { useState, useEffect } from 'react';
+import { Card } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { ConfirmDialog } from '@/components/ui/dialog';
+import { useToast } from '@/components/ui/toast';
+import { Plus, Trash2, Save, RotateCcw, Settings, Users, TrendingUp, Filter, Search, Calendar, Building, Copy, Download, BarChart3 } from 'lucide-react';
 
-const defaultTiers = [
-  { name: "Diamante", range: "13 - 15", icon: "💎", color: "bg-purple-100 text-purple-700 border-purple-300" },
-  { name: "Ouro", range: "10 - 12", icon: "🥇", color: "bg-yellow-100 text-yellow-700 border-yellow-300" },
-  { name: "Prata", range: "7 - 9", icon: "🥈", color: "bg-white text-gray-700 border-gray-300" },
-  { name: "Bronze", range: "3 - 6", icon: "🥉", color: "bg-orange-100 text-orange-700 border-orange-300 border-orange-300" },
-];
+// Interfaces
+interface RFVBin {
+  score: number;
+  max_dias?: number;
+  min_compras?: number;
+  min_valor?: number;
+}
 
-type CustomRule = {
-  id: string;
-  segmentName: string;
-  conditions: {
-    id: string;
-    dimension: 'R' | 'F' | 'V';
-    operator: '>=' | '<=' | '=' | '>' | '<';
-    value: number;
-  }[];
-  connector: 'E' | 'OU';
-};
-
-type RFVParameterSet = {
-  id?: number;
-  filialId?: number;
+interface RFVParameterFromAPI {
+  id: number;
+  filialId: number | null;
   name: string;
-  strategy: 'threshold' | 'quantile';
+  strategy: string;
   windowDays: number;
-  weights: { r: number; f: number; v: number };
-  ruleRecency: number[];
-  ruleFrequency: number[];
-  ruleValue: number[];
+  weights: {
+    F: number;
+    R: number;
+    V: number;
+  };
+  ruleRecency: {
+    bins: RFVBin[];
+  };
+  ruleFrequency: {
+    bins: RFVBin[];
+  };
+  ruleValue: {
+    bins: RFVBin[];
+  };
   effectiveFrom: string;
-  effectiveTo?: string;
-  calculation_strategy: 'automatic' | 'manual';
-  class_ranges?: any;
-  conditional_rules?: any;
-  rfv_segments?: RFVSegment[];
-};
+  effectiveTo: string | null;
+  createdAt: string;
+  updatedAt: string;
+  calculationStrategy: 'manual' | 'automatic';
+  classRanges: any;
+  conditionalRules: any;
+  filial: {
+    id: number;
+    nome: string;
+  } | null;
+  segments: Array<{
+    id: number;
+    name: string;
+    priority: number;
+  }>;
+}
 
-type RFVSegment = {
-  id?: number;
-  parameterSetId?: number;
+interface RFVFilters {
+  search: string;
+  active: boolean | null; // null = todos, true = só ativos, false = só inativos
+  filialId: number | null; // null = todas
+  calculationStrategy: string | null; // null = todos, 'automatic', 'manual'
+}
+interface RFVRange {
+  min?: number;
+  max?: number;
+  score: number;
+  label: string;
+}
+
+interface RFVRules {
+  recency: RFVRange[];
+  frequency: RFVRange[];
+  value: RFVRange[];
+}
+
+interface Segment {
   segment_name: string;
-  rules: any;
+  rules: {
+    R?: string;
+    F?: string;
+    V?: string;
+  };
   priority: number;
-};
+}
+
+interface FilialOption {
+  id: number;
+  empresaId: number;
+  nome: string;
+  cnpj: string;
+  cidade: string;
+  estado: string;
+}
+
+interface RFVConfiguration {
+  id?: number;
+  name: string;
+  filialId?: number | null;
+  rfvRules: RFVRules;
+  segmentationMethod: 'automatic' | 'manual';
+  automaticRanges?: {
+    bronze: { min: number; max: number };
+    prata: { min: number; max: number };
+    ouro: { min: number; max: number };
+  };
+  segments?: Segment[];
+  effectiveFrom: string;
+}
 
 export default function ConfigurarRFVPage() {
-  const [mode, setMode] = useState("auto");
-  const [recency, setRecency] = useState(defaultRules.recency);
-  const [frequency, setFrequency] = useState(defaultRules.frequency);
-  const [monetary, setMonetary] = useState(defaultRules.monetary);
-  const [isLoading, setIsLoading] = useState(false);
-  const [isLoadingData, setIsLoadingData] = useState(true);
-  const [currentParameterSet, setCurrentParameterSet] = useState<RFVParameterSet | null>(null);
-  const [parameterSets, setParameterSets] = useState<RFVParameterSet[]>([]);
-  const [configName, setConfigName] = useState("Configuração RFV Padrão");
-  const [filialId, setFilialId] = useState<number | undefined>(1); // TODO: Obter da sessão do usuário
-  const [windowDays, setWindowDays] = useState(180);
-  const [customRules, setCustomRules] = useState<CustomRule[]>([]);
+  const [configuration, setConfiguration] = useState<RFVConfiguration>({
+    name: '',
+    filialId: undefined,
+    rfvRules: {
+      recency: [
+        { score: 5, label: 'Excelente', min: undefined, max: 30 },
+        { score: 4, label: 'Bom', min: 31, max: 60 },
+        { score: 3, label: 'Regular', min: 61, max: 90 },
+        { score: 2, label: 'Ruim', min: 91, max: 180 },
+        { score: 1, label: 'Péssimo', min: 181, max: undefined }
+      ],
+      frequency: [
+        { score: 5, label: 'Excelente', min: 10, max: undefined },
+        { score: 4, label: 'Bom', min: 6, max: 10 },
+        { score: 3, label: 'Regular', min: 3, max: 5 },
+        { score: 2, label: 'Ruim', min: 2, max: 2 },
+        { score: 1, label: 'Péssimo', min: undefined, max: 1 }
+      ],
+      value: [
+        { score: 5, label: 'Excelente', min: 1000, max: undefined },
+        { score: 4, label: 'Bom', min: 501, max: 1000 },
+        { score: 3, label: 'Regular', min: 201, max: 500 },
+        { score: 2, label: 'Ruim', min: 51, max: 200 },
+        { score: 1, label: 'Péssimo', min: undefined, max: 50 }
+      ]
+    },
+    segmentationMethod: 'automatic',
+    automaticRanges: {
+      bronze: { min: 3, max: 7 },
+      prata: { min: 8, max: 11 },
+      ouro: { min: 12, max: 15 }
+    },
+    segments: [],
+    effectiveFrom: new Date().toISOString().split('T')[0]
+  });
 
-  const API_BASE_URL = 'https://api-seller-machine-production.up.railway.app';
+  const [filiais, setFiliais] = useState<FilialOption[]>([]);
+  const [loading, setLoading] = useState(false);
+  const [saving, setSaving] = useState(false);
+  const [savingParameters, setSavingParameters] = useState(false);
+  const [savingSegments, setSavingSegments] = useState(false);
+  const [existingParameters, setExistingParameters] = useState<RFVParameterFromAPI[]>([]);
+  const [filteredParameters, setFilteredParameters] = useState<RFVParameterFromAPI[]>([]);
+  const [existingSegments, setExistingSegments] = useState<any[]>([]);
+  const [showExisting, setShowExisting] = useState(false);
+  const [editingParameter, setEditingParameter] = useState<any>(null);
+  const [filters, setFilters] = useState<RFVFilters>({
+    search: '',
+    active: null,
+    filialId: null,
+    calculationStrategy: null
+  });
 
-  const [segments, setSegments] = useState<any[]>([]);
-  const [isLoadingSegments, setIsLoadingSegments] = useState(false);
-  const [showManagement, setShowManagement] = useState(false);
+  // Estados para modais de confirmação
+  const [deleteDialog, setDeleteDialog] = useState<{
+    isOpen: boolean;
+    type: 'parameter' | 'segment';
+    id: number | null;
+    name: string;
+  }>({
+    isOpen: false,
+    type: 'parameter',
+    id: null,
+    name: ''
+  });
 
-  // Carrega dados ao montar o componente
+  const [overwriteDialog, setOverwriteDialog] = useState<{
+    isOpen: boolean;
+    message: string;
+    onConfirm: (() => void) | null;
+  }>({
+    isOpen: false,
+    message: '',
+    onConfirm: null
+  });
+
+  const { showToast } = useToast();
+
+  // Carrega filiais disponíveis
   useEffect(() => {
-    loadParameterSets();
-    loadSegments();
-  // eslint-disable-next-line react-hooks/exhaustive-deps
+    const loadFiliais = async () => {
+      try {
+        const response = await fetch('/api/proxy?url=/api/filiais');
+        if (!response.ok) {
+          throw new Error('Erro ao carregar filiais');
+        }
+        const data = await response.json();
+        setFiliais(data);
+      } catch (error) {
+        console.error('Erro ao carregar filiais:', error);
+        setFiliais([
+          { id: 1, empresaId: 1, nome: 'Matriz', cnpj: '00.000.000/0001-00', cidade: 'Rio Verde', estado: 'GO' },
+          { id: 2, empresaId: 1, nome: 'Filial 1', cnpj: '00.000.000/0002-00', cidade: 'Jataí', estado: 'GO' },
+          { id: 3, empresaId: 1, nome: 'Filial 2', cnpj: '00.000.000/0003-00', cidade: 'Cristalina', estado: 'GO' }
+        ]);
+      }
+    };
+
+    loadFiliais();
   }, []);
 
-  const loadSegments = async () => {
+  // Inicializa os parâmetros filtrados quando existingParameters muda
+  useEffect(() => {
+    if (existingParameters.length > 0) {
+      applyFilters(existingParameters, filters);
+    }
+  }, [existingParameters, filters]);
+
+  // Carrega parâmetros e segmentos existentes
+  const loadExistingData = async (filterParams?: Partial<RFVFilters>) => {
+    setLoading(true);
     try {
-      setIsLoadingSegments(true);
-      const response = await fetch(`${API_BASE_URL}/api/rfv/segments`);
+      // Constrói a URL com parâmetros de filtro
+      const params = new URLSearchParams();
       
-      if (response.ok) {
-        const data = await response.json();
-        setSegments(Array.isArray(data) ? data : []);
-      } else {
-        console.warn('Erro ao carregar segmentos:', response.status);
-        setSegments([]);
+      if (filterParams?.active !== undefined && filterParams.active !== null) {
+        params.append('active', filterParams.active.toString());
+      }
+      
+      if (filterParams?.filialId !== undefined && filterParams.filialId !== null) {
+        params.append('filialId', filterParams.filialId.toString());
+      }
+
+      const apiUrl = `/api/rfv/parameters${params.toString() ? `?${params.toString()}` : ''}`;
+      const url = `/api/proxy?url=${encodeURIComponent(apiUrl)}`;
+      
+      const parametersResponse = await fetch(url);
+      if (parametersResponse.ok) {
+        const parametersData = await parametersResponse.json();
+        setExistingParameters(parametersData);
+        applyFilters(parametersData, { ...filters, ...filterParams });
+      }
+
+      const segmentsResponse = await fetch('/api/proxy?url=' + encodeURIComponent('/api/rfv/segments'));
+      if (segmentsResponse.ok) {
+        const segmentsData = await segmentsResponse.json();
+        setExistingSegments(segmentsData);
       }
     } catch (error) {
-      console.warn('Erro ao carregar segmentos:', error);
-      setSegments([]);
+      console.error('Erro ao carregar dados existentes:', error);
     } finally {
-      setIsLoadingSegments(false);
+      setLoading(false);
     }
   };
 
-  const loadParameterSets = async () => {
-    try {
-      setIsLoadingData(true);
-      // Remove filialId da URL por enquanto até a API estar totalmente configurada
-      const url = `${API_BASE_URL}/api/rfv/parameters`;
-      const response = await fetch(url);
-      
-      let data = [];
-      
-      // Se retornar 404 ou se não há dados, inicializa com array vazio
-      if (response.status === 404) {
-        console.log('Nenhuma configuração encontrada - iniciando com dados padrão');
-        data = [];
-      } else if (!response.ok) {
-        // Para outros erros que não sejam 404
-        throw new Error(`Erro ${response.status}: ${response.statusText}`);
-      } else {
-        data = await response.json();
-      }
-      
-      const validData = Array.isArray(data) ? data : [];
-      setParameterSets(validData);
-      
-      console.log('Parameter sets carregados:', validData.length);
-      console.log('Dados:', validData);
-      
-      // Carrega a configuração ativa somente se houver dados
-      if (validData.length > 0) {
-        const activeConfig = validData.find((config: RFVParameterSet) => !config.effectiveTo) || validData[0];
-        loadParameterSet(activeConfig);
-        console.log('Configuração ativa carregada:', activeConfig);
-      } else {
-        console.log('Nenhuma configuração para carregar - mantendo padrões');
-      }
-    } catch (error) {
-      console.warn('Aviso ao carregar configurações:', error);
-      // Em vez de mostrar erro, inicializa com dados padrão
-      setParameterSets([]);
-      console.log('Iniciando com configuração padrão devido ao erro:', error);
-    } finally {
-      setIsLoadingData(false);
+  // Aplica filtros locais aos parâmetros
+  const applyFilters = (parameters: RFVParameterFromAPI[], currentFilters: RFVFilters) => {
+    let filtered = [...parameters];
+
+    // Filtro de busca por nome
+    if (currentFilters.search) {
+      const searchLower = currentFilters.search.toLowerCase();
+      filtered = filtered.filter(param => 
+        param.name.toLowerCase().includes(searchLower) ||
+        (param.filial?.nome && param.filial.nome.toLowerCase().includes(searchLower))
+      );
     }
+
+    // Filtro por estratégia de cálculo
+    if (currentFilters.calculationStrategy) {
+      filtered = filtered.filter(param => 
+        param.calculationStrategy === currentFilters.calculationStrategy
+      );
+    }
+
+    setFilteredParameters(filtered);
   };
 
-  const loadParameterSet = (parameterSet: RFVParameterSet) => {
-    setCurrentParameterSet(parameterSet);
-    setConfigName(parameterSet.name);
-    setWindowDays(parameterSet.windowDays);
-    setRecency(parameterSet.ruleRecency);
-    setFrequency(parameterSet.ruleFrequency);
-    setMonetary(parameterSet.ruleValue);
-    setMode(parameterSet.calculation_strategy);
+  // Atualiza filtros e reaplica
+  const updateFilters = (newFilters: Partial<RFVFilters>) => {
+    const updatedFilters = { ...filters, ...newFilters };
+    setFilters(updatedFilters);
     
-    // Carrega regras customizadas dos segmentos
-    if (parameterSet.rfv_segments) {
-      const convertedRules: CustomRule[] = parameterSet.rfv_segments.map(segment => ({
-        id: segment.id?.toString() || Date.now().toString(),
-        segmentName: segment.segment_name,
-        conditions: Array.isArray(segment.rules?.conditions) ? segment.rules.conditions : [
-          { id: Date.now().toString(), dimension: 'R' as const, operator: '>=' as const, value: 1 }
-        ],
-        connector: segment.rules?.connector || 'E'
-      }));
-      setCustomRules(convertedRules);
+    // Se mudou filtros de API (active ou filialId), recarrega dados
+    if (newFilters.active !== undefined || newFilters.filialId !== undefined) {
+      loadExistingData(updatedFilters);
     } else {
-      setCustomRules([]);
+      // Caso contrário, apenas aplica filtros locais
+      applyFilters(existingParameters, updatedFilters);
     }
   };
 
-  // Handlers for input changes
-  const handleRecency = (idx: number, value: number) => {
-    const arr = [...recency];
-    arr[idx] = value;
-    setRecency(arr);
+  // Limpa todos os filtros
+  const clearFilters = () => {
+    const clearedFilters: RFVFilters = {
+      search: '',
+      active: null,
+      filialId: null,
+      calculationStrategy: null
+    };
+    setFilters(clearedFilters);
+    loadExistingData(clearedFilters);
   };
 
-  const handleFrequency = (idx: number, value: number) => {
-    const arr = [...frequency];
-    arr[idx] = value;
-    setFrequency(arr);
-  };
-
-  const handleMonetary = (idx: number, value: number) => {
-    const arr = [...monetary];
-    arr[idx] = value;
-    setMonetary(arr);
-  };
-
-  const handleSave = async () => {
+  const deleteParameter = async (id: number) => {
     try {
-      setIsLoading(true);
-      
-      // Prepara os dados para salvar conforme a estrutura da API
-      const parameterSetData = {
-        name: configName,
-        strategy: 'threshold',
-        windowDays,
-        weights: { r: 1, f: 1, v: 1 },
-        ruleRecency: recency,
-        ruleFrequency: frequency,
-        ruleValue: monetary,
-        effectiveFrom: new Date().toISOString().split('T')[0],
-        calculationStrategy: mode === 'auto' ? 'automatic' : 'manual', // Corrigido nome do campo
-        classRanges: mode === 'auto' ? defaultTiers : null, // Corrigido nome do campo
-        conditionalRules: mode === 'manual' ? customRules : null, // Corrigido nome do campo
-      };
-
-      const method = currentParameterSet?.id ? 'PUT' : 'POST';
-      const url = currentParameterSet?.id ? 
-        `${API_BASE_URL}/api/rfv/parameters/${currentParameterSet.id}` : 
-        `${API_BASE_URL}/api/rfv/parameters`;
-
-      console.log('Enviando dados para API:', parameterSetData);
-      console.log('URL:', url);
-      console.log('Método:', method);
-
-      const response = await fetch(url, {
-        method,
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(parameterSetData),
-      });
-
-      if (!response.ok) {
-        const errorText = await response.text();
-        let errorMessage = 'Erro ao salvar configuração';
-        
-        try {
-          const errorData = JSON.parse(errorText);
-          errorMessage = errorData.error || errorMessage;
-        } catch {
-          // Se não conseguir parsear JSON, usa o texto da resposta
-          errorMessage = errorText || `Erro ${response.status}: ${response.statusText}`;
-        }
-        
-        throw new Error(errorMessage);
-      }
-
-      const savedData = await response.json();
-      
-      // Atualiza o estado atual
-      setCurrentParameterSet(savedData);
-      
-      // Atualiza a lista local imediatamente para evitar problemas de sincronização
-      if (currentParameterSet?.id) {
-        // Atualiza configuração existente
-        setParameterSets(prev => 
-          prev.map(ps => ps.id === savedData.id ? savedData : ps)
-        );
-      } else {
-        // Adiciona nova configuração à lista
-        setParameterSets(prev => [savedData, ...prev]);
-      }
-      
-      // Recarrega tanto parameter sets quanto segmentos para garantir sincronização
-      setTimeout(() => {
-        Promise.all([loadParameterSets(), loadSegments()]);
-      }, 100);
-      
-      alert("Configuração RFV salva com sucesso!");
-      
-      // Se salvou uma nova configuração, mostra o painel de gerenciamento
-      if (!currentParameterSet?.id) {
-        setShowManagement(true);
-      }
-    } catch (error) {
-      console.error('Erro ao salvar:', error);
-      alert(`Erro ao salvar configuração: ${error instanceof Error ? error.message : 'Erro desconhecido'}`);
-    } finally {
-      setIsLoading(false);
-    }
-  };
-
-  const resetToDefaults = () => {
-    setRecency(defaultRules.recency);
-    setFrequency(defaultRules.frequency);
-    setMonetary(defaultRules.monetary);
-    setMode("auto");
-    setCustomRules([]);
-    setConfigName("Nova Configuração RFV");
-    setWindowDays(180);
-    setCurrentParameterSet(null);
-  };
-
-  const createNewConfiguration = () => {
-    resetToDefaults();
-  };
-
-  const loadConfiguration = async (parameterSetId: number) => {
-    const parameterSet = parameterSets.find(ps => ps.id === parameterSetId);
-    if (parameterSet) {
-      loadParameterSet(parameterSet);
-    }
-  };
-
-  const executeRFVAnalysis = async () => {
-    try {
-      setIsLoading(true);
-      
-      // Remove filialId da URL por enquanto
-      const response = await fetch(`${API_BASE_URL}/api/rfv/analysis`, {
-        method: 'GET',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-      });
-
-      if (!response.ok) {
-        const errorText = await response.text();
-        let errorMessage = 'Erro ao executar análise RFV';
-        
-        try {
-          const errorData = JSON.parse(errorText);
-          errorMessage = errorData.error || errorMessage;
-        } catch {
-          errorMessage = errorText || `Erro ${response.status}: ${response.statusText}`;
-        }
-        
-        if (response.status === 404) {
-          errorMessage = 'Endpoint de análise não encontrado. Verifique se a API está rodando corretamente.';
-        }
-        
-        throw new Error(errorMessage);
-      }
-
-      const analysisResult = await response.json();
-      
-      // Mostrar resultado da análise
-      console.log('Resultado da Análise RFV:', analysisResult);
-      const resultCount = Array.isArray(analysisResult) ? analysisResult.length : 0;
-      alert(`Análise RFV executada com sucesso! ${resultCount} registros processados.`);
-      
-    } catch (error) {
-      console.error('Erro ao executar análise:', error);
-      alert(`Erro ao executar análise RFV: ${error instanceof Error ? error.message : 'Erro desconhecido'}`);
-    } finally {
-      setIsLoading(false);
-    }
-  };
-
-  const createCustomSegment = async (segmentName: string, rules: any) => {
-    try {
-      const response = await fetch(`${API_BASE_URL}/api/rfv/segments`, {
+      const response = await fetch('/api/proxy', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({
-          name: segmentName,
-          rules: rules
-        }),
+          url: `/api/rfv/parameters/${id}`,
+          method: 'DELETE'
+        })
       });
 
-      if (!response.ok) {
+      if (response.ok) {
+        setExistingParameters(prev => prev.filter(p => p.id !== id));
+        applyFilters(existingParameters.filter(p => p.id !== id), filters);
+        showToast('Parâmetro excluído com sucesso!', 'success');
+      } else {
         const errorData = await response.json();
-        throw new Error(errorData.error || 'Erro ao criar segmento');
+        let errorMessage = 'Erro ao excluir parâmetro';
+        
+        if (errorData.error && errorData.error.includes('Foreign key constraint failed')) {
+          errorMessage = 'Este parâmetro não pode ser excluído pois está sendo usado por segmentos ou análises. Exclua primeiro os registros dependentes.';
+        } else {
+          errorMessage = errorData.error || errorMessage;
+        }
+        
+        throw new Error(errorMessage);
       }
-
-      const newSegment = await response.json();
-      console.log('Segmento criado:', newSegment);
-      return newSegment;
-      
     } catch (error) {
-      console.error('Erro ao criar segmento:', error);
-      throw error;
+      console.error('Erro ao excluir parâmetro:', error);
+      showToast(`Erro ao excluir parâmetro: ${error instanceof Error ? error.message : 'Erro desconhecido'}`, 'error');
     }
   };
 
-  const updateCustomSegment = async (segmentId: number, segmentName: string, rules: any) => {
+  const deleteSegment = async (id: number) => {
     try {
-      const response = await fetch(`${API_BASE_URL}/api/rfv/segments/${segmentId}`, {
-        method: 'PUT',
+      const response = await fetch('/api/proxy', {
+        method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({
-          name: segmentName,
-          rules: rules
-        }),
+          url: `/api/rfv/segments/${id}`,
+          method: 'DELETE'
+        })
       });
 
-      if (!response.ok) {
+      if (response.ok) {
+        setExistingSegments(prev => prev.filter(s => s.id !== id));
+        showToast('Segmento excluído com sucesso!', 'success');
+      } else {
         const errorData = await response.json();
-        throw new Error(errorData.error || 'Erro ao atualizar segmento');
+        let errorMessage = 'Erro ao excluir segmento';
+        
+        if (errorData.error && errorData.error.includes('Foreign key constraint failed')) {
+          errorMessage = 'Este segmento não pode ser excluído pois está sendo usado por análises ou outros registros. Exclua primeiro os registros dependentes.';
+        } else {
+          errorMessage = errorData.error || errorMessage;
+        }
+        
+        throw new Error(errorMessage);
       }
-
-      const updatedSegment = await response.json();
-      console.log('Segmento atualizado:', updatedSegment);
-      return updatedSegment;
-      
     } catch (error) {
-      console.error('Erro ao atualizar segmento:', error);
-      throw error;
+      console.error('Erro ao excluir segmento:', error);
+      showToast(`Erro ao excluir segmento: ${error instanceof Error ? error.message : 'Erro desconhecido'}`, 'error');
     }
   };
 
-  const deleteCustomSegment = async (segmentId: number) => {
-    try {
-      const response = await fetch(`${API_BASE_URL}/api/rfv/segments/${segmentId}`, {
-        method: 'DELETE',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-      });
-
-      if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.error || 'Erro ao deletar segmento');
-      }
-
-      console.log('Segmento deletado com sucesso');
-      
-    } catch (error) {
-      console.error('Erro ao deletar segmento:', error);
-      throw error;
-    }
+  // Funções para abrir modais de confirmação
+  const openDeleteParameterDialog = (param: RFVParameterFromAPI) => {
+    setDeleteDialog({
+      isOpen: true,
+      type: 'parameter',
+      id: param.id,
+      name: param.name
+    });
   };
 
-  const activateParameterSet = async (parameterSetId: number) => {
+  const openDeleteSegmentDialog = (segment: any) => {
+    setDeleteDialog({
+      isOpen: true,
+      type: 'segment',
+      id: segment.id,
+      name: segment.segment_name || segment.name
+    });
+  };
+
+  const handleConfirmDelete = async () => {
+    if (deleteDialog.id) {
+      if (deleteDialog.type === 'parameter') {
+        await deleteParameter(deleteDialog.id);
+      } else {
+        await deleteSegment(deleteDialog.id);
+      }
+    }
+    setDeleteDialog({ isOpen: false, type: 'parameter', id: null, name: '' });
+  };
+
+  const editParameter = (parameter: RFVParameterFromAPI) => {
+    // Converter dados da API para formato do formulário
+    const convertedRules = {
+      recency: parameter.ruleRecency.bins.map((bin, index) => ({
+        score: bin.score,
+        label: getScoreLabel(bin.score),
+        min: bin.score === 1 ? bin.max_dias : (index > 0 ? parameter.ruleRecency.bins[index - 1].max_dias : undefined),
+        max: bin.max_dias
+      })),
+      frequency: parameter.ruleFrequency.bins.map((bin, index) => ({
+        score: bin.score,
+        label: getScoreLabel(bin.score),
+        min: bin.min_compras,
+        max: bin.score === 1 ? undefined : (index < parameter.ruleFrequency.bins.length - 1 ? parameter.ruleFrequency.bins[index + 1].min_compras : undefined)
+      })),
+      value: parameter.ruleValue.bins.map((bin, index) => ({
+        score: bin.score,
+        label: getScoreLabel(bin.score),
+        min: bin.min_valor,
+        max: bin.score === 1 ? undefined : (index < parameter.ruleValue.bins.length - 1 ? parameter.ruleValue.bins[index + 1].min_valor : undefined)
+      }))
+    };
+
+    setConfiguration({
+      id: parameter.id,
+      name: parameter.name,
+      filialId: parameter.filialId,
+      rfvRules: convertedRules,
+      segmentationMethod: parameter.calculationStrategy,
+      automaticRanges: parameter.classRanges || {
+        bronze: { min: 3, max: 7 },
+        prata: { min: 8, max: 11 },
+        ouro: { min: 12, max: 15 }
+      },
+      segments: parameter.segments?.map(seg => ({
+        segment_name: seg.name,
+        rules: { R: '', F: '', V: '' }, // As regras específicas precisariam vir da API
+        priority: seg.priority
+      })) || [],
+      effectiveFrom: parameter.effectiveFrom.split('T')[0]
+    });
+    setEditingParameter(parameter);
+    setShowExisting(false);
+  };
+
+  // Helper function para obter labels dos scores
+  const getScoreLabel = (score: number): string => {
+    const labels = {
+      5: 'Excelente',
+      4: 'Bom', 
+      3: 'Regular',
+      2: 'Ruim',
+      1: 'Péssimo'
+    };
+    return labels[score as keyof typeof labels] || 'Desconhecido';
+  };
+
+  // Helper function para formatar regras RFV para exibição
+  const formatRuleDisplay = (bins: RFVBin[], type: 'recency' | 'frequency' | 'value'): string => {
+    if (!bins || bins.length === 0) return 'Não configurado';
+    
+    const rules = bins.map(bin => {
+      if (type === 'recency' && bin.max_dias !== undefined) {
+        return `${bin.score}⭐: ≤${bin.max_dias} dias`;
+      } else if (type === 'frequency' && bin.min_compras !== undefined) {
+        return `${bin.score}⭐: ≥${bin.min_compras} compras`;
+      } else if (type === 'value' && bin.min_valor !== undefined) {
+        return `${bin.score}⭐: ≥R$${bin.min_valor}`;
+      }
+      return `${bin.score}⭐: Outros`;
+    });
+
+    return rules.slice(0, 2).join(', ') + (rules.length > 2 ? '...' : '');
+  };
+
+  // Função para determinar se uma configuração está ativa
+  const isConfigurationActive = (param: RFVParameterFromAPI): boolean => {
+    const now = new Date();
+    const effectiveFrom = new Date(param.effectiveFrom);
+    const effectiveTo = param.effectiveTo ? new Date(param.effectiveTo) : null;
+    
+    return effectiveFrom <= now && (!effectiveTo || effectiveTo > now);
+  };
+
+  // Função para duplicar uma configuração
+  const duplicateParameter = (parameter: RFVParameterFromAPI) => {
+    editParameter(parameter);
+    setConfiguration(prev => ({
+      ...prev,
+      id: undefined,
+      name: `${parameter.name} (Cópia)`,
+      effectiveFrom: new Date().toISOString().split('T')[0]
+    }));
+    setEditingParameter(null);
+  };
+
+  // Estatísticas dos dados
+  const getStatistics = () => {
+    const total = existingParameters.length;
+    const active = existingParameters.filter(param => isConfigurationActive(param)).length;
+    const automatic = existingParameters.filter(p => p.calculationStrategy === 'automatic').length;
+    const manual = existingParameters.filter(p => p.calculationStrategy === 'manual').length;
+    const withFilial = existingParameters.filter(p => p.filialId !== null).length;
+    
+    return { total, active, automatic, manual, withFilial };
+  };
+
+  const updateRFVRange = (type: 'recency' | 'frequency' | 'value', index: number, field: keyof RFVRange, value: any) => {
+    setConfiguration(prev => ({
+      ...prev,
+      rfvRules: {
+        ...prev.rfvRules,
+        [type]: prev.rfvRules[type].map((range, i) =>
+          i === index ? { ...range, [field]: value } : range
+        )
+      }
+    }));
+  };
+
+  const addSegment = () => {
+    setConfiguration(prev => ({
+      ...prev,
+      segments: [
+        ...(prev.segments || []),
+        {
+          segment_name: '',
+          rules: {},
+          priority: (prev.segments?.length || 0) + 1
+        }
+      ]
+    }));
+  };
+
+  const updateSegment = (index: number, field: keyof Segment, value: any) => {
+    setConfiguration(prev => ({
+      ...prev,
+      segments: prev.segments?.map((segment, i) =>
+        i === index ? { ...segment, [field]: value } : segment
+      ) || []
+    }));
+  };
+
+  const updateSegmentRule = (index: number, rule: 'R' | 'F' | 'V', value: string) => {
+    setConfiguration(prev => ({
+      ...prev,
+      segments: prev.segments?.map((segment, i) =>
+        i === index ? {
+          ...segment,
+          rules: { ...segment.rules, [rule]: value }
+        } : segment
+      ) || []
+    }));
+  };
+
+  const removeSegment = (index: number) => {
+    setConfiguration(prev => ({
+      ...prev,
+      segments: prev.segments?.filter((_, i) => i !== index) || []
+    }));
+  };
+
+  const resetConfiguration = () => {
+    setConfiguration({
+      name: '',
+      filialId: undefined,
+      rfvRules: {
+        recency: [
+          { score: 5, label: 'Excelente', min: undefined, max: 30 },
+          { score: 4, label: 'Bom', min: 31, max: 60 },
+          { score: 3, label: 'Regular', min: 61, max: 90 },
+          { score: 2, label: 'Ruim', min: 91, max: 180 },
+          { score: 1, label: 'Péssimo', min: 181, max: undefined }
+        ],
+        frequency: [
+          { score: 5, label: 'Excelente', min: 10, max: undefined },
+          { score: 4, label: 'Bom', min: 6, max: 10 },
+          { score: 3, label: 'Regular', min: 3, max: 5 },
+          { score: 2, label: 'Ruim', min: 2, max: 2 },
+          { score: 1, label: 'Péssimo', min: undefined, max: 1 }
+        ],
+        value: [
+          { score: 5, label: 'Excelente', min: 1000, max: undefined },
+          { score: 4, label: 'Bom', min: 501, max: 1000 },
+          { score: 3, label: 'Regular', min: 201, max: 500 },
+          { score: 2, label: 'Ruim', min: 51, max: 200 },
+          { score: 1, label: 'Péssimo', min: undefined, max: 50 }
+        ]
+      },
+      segmentationMethod: 'automatic',
+      automaticRanges: {
+        bronze: { min: 3, max: 7 },
+        prata: { min: 8, max: 11 },
+        ouro: { min: 12, max: 15 }
+      },
+      segments: [],
+      effectiveFrom: new Date().toISOString().split('T')[0]
+    });
+    setEditingParameter(null);
+  };
+
+  const validateConfiguration = async () => {
+    if (!existingParameters.length) {
+      await loadExistingData();
+    }
+
+    const configFilialId = (configuration.filialId === undefined || configuration.filialId === null) ? configuration.filialId : configuration.filialId;
+
+    const existingForFilial = existingParameters.find(param =>
+      param.filialId === configFilialId &&
+      param.id !== editingParameter?.id
+    );
+
+    if (existingForFilial) {
+      const filialName = configFilialId === null
+        ? 'todas as filiais'
+        : filiais.find(f => f.id === configFilialId)?.nome || 'filial selecionada';
+
+      return {
+        valid: false,
+        message: `Já existe uma configuração para ${filialName}. Uma filial pode ter apenas uma configuração ativa. Deseja sobrescrever a configuração existente '${existingForFilial.name}'?`
+      };
+    }
+
+    return { valid: true };
+  };
+
+  const saveParameters = async () => {
+    if (!configuration.name.trim()) {
+      showToast('Nome da configuração é obrigatório', 'error');
+      return;
+    }
+    
+    if (!configuration.filialId) {
+      showToast('Filial é obrigatória', 'error');
+      return;
+    }
+
+    setSavingParameters(true);
     try {
-      // Encontra a configuração na lista local
-      const parameterSet = segments.find(s => s.parameterSet?.id === parameterSetId)?.parameterSet;
-      if (!parameterSet) {
-        alert('Configuração não encontrada');
+      const validation = await validateConfiguration();
+      if (!validation.valid) {
+        setOverwriteDialog({
+          isOpen: true,
+          message: validation.message!,
+          onConfirm: () => performParametersSave()
+        });
+        setSavingParameters(false);
         return;
       }
 
-      // Simula ativação - na prática você teria um endpoint específico
-      console.log('Ativando configuração:', parameterSet.name);
-      alert(`Configuração "${parameterSet.name}" marcada como ativa!`);
-      
-      // Recarrega os dados
-      await loadSegments();
+      await performParametersSave();
     } catch (error) {
-      console.error('Erro ao ativar configuração:', error);
-      alert('Erro ao ativar configuração');
+      console.error('Erro ao salvar parâmetros:', error);
+      showToast('Erro ao salvar parâmetros', 'error');
+      setSavingParameters(false);
     }
   };
 
-  const deleteParameterSet = async (parameterSetId: number) => {
+  const performParametersSave = async () => {
     try {
-      // Encontra todos os segmentos desta configuração e o parâmetro set
-      const configSegments = segments.filter(s => s.parameterSet?.id === parameterSetId);
-      const parameterSetToDelete = parameterSets.find(ps => ps.id === parameterSetId);
-      const configName = parameterSetToDelete?.name || configSegments[0]?.parameterSet?.name || 'Configuração';
-      
-      console.log(`Deletando configuração "${configName}" com ${configSegments.length} segmentos`);
-      
-      // Deleta todos os segmentos da configuração
-      for (const segment of configSegments) {
+      const parametersPayload: any = {
+        name: configuration.name,
+        filialId: configuration.filialId,
+        ruleRecency: configuration.rfvRules.recency,
+        ruleFrequency: configuration.rfvRules.frequency,
+        ruleValue: configuration.rfvRules.value,
+        calculation_strategy: configuration.segmentationMethod,
+        class_ranges: configuration.segmentationMethod === 'automatic' ? configuration.automaticRanges : null,
+        effectiveFrom: configuration.effectiveFrom
+      };
+
+      const isEditing = editingParameter && editingParameter.id;
+      const parametersApiUrl = '/api/rfv/parameters';
+      const parametersMethod = isEditing ? 'PUT' : 'POST';
+
+      if (isEditing) {
+        parametersPayload.id = editingParameter.id;
+      }
+
+      console.log('Salvando parâmetros:', parametersPayload);
+
+      const parametersResponse = await fetch('/api/proxy', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          url: isEditing ? `/api/rfv/parameters/${editingParameter.id}` : parametersApiUrl,
+          method: parametersMethod,
+          data: parametersPayload
+        })
+      });
+
+      if (!parametersResponse.ok) {
+        let errorMessage = `Erro ao ${isEditing ? 'atualizar' : 'salvar'} parâmetros`;
         try {
-          await deleteCustomSegment(segment.id);
-          console.log(`Segmento "${segment.name}" deletado`);
-        } catch (error) {
-          console.error(`Erro ao deletar segmento ${segment.name}:`, error);
+          const errorData = await parametersResponse.json();
+          if (errorData.error) {
+            errorMessage = errorData.error;
+          }
+        } catch (e) {
+          // Se não conseguir fazer parse do JSON, usa mensagem padrão
+        }
+        throw new Error(errorMessage);
+      }
+
+      showToast(`Parâmetros ${isEditing ? 'atualizados' : 'salvos'} com sucesso!`, 'success');
+
+      if (showExisting) {
+        loadExistingData();
+      }
+    } catch (error) {
+      console.error('Erro ao salvar parâmetros:', error);
+      const errorMessage = error instanceof Error ? error.message : 'Erro desconhecido';
+      showToast(`Erro ao salvar parâmetros: ${errorMessage}`, 'error');
+    } finally {
+      setSavingParameters(false);
+    }
+  };
+
+  const saveSegments = async () => {
+    if (configuration.segmentationMethod !== 'manual') {
+      showToast('Salvamento de segmentos só é disponível para segmentação manual', 'error');
+      return;
+    }
+
+    if (!configuration.segments || configuration.segments.length === 0) {
+      showToast('Adicione pelo menos um segmento antes de salvar', 'error');
+      return;
+    }
+
+    // Verificar se existe parâmetro salvo para associar os segmentos
+    if (!editingParameter?.id) {
+      showToast('Salve primeiro os parâmetros antes de salvar os segmentos', 'error');
+      return;
+    }
+
+    setSavingSegments(true);
+    try {
+      console.log('Salvando segmentos:', configuration.segments);
+      
+      for (const segment of configuration.segments) {
+        const segmentPayload = {
+          ...segment,
+          parameterSetId: editingParameter.id
+        };
+
+        const segmentResponse = await fetch('/api/proxy', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            url: '/api/rfv/segments',
+            method: 'POST',
+            data: segmentPayload
+          })
+        });
+
+        if (!segmentResponse.ok) {
+          console.warn('Erro ao salvar segmento:', segment.segment_name);
+          const errorData = await segmentResponse.json();
+          throw new Error(`Erro ao salvar segmento "${segment.segment_name}": ${errorData.error || 'Erro desconhecido'}`);
         }
       }
-      
-      // TODO: Quando houver endpoint para parameter sets, deletar aqui também
-      // await fetch(`${API_BASE_URL}/api/rfv/parameters/${parameterSetId}`, { method: 'DELETE' });
-      
-      // Remove da lista local imediatamente
-      setParameterSets(prev => prev.filter(ps => ps.id !== parameterSetId));
-      
-      // Se a configuração deletada era a atual, limpa o estado atual
-      if (currentParameterSet?.id === parameterSetId) {
-        setCurrentParameterSet(null);
-        resetToDefaults();
+
+      showToast('Segmentos salvos com sucesso!', 'success');
+
+      if (showExisting) {
+        loadExistingData();
       }
-      
-      alert(`Configuração "${configName}" e todos os seus segmentos foram removidos!`);
-      
-      // Recarrega os dados para sincronizar
-      await Promise.all([loadSegments(), loadParameterSets()]);
-      
     } catch (error) {
-      console.error('Erro ao deletar configuração:', error);
-      alert('Erro ao deletar configuração');
+      console.error('Erro ao salvar segmentos:', error);
+      const errorMessage = error instanceof Error ? error.message : 'Erro desconhecido';
+      showToast(`Erro ao salvar segmentos: ${errorMessage}`, 'error');
+    } finally {
+      setSavingSegments(false);
     }
   };
 
-  // Custom Rules Handlers
-  const addCustomRule = () => {
-    const newRule: CustomRule = {
-      id: Date.now().toString(),
-      segmentName: `Segmento ${customRules.length + 1}`,
-      conditions: [
-        { id: Date.now().toString(), dimension: 'R', operator: '>=', value: 1 }
-      ],
-      connector: 'E'
-    };
-    setCustomRules([...customRules, newRule]);
+  const saveConfiguration = async () => {
+    setSaving(true);
+    try {
+      const validation = await validateConfiguration();
+      if (!validation.valid) {
+        // Abrir modal de confirmação ao invés de alert
+        setOverwriteDialog({
+          isOpen: true,
+          message: validation.message!,
+          onConfirm: () => performSave()
+        });
+        setSaving(false);
+        return;
+      }
+
+      await performSave();
+    } catch (error) {
+      console.error('Erro ao salvar:', error);
+      showToast(`Erro ao ${editingParameter ? 'atualizar' : 'salvar'} configuração`, 'error');
+      setSaving(false);
+    }
   };
 
-  const removeCustomRule = (ruleId: string) => {
-    setCustomRules(customRules.filter(rule => rule.id !== ruleId));
+  const performSave = async () => {
+    try {
+      // 1. Primeiro salvar os parâmetros RFV
+      const parametersPayload: any = {
+        name: configuration.name,
+        filialId: configuration.filialId,
+        ruleRecency: configuration.rfvRules.recency,
+        ruleFrequency: configuration.rfvRules.frequency,
+        ruleValue: configuration.rfvRules.value,
+        calculation_strategy: configuration.segmentationMethod,
+        class_ranges: configuration.segmentationMethod === 'automatic' ? configuration.automaticRanges : null,
+        effectiveFrom: configuration.effectiveFrom
+      };
+
+      const isEditing = editingParameter && editingParameter.id;
+      const parametersApiUrl = '/api/rfv/parameters';
+      const parametersMethod = isEditing ? 'PUT' : 'POST';
+
+      if (isEditing) {
+        parametersPayload.id = editingParameter.id;
+      }
+
+      console.log('Salvando parâmetros:', parametersPayload);
+      console.log('URL parâmetros:', isEditing ? `/api/rfv/parameters/${editingParameter.id}` : parametersApiUrl);
+      console.log('Método parâmetros:', parametersMethod);
+
+      const parametersResponse = await fetch('/api/proxy', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          url: isEditing ? `/api/rfv/parameters/${editingParameter.id}` : parametersApiUrl,
+          method: parametersMethod,
+          data: parametersPayload
+        })
+      });
+
+      if (!parametersResponse.ok) {
+        let errorMessage = `Erro ao ${isEditing ? 'atualizar' : 'salvar'} parâmetros`;
+        try {
+          const errorData = await parametersResponse.json();
+          if (errorData.error) {
+            errorMessage = errorData.error;
+          }
+        } catch (e) {
+          // Se não conseguir fazer parse do JSON, usa mensagem padrão
+        }
+        throw new Error(errorMessage);
+      }
+
+      const savedParameters = await parametersResponse.json();
+      const parametersId = savedParameters.data?.id || savedParameters.id || editingParameter?.id;
+
+      // 2. Se for segmentação manual, salvar os segmentos separadamente
+      if (configuration.segmentationMethod === 'manual' && configuration.segments && configuration.segments.length > 0) {
+        console.log('Salvando segmentos:', configuration.segments);
+        
+        for (const segment of configuration.segments) {
+          const segmentPayload = {
+            ...segment,
+            parameterSetId: parametersId
+          };
+
+          const segmentResponse = await fetch('/api/proxy', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              url: '/api/rfv/segments',
+              method: 'POST',
+              data: segmentPayload
+            })
+          });
+
+          if (!segmentResponse.ok) {
+            console.warn('Erro ao salvar segmento:', segment.segment_name);
+            // Não falha completamente se um segmento não salvar
+          }
+        }
+      }
+
+      showToast(`Configuração ${isEditing ? 'atualizada' : 'salva'} com sucesso!`, 'success');
+
+      resetConfiguration();
+
+      if (showExisting) {
+        loadExistingData();
+      }
+    } catch (error) {
+      console.error('Erro ao salvar:', error);
+      const errorMessage = error instanceof Error ? error.message : 'Erro desconhecido';
+      showToast(`Erro ao ${editingParameter ? 'atualizar' : 'salvar'} configuração: ${errorMessage}`, 'error');
+    } finally {
+      setSaving(false);
+    }
   };
 
-  const updateRuleName = (ruleId: string, newName: string) => {
-    setCustomRules(customRules.map(rule => 
-      rule.id === ruleId ? { ...rule, segmentName: newName } : rule
-    ));
-  };
+  const renderRFVRulesSection = () => (
+    <div className="space-y-8">
+      <div className="text-center mb-8">
+        <div className="flex items-center justify-center mb-4">
+          <Settings className="h-8 w-8 text-blue-600 mr-3" />
+          <h2 className="text-2xl font-bold text-gray-900">Configuração de Análise RFV</h2>
+        </div>
+        <p className="text-gray-600 max-w-2xl mx-auto">
+          Configure as regras e segmentos para classificar seus clientes baseado em seu comportamento de
+          <span className="font-semibold text-blue-600"> Recência</span>,
+          <span className="font-semibold text-green-600"> Frequência</span> e
+          <span className="font-semibold text-purple-600"> Valor</span>.
+        </p>
+      </div>
 
-  const updateRuleConnector = (ruleId: string, connector: 'E' | 'OU') => {
-    setCustomRules(customRules.map(rule => 
-      rule.id === ruleId ? { ...rule, connector } : rule
-    ));
-  };
-
-  const addCondition = (ruleId: string) => {
-    setCustomRules(customRules.map(rule => 
-      rule.id === ruleId ? {
-        ...rule,
-        conditions: [
-          ...rule.conditions,
-          { id: Date.now().toString(), dimension: 'R', operator: '>=', value: 1 }
-        ]
-      } : rule
-    ));
-  };
-
-  const removeCondition = (ruleId: string, conditionId: string) => {
-    setCustomRules(customRules.map(rule => 
-      rule.id === ruleId ? {
-        ...rule,
-        conditions: rule.conditions.filter(condition => condition.id !== conditionId)
-      } : rule
-    ));
-  };
-
-  const updateCondition = (ruleId: string, conditionId: string, updates: Partial<CustomRule['conditions'][0]>) => {
-    setCustomRules(customRules.map(rule => 
-      rule.id === ruleId ? {
-        ...rule,
-        conditions: rule.conditions.map(condition => 
-          condition.id === conditionId ? { ...condition, ...updates } : condition
-        )
-      } : rule
-    ));
-  };
-
-  return (
-  <div className="max-w-5xl w-full mx-auto py-6 px-2 sm:py-10 sm:px-4 min-h-screen bg-white">
-      {isLoadingData ? (
-        <div className="flex items-center justify-center min-h-[400px]">
-          <div className="text-center">
-            <Loader2 className="w-8 h-8 animate-spin text-blue-600 mx-auto mb-4" />
-            <p className="text-gray-600">Carregando configurações...</p>
+    {/* Configurações Gerais */}
+      <Card className="p-6 bg-white border border-gray-200 shadow-sm">
+        <h2 className="text-xl font-semibold mb-4 text-gray-900">Configurações Gerais</h2>
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-2">
+              Nome da Configuração
+            </label>
+            <Input
+              type="text"
+              placeholder="Ex: RFV Padrão 2024"
+              value={configuration.name}
+              onChange={(e) => setConfiguration(prev => ({ ...prev, name: e.target.value }))}
+              className="border-gray-300 text-gray-900 placeholder-gray-500"
+            />
+          </div>
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-2">
+              Filial
+            </label>
+            <Select
+              value={configuration.filialId === null ? 'all' : (configuration.filialId?.toString() || '')}
+              onValueChange={(value: string) => setConfiguration(prev => ({
+                ...prev,
+                filialId: value === 'all' ? null : (value ? parseInt(value) : undefined)
+              }))}
+            >
+              <SelectTrigger className="border-gray-300 text-gray-900">
+                <SelectValue placeholder="Selecione a filial" />
+              </SelectTrigger>
+              <SelectContent className="bg-white border-gray-300">
+                <SelectItem value="all" className="text-gray-900 font-semibold">
+                  🌐 Aplicar a todas as filiais
+                </SelectItem>
+                {filiais.map((filial) => (
+                  <SelectItem key={filial.id} value={filial.id.toString()} className="text-gray-900">
+                    {filial.nome} - {filial.cidade}/{filial.estado}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-2">
+              Data de Vigência
+            </label>
+            <Input
+              type="date"
+              value={configuration.effectiveFrom}
+              onChange={(e) => setConfiguration(prev => ({ ...prev, effectiveFrom: e.target.value }))}
+              className="border-gray-300 text-gray-900"
+            />
           </div>
         </div>
-      ) : (
-        <>
-          {/* Header */}
-          <div className="mb-8">
-            <div className="flex items-center justify-between mb-4">
-              <div>
-                <h1 className="text-3xl font-bold text-blue-900 mb-2 flex items-center gap-3">
-                  <Settings className="w-8 h-8 text-blue-700" />
-                  Análise RFV - Configuração
-                </h1>
-                <p className="text-gray-600 text-lg">
-                  Configure as regras e segmentos para classificar seus clientes baseado no comportamento de Recência, Frequência e Monetário.
-                </p>
-              </div>
-              <div className="flex gap-2">
-                <Button
-                  onClick={createNewConfiguration}
-                  variant="outline"
-                  className="border-green-600 text-green-700 bg-white hover:bg-green-50 hover:border-green-700 hover:cursor-pointer focus:ring-2 hover:text-green-900 focus:ring-green-200 focus:border-green-700 font-semibold shadow-md transition-transform duration-150 hover:scale-105"
-                >
-                  <Plus className="w-4 h-4 mr-2" />
-                  Nova Configuração
-                </Button>
-                <Button
-                  onClick={() => setShowManagement(!showManagement)}
-                  variant="outline"
-                  className="border-blue-600 text-blue-700 bg-white hover:bg-blue-50 hover:border-blue-700 hover:cursor-pointer hover:text-blue-900 focus:ring-2 focus:ring-blue-200 focus:border-blue-700 font-semibold shadow-md transition-transform duration-150 hover:scale-105"
-                >
-                  <Settings className="w-4 h-4 mr-2" />
-                  {showManagement ? 'Ocultar' : 'Gerenciar'} Configurações
-                </Button>
-              </div>
-            </div>
-
-            {/* Management Panel */}
-            {showManagement && (
-              <Card className="mb-6 border border-yellow-200 bg-yellow-50/30">
-                <CardHeader>
-                  <CardTitle className="text-yellow-800 flex items-center gap-2">
-                    <Settings className="w-5 h-5" />
-                    Gerenciar Configurações
-                  </CardTitle>
-                </CardHeader>
-                <CardContent>
-                  {isLoadingData ? (
-                    <div className="flex items-center justify-center py-8">
-                      <Loader2 className="w-6 h-6 animate-spin mr-2" />
-                      <span>Carregando configurações...</span>
-                    </div>
-                  ) : parameterSets.length === 0 ? (
-                    <div className="text-center py-8">
-                      <p className="text-gray-600">
-                        Nenhuma configuração encontrada. Crie sua primeira configuração!
-                      </p>
-                    </div>
-                  ) : (
-                    <div className="space-y-4">
-                      {parameterSets.map((parameterSet) => (
-                        <div key={parameterSet.id} className="flex items-center justify-between p-4 bg-white rounded-lg border border-gray-200">
-                          <div className="flex-1">
-                            <h3 className="font-semibold text-gray-900">
-                              {parameterSet.name}
-                            </h3>
-                            <div className="text-sm text-gray-600 mt-1">
-                              <p>Estratégia: {parameterSet.calculation_strategy === 'automatic' ? 'Automática' : 'Manual'}</p>
-                              <p>Janela: {parameterSet.windowDays} dias</p>
-                              <p>Criada em: {new Date(parameterSet.effectiveFrom).toLocaleDateString()}</p>
-                            </div>
-                          </div>
-                          <div className="flex gap-2">
-                            <Button
-                              onClick={() => loadConfiguration(parameterSet.id!)}
-                              size="sm"
-                              variant="outline"
-                              className="border-blue-200 text-blue-700 bg-white hover:bg-blue-50 hover:cursor-pointer transition-transform duration-150 hover:scale-105"
-                            >
-                              Editar
-                            </Button>
-                            <Button
-                              onClick={() => {
-                                if (confirm(`Tem certeza que deseja excluir a configuração "${parameterSet.name}" e todos os seus segmentos?`)) {
-                                  deleteParameterSet(parameterSet.id!);
-                                }
-                              }}
-                              size="sm"
-                              variant="outline"
-                              className="border-red-200 text-red-700 bg-white hover:bg-red-50 hover:cursor-pointer transition-transform duration-150 hover:scale-105"
-                            >
-                              <Trash2 className="w-4 h-4" />
-                            </Button>
-                          </div>
-                        </div>
-                      ))}
-                    </div>
-                  )}
-                </CardContent>
-              </Card>
-            )}
-
-            {/* Configuration Selector */}
-            {parameterSets.length > 0 ? (
-              <Card className="mb-6 border border-blue-100 bg-blue-50/30">
-                <CardContent className="pt-4">
-                  <div className="flex items-center gap-4">
-                    <div className="flex-1">
-                      <label className="block text-sm font-medium text-blue-900 mb-2">
-                        Configuração Atual:
-                      </label>
-                      <Select 
-                        value={currentParameterSet?.id?.toString() || ''} 
-                        onValueChange={(value) => value && loadConfiguration(parseInt(value))}
-                      >
-                        <SelectTrigger className="bg-white border-blue-200">
-                          <SelectValue placeholder="Selecione uma configuração" />
-                        </SelectTrigger>
-                        <SelectContent>
-                          {parameterSets.map(ps => (
-                            <SelectItem key={ps.id} value={ps.id!.toString()}>
-                              {ps.name} {!ps.effectiveTo && '(Ativa)'}
-                            </SelectItem>
-                          ))}
-                        </SelectContent>
-                      </Select>
-                    </div>
-                    <div className="flex-1">
-                      <label className="block text-sm font-medium text-blue-900 mb-2">
-                        Nome da Configuração:
-                      </label>
-                      <input
-                        type="text"
-                        className="w-full px-3 py-2 border rounded-lg bg-white border-blue-200 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                        value={configName}
-                        onChange={(e) => setConfigName(e.target.value)}
-                        placeholder="Nome da configuração"
-                      />
-                    </div>
-                    <div className="w-32">
-                      <label className="block text-sm font-medium text-blue-900 mb-2">
-                        Janela (dias):
-                      </label>
-                      <input
-                        type="number"
-                        min="30"
-                        max="365"
-                        className="w-full px-3 py-2 border rounded-lg bg-white border-blue-200 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                        value={windowDays}
-                        onChange={(e) => setWindowDays(parseInt(e.target.value) || 180)}
-                      />
-                    </div>
-                    <div className="flex flex-col gap-2">
-                      <Button
-                        onClick={() => window.open(`${API_BASE_URL}/api/rfv/segments`, '_blank')}
-                        variant="outline"
-                        size="sm"
-                        className="text-purple-600 border-purple-200 bg-white hover:bg-purple-50 hover:cursor-pointer transition-transform duration-150 hover:scale-105"
-                      >
-                        👁️ Ver Segmentos
-                      </Button>
-                    </div>
-                  </div>
-                </CardContent>
-              </Card>
-            ) : (
-              <Card className="mb-6 border border-orange-300 bg-orange-100">
-                <CardContent className="pt-4">
-                  <div className="flex items-center gap-4">
-                    <div className="flex-1">
-                      <div className="flex items-center gap-2 mb-2">
-                        <Info className="w-5 h-5 text-orange-500" />
-                        <h3 className="font-semibold text-orange-600">
-                          Primeira Configuração RFV
-                        </h3>
-                      </div>
-                      <p className="text-sm text-orange-700">
-                        Você está criando sua primeira configuração RFV. Configure as regras abaixo e clique em &quot;Salvar&quot; para começar.
-                      </p>
-                    </div>
-                    <div className="flex-1">
-                      <label className="block text-sm font-medium text-orange-900 mb-2">
-                        Nome da Nova Configuração:
-                      </label>
-                      <input
-                        type="text"
-                        className="w-full px-3 py-2 border rounded-lg bg-white border-orange-400 text-orange-900 focus:ring-2 focus:ring-orange-500 focus:border-transparent"
-                        value={configName}
-                        onChange={(e) => setConfigName(e.target.value)}
-                        placeholder="Ex: Configuração RFV Principal"
-                      />
-                    </div>
-                    <div className="w-32">
-                      <label className="block text-sm font-medium text-orange-900 mb-2">
-                        Janela (dias):
-                      </label>
-                      <input
-                        type="number"
-                        min="30"
-                        max="365"
-                        className="w-full px-3 py-2 border rounded-lg bg-white border-orange-400 text-orange-900 focus:ring-2 focus:ring-orange-500 focus:border-transparent"
-                        value={windowDays}
-                        onChange={(e) => setWindowDays(parseInt(e.target.value) || 180)}
-                      />
-                    </div>
-                  </div>
-                </CardContent>
-              </Card>
-            )}
-          </div>
-
-          {/* Existing Segments Display */}
-          {segments.length > 0 && (
-            <Card className="shadow-lg border border-green-100 dark:border-green-900 bg-gradient-to-r from-green-50 to-emerald-50 dark:from-green-900/20 dark:to-emerald-900/20 mb-8">
-              <CardHeader>
-                <CardTitle className="text-xl font-bold flex items-center justify-between">
-                  <div className="flex items-center gap-2">
-                    <Trophy className="w-6 h-6 text-green-700 dark:text-green-200" />
-                    Segmentos RFV Configurados
-                  </div>
-                  <Button
-                    onClick={loadSegments}
-                    disabled={isLoadingSegments}
-                    variant="outline"
-                    size="sm"
-                    className="text-green-600 border-green-200 bg-white hover:bg-green-50 hover:cursor-pointer transition-transform duration-150 hover:scale-105"
-                  >
-                    {isLoadingSegments ? (
-                      <Loader2 className="w-4 h-4 animate-spin" />
-                    ) : (
-                      "🔄 Atualizar"
-                    )}
-                  </Button>
-                </CardTitle>
-                <p className="text-sm text-green-700 dark:text-green-300">
-                  {segments.length} segmento(s) configurado(s) no sistema
-                </p>
-              </CardHeader>
-              <CardContent>
-                {/* Configurações agrupadas por ParameterSet */}
-                {(() => {
-                  const configGroups = segments.reduce((acc: Record<number, { config: any, segments: any[] }>, segment) => {
-                    const configName = segment.parameterSet?.name || 'Sem Configuração';
-                    const configId = segment.parameterSet?.id || 0;
-                    
-                    if (!acc[configId]) {
-                      acc[configId] = {
-                        config: segment.parameterSet,
-                        segments: []
-                      };
-                    }
-                    acc[configId].segments.push(segment);
-                    return acc;
-                  }, {} as Record<number, { config: any, segments: any[] }>);
-
-                  return (
-                    <div className="space-y-6">
-                      {Object.values(configGroups).map((group: { config: any, segments: any[] }, index: number) => (
-                        <div key={group.config?.id || index} className="border border-green-200 dark:border-green-700 rounded-lg p-4 bg-white dark:bg-gray-800/30">
-                          <div className="flex items-center justify-between mb-4">
-                            <div>
-                              <h3 className="font-bold text-lg text-green-800 dark:text-green-200">
-                                📋 {group.config?.name || 'Configuração Sem Nome'}
-                              </h3>
-                              <p className="text-sm text-green-600 dark:text-green-400">
-                                {group.segments.length} segmento(s) configurado(s)
-                              </p>
-                            </div>
-                            <div className="flex gap-2">
-                              <Button
-                                onClick={() => group.config?.id && activateParameterSet(group.config.id)}
-                                variant="outline"
-                                size="sm"
-                                className="text-purple-600 border-purple-200 bg-white hover:bg-purple-50 hover:cursor-pointer transition-transform duration-150 hover:scale-105"
-                              >
-                                ⭐ Tornar Ativa
-                              </Button>
-                              <Button
-                                onClick={() => {
-                                  if (group.config?.name && confirm(`Deseja excluir completamente a configuração "${group.config.name}" e todos os seus ${group.segments.length} segmentos?`)) {
-                                    deleteParameterSet(group.config.id);
-                                  }
-                                }}
-                                variant="outline"
-                                size="sm"
-                                className="text-red-600 border-red-200 bg-white hover:bg-red-50 hover:cursor-pointer transition-transform duration-150 hover:scale-105"
-                              >
-                                🗑️ Excluir Config
-                              </Button>
-                            </div>
-                          </div>
-                          
-                          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
-                            {group.segments.map((segment: any) => (
-                              <div key={segment.id} className="border border-gray-200  rounded-lg p-3 bg-gray-50 dark:bg-gray-800/50">
-                                <div className="space-y-2">
-                                  <div className="flex items-center justify-between">
-                                    <h4 className="font-semibold text-gray-900 dark:text-gray-100 text-sm">
-                                      {segment.name}
-                                    </h4>
-                                    <div className="text-xs text-green-600 dark:text-green-400 bg-green-100 dark:bg-green-900/30 px-2 py-1 rounded">
-                                      #{segment.priority}
-                                    </div>
-                                  </div>
-                                  
-                                  <div className="space-y-1">
-                                    {typeof segment.rules === 'object' && segment.rules && Object.entries(segment.rules).map(([key, value]: [string, any]) => (
-                                      <div key={key} className="text-xs">
-                                        <span className="font-mono bg-blue-100 dark:bg-blue-900/30 text-blue-800 dark:text-blue-200 px-2 py-1 rounded">
-                                          {key} {String(value)}
-                                        </span>
-                                      </div>
-                                    ))}
-                                  </div>
-                                  
-                                  <div className="flex gap-1 pt-1">
-                                    <Button
-                                      variant="outline"
-                                      size="sm"
-                                      className="text-blue-600 border-blue-200 bg-white hover:bg-blue-50 hover:cursor-pointer transition-transform duration-150 hover:scale-105 text-xs px-2 py-1 h-6"
-                                      onClick={() => {
-                                        console.log('Editando segmento:', segment);
-                                      }}
-                                    >
-                                      ✏️
-                                    </Button>
-                                    <Button
-                                      variant="outline"
-                                      size="sm"
-                                      className="text-red-600 border-red-200 bg-white hover:bg-red-50 hover:cursor-pointer transition-transform duration-150 hover:scale-105 text-xs px-2 py-1 h-6"
-                                      onClick={() => {
-                                        if (confirm(`Deseja remover o segmento "${segment.name}"?`)) {
-                                          deleteCustomSegment(segment.id).then(() => loadSegments());
-                                        }
-                                      }}
-                                    >
-                                      🗑️
-                                    </Button>
-                                  </div>
-                                </div>
-                              </div>
-                            ))}
-                          </div>
-                        </div>
-                      ))}
-                    </div>
-                  );
-                })()}
-              </CardContent>
-            </Card>
-          )}
-
-      {/* Info Card */}
-      <Card className="shadow-lg border border-blue-100 bg-gradient-to-r from-blue-50 to-indigo-50 mb-8">
-        <CardContent className="pt-6">
-          <div className="flex items-start gap-3">
-            <Info className="w-5 h-5 text-blue-600 mt-0.5 flex-shrink-0" />
-            <div>
-              <h3 className="font-semibold text-blue-900 mb-2">Como funciona a Análise RFV?</h3>
-              <p className="text-sm text-blue-700 mb-2">
-                A análise RFV classifica clientes em scores de 1 a 5 para cada dimensão:
-              </p>
-              <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 text-sm text-blue-900">
-                <div className="flex items-center gap-2">
-                  <Clock className="w-4 h-4 text-blue-600" />
-                  <span><strong>Recência:</strong> Há quanto tempo comprou</span>
-                </div>
-                <div className="flex items-center gap-2">
-                  <ShoppingCart className="w-4 h-4 text-blue-600" />
-                  <span><strong>Frequência:</strong> Quantas vezes comprou</span>
-                </div>
-                <div className="flex items-center gap-2">
-                  <DollarSign className="w-4 h-4 text-blue-600" />
-                  <span><strong>Monetário:</strong> Quanto gastou no total</span>
-                </div>
-              </div>
-            </div>
-          </div>
-        </CardContent>
       </Card>
 
-      {/* Rules Card */}
-      <Card className="shadow-lg border border-gray-200 bg-white mb-8">
-        <CardHeader>
-          <CardTitle className="text-xl font-bold flex items-center gap-2 text-blue-900">
-            <SlidersHorizontal className="w-6 h-6 text-blue-700" />
+      <Card className="bg-white border border-gray-200 shadow-sm">
+        <div className="p-6 border-b border-gray-100">
+          <h3 className="text-lg font-semibold text-gray-900 flex items-center">
+            <TrendingUp className="h-5 w-5 text-blue-600 mr-2" />
             1. Definir Regras de Pontuação
-          </CardTitle>
-          <p className="text-sm text-gray-700">
-            Primeiro, defina os intervalos de valores para cada score de 1 a 5. Esses scores serão usados tanto para segmentação automática quanto manual.
+          </h3>
+          <p className="text-sm text-gray-600 mt-1">
+            Primeiro, defina os intervalos de valores para cada pontuação de 1 a 5. Essas pontuações serão usadas tanto nos modos Automático quanto Manual de segmentação.
           </p>
-        </CardHeader>
-        <CardContent>
-          <div className="space-y-8">
-            {/* Recency */}
-            <div className="p-4 border border-blue-200 rounded-lg bg-blue-50 text-black">
-              <div className="flex items-center gap-2 mb-4">
-                <Clock className="w-5 h-5 text-blue-600" />
-                <h3 className="font-semibold text-blue-900">Regras de Recência (dias)</h3>
-              </div>
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4">
-                <div className="text-center">
-                  <div className="text-xs font-medium text-green-700 mb-2">Score 5 (Excelente)</div>
-                  <div className="text-sm text-gray-700 mb-2">Menos de</div>
-                  <input 
-                    type="number" 
-                    className="w-full px-3 py-2 border rounded-lg text-center bg-white border-gray-300 focus:ring-2 focus:ring-blue-500 focus:border-transparent" 
-                    value={recency[0]} 
-                    min={1} 
-                    max={recency[1]-1} 
-                    onChange={e => handleRecency(0, +e.target.value)} 
-                  />
-                  <div className="text-xs text-gray-500 mt-1">dias</div>
-                </div>
-                <div className="text-center">
-                  <div className="text-xs font-medium text-blue-700 mb-2">Score 4 (Bom)</div>
-                  <div className="text-sm text-gray-700 mb-2">Entre</div>
-                  <div className="flex items-center gap-1">
-                    <input 
-                      type="number" 
-                      className="w-full px-2 py-2 border rounded-lg text-center bg-white border-gray-300" 
-                      value={recency[0]+1} 
-                      onChange={e => handleRecency(0, +e.target.value)} 
-                    />
-                    <span className="text-xs">e</span>
-                    <input 
-                      type="number" 
-                      className="w-full px-2 py-2 border rounded-lg text-center bg-white border-gray-300 focus:ring-2 focus:ring-blue-500 focus:border-transparent" 
-                      value={recency[1]} 
-                      min={recency[0]+1} 
-                      max={recency[2]-1} 
-                      onChange={e => handleRecency(1, +e.target.value)} 
-                    />
-                  </div>
-                  <div className="text-xs text-gray-500 mt-1">dias</div>
-                </div>
-                <div className="text-center">
-                  <div className="text-xs font-medium text-yellow-700 mb-2">Score 3 (Regular)</div>
-                  <div className="text-sm text-gray-700 mb-2">Entre</div>
-                  <div className="flex items-center gap-1">
-                    <input 
-                      type="number" 
-                      className="w-full px-2 py-2 border rounded-lg text-center bg-white border-gray-300" 
-                      value={recency[1]+1} 
-                      onChange={e => handleRecency(1, +e.target.value)} 
-                    />
-                    <span className="text-xs">e</span>
-                    <input 
-                      type="number" 
-                      className="w-full px-2 py-2 border rounded-lg text-center bg-white border-gray-300 focus:ring-2 focus:ring-blue-500 focus:border-transparent" 
-                      value={recency[2]} 
-                      min={recency[1]+1} 
-                      max={recency[3]-1} 
-                      onChange={e => handleRecency(2, +e.target.value)} 
-                    />
-                  </div>
-                  <div className="text-xs text-gray-500 mt-1">dias</div>
-                </div>
-                <div className="text-center">
-                  <div className="text-xs font-medium text-orange-700 mb-2">Score 2 (Fraco)</div>
-                  <div className="text-sm text-gray-700 mb-2">Entre</div>
-                  <div className="flex items-center gap-1">
-                    <input 
-                      type="number" 
-                      className="w-full px-2 py-2 border rounded-lg text-center bg-white border-gray-300" 
-                      value={recency[2]+1} 
-                      onChange={e => handleRecency(2, +e.target.value)} 
-                    />
-                    <span className="text-xs">e</span>
-                    <input 
-                      type="number" 
-                      className="w-full px-2 py-2 border rounded-lg text-center bg-white border-gray-300 focus:ring-2 focus:ring-blue-500 focus:border-transparent" 
-                      value={recency[3]} 
-                      min={recency[2]+1} 
-                      onChange={e => handleRecency(3, +e.target.value)} 
-                    />
-                  </div>
-                  <div className="text-xs text-gray-500 mt-1">dias</div>
-                </div>
-                <div className="text-center">
-                  <div className="text-xs font-medium text-red-700 mb-2">Score 1 (Crítico)</div>
-                  <div className="text-sm text-gray-700 mb-2">Mais de</div>
-                  <div className="px-3 py-2 border rounded-lg text-center bg-white 00 border-gray-300  font-medium">
-                    {recency[3]}
-                  </div>
-                  <div className="text-xs text-gray-500 mt-1">dias</div>
-                </div>
-              </div>
-            </div>
+        </div>
 
-            {/* Frequency */}
-            <div className="p-4 border border-green-200 rounded-lg bg-green-50 text-black">
-              <div className="flex items-center gap-2 mb-4">
-                <ShoppingCart className="w-5 h-5 text-green-600" />
-                <h3 className="font-semibold text-green-900">Regras de Frequência (compras)</h3>
-              </div>
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4">
-                <div className="text-center">
-                  <div className="text-xs font-medium text-green-700 mb-2">Score 5 (Excelente)</div>
-                  <div className="text-sm text-gray-700 mb-2">Mais de</div>
-                  <input 
-                    type="number" 
-                    className="w-full px-3 py-2 border rounded-lg text-center bg-white border-gray-300 focus:ring-2 focus:ring-green-500 focus:border-transparent" 
-                    value={frequency[4]} 
-                    min={frequency[3]+1} 
-                    onChange={e => handleFrequency(4, +e.target.value)} 
-                  />
-                  <div className="text-xs text-gray-500 mt-1">compras</div>
-                </div>
-                <div className="text-center">
-                  <div className="text-xs font-medium text-blue-700 mb-2">Score 4 (Bom)</div>
-                  <div className="text-sm text-gray-700 mb-2">Entre</div>
-                  <div className="flex items-center gap-1">
-                    <input 
-                      type="number" 
-                      className="w-full px-2 py-2 border rounded-lg text-center bg-white border-gray-300" 
-                      value={frequency[3]} 
-                      min={frequency[2]+1} 
-                      max={frequency[4]} 
-                      onChange={e => handleFrequency(3, +e.target.value)} 
-                    />
-                    <span className="text-xs">e</span>
-                    <div className="w-full px-2 py-2 border rounded-lg text-center bg-white 00 border-gray-300  font-medium">
-                      {frequency[4]}
-                    </div>
-                  </div>
-                  <div className="text-xs text-gray-500 mt-1">compras</div>
-                </div>
-                <div className="text-center">
-                  <div className="text-xs font-medium text-yellow-700 mb-2">Score 3 (Regular)</div>
-                  <div className="text-sm text-gray-700 mb-2">Entre</div>
-                  <div className="flex items-center gap-1">
-                    <input 
-                      type="number" 
-                      className="w-full px-2 py-2 border rounded-lg text-center bg-white border-gray-300" 
-                      value={frequency[2]} 
-                      min={frequency[1]+1} 
-                      max={frequency[3]} 
-                      onChange={e => handleFrequency(2, +e.target.value)} 
-                    />
-                    <span className="text-xs">e</span>
-                    <div className="w-full px-2 py-2 border rounded-lg text-center bg-white 00 border-gray-300  font-medium">
-                      {frequency[3]}
-                    </div>
-                  </div>
-                  <div className="text-xs text-gray-500 mt-1">compras</div>
-                </div>
-                <div className="text-center">
-                  <div className="text-xs font-medium text-orange-700 mb-2">Score 2 (Fraco)</div>
-                  <div className="text-sm text-gray-700 mb-2">Exatamente</div>
-                  <div className="px-3 py-2 border rounded-lg text-center bg-white 00 border-gray-300  font-medium">
-                    {frequency[1]}
-                  </div>
-                  <div className="text-xs text-gray-500 mt-1">compras</div>
-                </div>
-                <div className="text-center">
-                  <div className="text-xs font-medium text-red-700 mb-2">Score 1 (Crítico)</div>
-                  <div className="text-sm text-gray-700 mb-2">Apenas</div>
-                  <div className="px-3 py-2 border rounded-lg text-center bg-white 00 border-gray-300  font-medium">
-                    {frequency[0]}
-                  </div>
-                  <div className="text-xs text-gray-500 mt-1">compra</div>
-                </div>
-              </div>
+        <div className="p-6 space-y-8">
+          {/* Recency Rules */}
+          <div className="bg-blue-50 rounded-lg p-6 border border-blue-100">
+            <div className="flex items-center mb-4">
+              <div className="w-4 h-4 bg-blue-600 rounded-full mr-3"></div>
+              <h4 className="text-lg font-semibold text-blue-900">Regras de Recência (Dias)</h4>
             </div>
-
-            {/* Monetary */}
-            <div className="p-4 border border-purple-200 rounded-lg bg-purple-50 text-black">
-              <div className="flex items-center gap-2 mb-4">
-                <DollarSign className="w-5 h-5 text-purple-600" />
-                <h3 className="font-semibold text-purple-900">Regras Monetárias (valor)</h3>
-              </div>
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4">
-                <div className="text-center">
-                  <div className="text-xs font-medium text-green-700 mb-2">Score 5 (Excelente)</div>
-                  <div className="text-sm text-gray-700 mb-2">Mais de R$</div>
-                  <input 
-                    type="number" 
-                    className="w-full px-3 py-2 border rounded-lg text-center bg-white border-gray-300 focus:ring-2 focus:ring-purple-500 focus:border-transparent text-black" 
-                    value={monetary[3]} 
-                    min={monetary[2]+1} 
-                    onChange={e => handleMonetary(3, +e.target.value)} 
-                  />
-                </div>
-                <div className="text-center">
-                  <div className="text-xs font-medium text-blue-700 mb-2">Score 4 (Bom)</div>
-                  <div className="text-sm text-gray-700 mb-2">Entre R$</div>
-                  <div className="flex items-center gap-1">
-                    <input 
-                      type="number" 
-                      className="w-full px-2 py-2 border rounded-lg text-center bg-white border-gray-300" 
-                      value={monetary[2]+1} 
-                      onChange={e => handleMonetary(2, +e.target.value)} 
-                    />
-                    <span className="text-xs">e</span>
-                    <div className="w-full px-2 py-2 border rounded-lg text-center bg-white border-gray-300 font-medium">
-                      {monetary[3]}
-                    </div>
+            <p className="text-sm text-blue-700 mb-4">
+              Defina há quantos dias foi a última compra do cliente para cada pontuação.
+            </p>
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+              {configuration.rfvRules.recency.map((range, index) => (
+                <div key={index} className="bg-white rounded-lg p-4 border border-blue-200 shadow-sm">
+                  <div className="flex items-center justify-between mb-3">
+                    <span className="font-semibold text-blue-900">Pontuação {range.score}</span>
+                    <span className="text-xs px-2 py-1 bg-blue-100 text-blue-700 rounded-full">
+                      {range.label}
+                    </span>
+                  </div>
+                  <div className="space-y-2">
+                    {range.score === 5 ? (
+                      <div className="flex items-center space-x-2">
+                        <span className="text-sm text-gray-700 font-medium">Menos que</span>
+                        <Input
+                          type="number"
+                          placeholder="30"
+                          value={range.max || ''}
+                          onChange={(e) => updateRFVRange('recency', index, 'max', parseInt(e.target.value))}
+                          className="flex-1 h-8 text-sm border-blue-200 focus:border-blue-400"
+                        />
+                        <span className="text-sm text-gray-600">dias</span>
+                      </div>
+                    ) : range.score === 1 ? (
+                      <div className="flex items-center space-x-2">
+                        <span className="text-sm text-gray-700 font-medium">Mais que</span>
+                        <Input
+                          type="number"
+                          placeholder="180"
+                          value={range.min || ''}
+                          onChange={(e) => updateRFVRange('recency', index, 'min', parseInt(e.target.value))}
+                          className="flex-1 h-8 text-sm border-blue-200 focus:border-blue-400"
+                        />
+                        <span className="text-sm text-gray-600">dias</span>
+                      </div>
+                    ) : (
+                      <div className="space-y-2">
+                        <div className="flex items-center space-x-2">
+                          <span className="text-sm text-gray-700 font-medium">Entre</span>
+                          <Input
+                            type="number"
+                            placeholder="31"
+                            value={range.min || ''}
+                            onChange={(e) => updateRFVRange('recency', index, 'min', parseInt(e.target.value))}
+                            className="flex-1 h-8 text-sm border-blue-200 focus:border-blue-400"
+                          />
+                          <span className="text-sm text-gray-600">e</span>
+                          <Input
+                            type="number"
+                            placeholder="60"
+                            value={range.max || ''}
+                            onChange={(e) => updateRFVRange('recency', index, 'max', parseInt(e.target.value))}
+                            className="flex-1 h-8 text-sm border-blue-200 focus:border-blue-400"
+                          />
+                          <span className="text-sm text-gray-600">dias</span>
+                        </div>
+                      </div>
+                    )}
                   </div>
                 </div>
-                <div className="text-center">
-                  <div className="text-xs font-medium text-yellow-700 mb-2">Score 3 (Regular)</div>
-                  <div className="text-sm text-gray-700 mb-2">Entre R$</div>
-                  <div className="flex items-center gap-1">
-                    <input 
-                      type="number" 
-                      className="w-full px-2 py-2 border rounded-lg text-center bg-white border-gray-300" 
-                      value={monetary[1]+1} 
-                      onChange={e => handleMonetary(1, +e.target.value)} 
-                    />
-                    <span className="text-xs">e</span>
-                    <input 
-                      type="number" 
-                      className="w-full px-2 py-2 border rounded-lg text-center bg-white border-gray-300 focus:ring-2 focus:ring-purple-500 focus:border-transparent" 
-                      value={monetary[2]} 
-                      min={monetary[1]+1} 
-                      onChange={e => handleMonetary(2, +e.target.value)} 
-                    />
-                  </div>
-                </div>
-                <div className="text-center">
-                  <div className="text-xs font-medium text-orange-700 mb-2">Score 2 (Fraco)</div>
-                  <div className="text-sm text-gray-700 mb-2">Entre R$</div>
-                  <div className="flex items-center gap-1">
-                    <input 
-                      type="number" 
-                      className="w-full px-2 py-2 border rounded-lg text-center bg-white border-gray-300" 
-                      value={monetary[0]+1} 
-                      onChange={e => handleMonetary(1, +e.target.value)} 
-                    />
-                    <span className="text-xs">e</span>
-                    <input 
-                      type="number" 
-                      className="w-full px-2 py-2 border rounded-lg text-center bg-white border-gray-300 focus:ring-2 focus:ring-purple-500 focus:border-transparent" 
-                      value={monetary[1]} 
-                      min={monetary[0]+1} 
-                      max={monetary[2]-1} 
-                      onChange={e => handleMonetary(1, +e.target.value)} 
-                    />
-                  </div>
-                </div>
-                <div className="text-center">
-                  <div className="text-xs font-medium text-red-700 mb-2">Score 1 (Crítico)</div>
-                  <div className="text-sm text-gray-700 mb-2">R$ ou menos</div>
-                  <div className="px-3 py-2 border rounded-lg text-center bg-white border-gray-300  font-medium">
-                    {monetary[0]}
-                  </div>
-                </div>
-              </div>
+              ))}
             </div>
           </div>
-        </CardContent>
+
+          {/* Frequency Rules */}
+          <div className="bg-green-50 rounded-lg p-6 border border-green-100">
+            <div className="flex items-center mb-4">
+              <div className="w-4 h-4 bg-green-600 rounded-full mr-3"></div>
+              <h4 className="text-lg font-semibold text-green-900">Regras de Frequência (Compras)</h4>
+            </div>
+            <p className="text-sm text-green-700 mb-4">
+              Defina quantas compras o cliente fez no período para cada pontuação.
+            </p>
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+              {configuration.rfvRules.frequency.map((range, index) => (
+                <div key={index} className="bg-white rounded-lg p-4 border border-green-200 shadow-sm">
+                  <div className="flex items-center justify-between mb-3">
+                    <span className="font-semibold text-green-900">Pontuação {range.score}</span>
+                    <span className="text-xs px-2 py-1 bg-green-100 text-green-700 rounded-full">
+                      {range.label}
+                    </span>
+                  </div>
+                  <div className="space-y-2">
+                    {range.score === 5 ? (
+                      <div className="flex items-center space-x-2">
+                        <span className="text-sm text-gray-700 font-medium">Mais que</span>
+                        <Input
+                          type="number"
+                          placeholder="10"
+                          value={range.min || ''}
+                          onChange={(e) => updateRFVRange('frequency', index, 'min', parseInt(e.target.value))}
+                          className="flex-1 h-8 text-sm border-green-200 focus:border-green-400"
+                        />
+                        <span className="text-sm text-gray-600">compras</span>
+                      </div>
+                    ) : range.score === 1 ? (
+                      <div className="flex items-center space-x-2">
+                        <Input
+                          type="number"
+                          placeholder="1"
+                          value={range.max || ''}
+                          onChange={(e) => updateRFVRange('frequency', index, 'max', parseInt(e.target.value))}
+                          className="flex-1 h-8 text-sm border-green-200 focus:border-green-400"
+                        />
+                        <span className="text-sm text-gray-600">compra</span>
+                      </div>
+                    ) : (
+                      <div className="space-y-2">
+                        <div className="flex items-center space-x-2">
+                          <span className="text-sm text-gray-700 font-medium">Entre</span>
+                          <Input
+                            type="number"
+                            placeholder="2"
+                            value={range.min || ''}
+                            onChange={(e) => updateRFVRange('frequency', index, 'min', parseInt(e.target.value))}
+                            className="flex-1 h-8 text-sm border-green-200 focus:border-green-400"
+                          />
+                          <span className="text-sm text-gray-600">e</span>
+                          <Input
+                            type="number"
+                            placeholder="5"
+                            value={range.max || ''}
+                            onChange={(e) => updateRFVRange('frequency', index, 'max', parseInt(e.target.value))}
+                            className="flex-1 h-8 text-sm border-green-200 focus:border-green-400"
+                          />
+                          <span className="text-sm text-gray-600">compras</span>
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+
+          {/* Value Rules */}
+          <div className="bg-purple-50 rounded-lg p-6 border border-purple-100">
+            <div className="flex items-center mb-4">
+              <div className="w-4 h-4 bg-purple-600 rounded-full mr-3"></div>
+              <h4 className="text-lg font-semibold text-purple-900">Regras Monetárias (Valor)</h4>
+            </div>
+            <p className="text-sm text-purple-700 mb-4">
+              Defina o valor total gasto pelo cliente no período para cada pontuação.
+            </p>
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+              {configuration.rfvRules.value.map((range, index) => (
+                <div key={index} className="bg-white rounded-lg p-4 border border-purple-200 shadow-sm">
+                  <div className="flex items-center justify-between mb-3">
+                    <span className="font-semibold text-purple-900">Pontuação {range.score}</span>
+                    <span className="text-xs px-2 py-1 bg-purple-100 text-purple-700 rounded-full">
+                      {range.label}
+                    </span>
+                  </div>
+                  <div className="space-y-2">
+                    {range.score === 5 ? (
+                      <div className="flex items-center space-x-2">
+                        <span className="text-sm text-gray-700 font-medium">Mais que R$</span>
+                        <Input
+                          type="number"
+                          placeholder="1000"
+                          value={range.min || ''}
+                          onChange={(e) => updateRFVRange('value', index, 'min', parseInt(e.target.value))}
+                          className="flex-1 h-8 text-sm border-purple-200 focus:border-purple-400"
+                        />
+                      </div>
+                    ) : range.score === 1 ? (
+                      <div className="flex items-center space-x-2">
+                        <span className="text-sm text-gray-700 font-medium">R$</span>
+                        <Input
+                          type="number"
+                          placeholder="50"
+                          value={range.max || ''}
+                          onChange={(e) => updateRFVRange('value', index, 'max', parseInt(e.target.value))}
+                          className="flex-1 h-8 text-sm border-purple-200 focus:border-purple-400"
+                        />
+                        <span className="text-sm text-gray-600">ou menos</span>
+                      </div>
+                    ) : (
+                      <div className="space-y-2">
+                        <div className="flex items-center space-x-2">
+                          <span className="text-sm text-gray-700 font-medium">Entre R$</span>
+                          <Input
+                            type="number"
+                            placeholder="201"
+                            value={range.min || ''}
+                            onChange={(e) => updateRFVRange('value', index, 'min', parseInt(e.target.value))}
+                            className="flex-1 h-8 text-sm border-purple-200 focus:border-purple-400"
+                          />
+                          <span className="text-sm text-gray-600">e R$</span>
+                          <Input
+                            type="number"
+                            placeholder="500"
+                            value={range.max || ''}
+                            onChange={(e) => updateRFVRange('value', index, 'max', parseInt(e.target.value))}
+                            className="flex-1 h-8 text-sm border-purple-200 focus:border-purple-400"
+                          />
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
+        
+        {/* Botão para salvar apenas os parâmetros */}
+        <div className="flex justify-end pt-4 mt-6 border-t border-gray-100">
+          <Button
+            onClick={saveParameters}
+            disabled={savingParameters || !configuration.name || !configuration.filialId}
+            className="flex items-center gap-2 bg-blue-600 hover:bg-blue-700 text-white"
+          >
+            <Save className="w-4 h-4" />
+            {savingParameters ? 'Salvando...' : editingParameter ? 'Atualizar' : 'Salvar'} Parâmetros
+          </Button>
+        </div>
       </Card>
+    </div>
+  );
+
+  const renderNewConfigurationContent = () => (
+    <>
+      
+
+      {/* RFV Rules Section */}
+      {renderRFVRulesSection()}
 
       {/* Segmentation Method */}
-      <Card className="shadow-lg border border-gray-200 bg-white mb-8">
-        <CardHeader>
-          <CardTitle className="text-xl font-bold flex items-center gap-2 text-blue-900">
-            <Trophy className="w-6 h-6 text-blue-700" />
-            2. Método de Segmentação
-          </CardTitle>
-          <p className="text-sm text-gray-700">
-            Escolha como agrupar os clientes baseado nos scores definidos acima.
+      <Card className="bg-white border border-gray-200 shadow-sm">
+        <div className="p-6 border-b border-gray-100">
+          <h3 className="text-lg font-semibold text-gray-900 flex items-center">
+            <Users className="h-5 w-5 text-green-600 mr-2" />
+            2. Escolher Método de Segmentação
+          </h3>
+          <p className="text-sm text-gray-600 mt-1">
+            Defina como os clientes serão segmentados baseado nas pontuações RFV.
           </p>
-        </CardHeader>
-        <CardContent>
-          <div className="space-y-6">
-            <div className="flex items-center gap-4 p-4 border-2 border-blue-200 rounded-lg bg-blue-50/50">
-              <input 
-                type="radio" 
-                id="auto" 
-                name="segmentation" 
-                value="auto" 
-                checked={mode === "auto"} 
-                onChange={(e) => setMode(e.target.value)}
-                className="w-4 h-4 text-blue-600 focus:ring-blue-500"
-              />
-              <div className="flex-1">
-                <label htmlFor="auto" className="font-semibold text-blue-900 cursor-pointer">
-                  ✨ Tierização Automática (Recomendado)
-                </label>
-                <p className="text-sm text-blue-700 mt-1">
-                  O sistema usa um modelo padrão baseado na soma dos scores (R+F+V) para classificar clientes em tiers.
-                </p>
-              </div>
-            </div>
+        </div>
 
-            <div className="flex items-center gap-4 p-4 border border-gray-200 rounded-lg">
-              <input 
-                type="radio" 
-                id="manual" 
-                name="segmentation" 
-                value="manual" 
-                checked={mode === "manual"} 
-                onChange={(e) => setMode(e.target.value)}
-                className="w-4 h-4 text-blue-600 focus:ring-blue-500"
-              />
-              <div className="flex-1">
-                <label htmlFor="manual" className="font-semibold text-gray-900 cursor-pointer">
-                  🔧 Segmentação Manual
-                </label>
-                <p className="text-sm text-gray-700 mt-1">
-                  Crie suas próprias regras customizadas com condições específicas (ex: R Score &gt;= 4 E F Score = 5).
-                </p>
-              </div>
-            </div>
-
-            {mode === "auto" ? (
-              <div className="mt-6">
-                <h3 className="font-semibold text-gray-900 mb-4">Tiers de Classificação Padrão</h3>
-                <p className="text-sm text-gray-600 mb-4">
-                  No modo automático, os clientes são classificados baseado na soma dos scores R, F e V:
-                </p>
-                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-                  {defaultTiers.map(tier => (
-                    <div key={tier.name} className={`p-4 rounded-lg border ${tier.color}`}>
-                      <div className="text-center">
-                        <div className="text-2xl mb-2">{tier.icon}</div>
-                        <div className="font-bold text-lg">{tier.name}</div>
-                        <div className="text-sm opacity-75">Pontuação {tier.range}</div>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              </div>
-            ) : (
-              <div className="mt-6 space-y-6">
-                <div className="flex items-center justify-between mb-4">
-                  <h3 className="font-semibold text-gray-900 ">Construtor de Regras Customizadas</h3>
-                  <Button 
-                    onClick={addCustomRule}
-                    className="bg-green-600 hover:bg-green-700 hover:cursor-pointer text-white font-semibold px-4 py-2 rounded-lg flex items-center gap-2"
-                  >
-                    <Plus className="w-4 h-4" />
-                    Nova Regra
-                  </Button>
-                </div>
-                <p className="text-sm text-gray-600 mb-4">
-                  Crie regras específicas para segmentar seus clientes baseado nos scores R, F e V.
-                </p>
-                
-                {customRules.length === 0 ? (
-                  <div className="text-center py-8 text-gray-500 dark:text-gray-400 italic border-2 border-dashed border-gray-200 dark:border-gray-700 rounded-lg">
-                    🚀 Comece criando sua primeira regra customizada
-                  </div>
-                ) : (
-                  <div className="space-y-4">
-                    {customRules.map((rule, ruleIndex) => (
-                      <Card key={rule.id} className="border border-gray-200 bg-white">
-                        <CardContent className="pt-4">
-                          <div className="space-y-4">
-                            {/* Rule Header */}
-                            <div className="flex items-center justify-between">
-                              <div className="flex-1">
-                                <label className="block text-xs font-semibold text-blue-900 mb-1">
-                                  Nome do Segmento
-                                </label>
-                                <input
-                                  type="text"
-                                  className="w-full px-3 py-2 border rounded-lg bg-white border-blue-300 text-blue-900 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-sm h-10"
-                                  value={rule.segmentName}
-                                  onChange={(e) => updateRuleName(rule.id, e.target.value)}
-                                  placeholder="Ex: Clientes VIP"
-                                />
-                              </div>
-                              <Button
-                                onClick={() => removeCustomRule(rule.id)}
-                                variant="outline"
-                                className="ml-4 text-red-600 border-red-200 bg-white hover:bg-red-50 hover:cursor-pointer transition-transform duration-150 hover:scale-105"
-                              >
-                                <Trash2 className="w-4 h-4" />
-                              </Button>
-                            </div>
-
-                            {/* Conditions */}
-                            <div className="space-y-3">
-                              <div className="flex items-center justify-between">
-                                <label className="text-xs font-semibold text-blue-900">
-                                  Condições
-                                </label>
-                                <Button
-                                  onClick={() => addCondition(rule.id)}
-                                  variant="outline"
-                                  size="sm"
-                                  className="text-blue-600 border-blue-200 bg-white hover:bg-blue-50 hover:cursor-pointer transition-transform duration-150 hover:scale-105"
-                                >
-                                  <Plus className="w-3 h-3 mr-1" />
-                                  Condição
-                                </Button>
-                              </div>
-                              
-                              {rule.conditions.map((condition, conditionIndex) => (
-                                <div key={condition.id} className="flex items-center gap-2 p-3 border border-gray-200 rounded-lg bg-white">
-                                  {conditionIndex > 0 && (
-                                    <div className="flex items-center gap-2 mr-2">
-                                      <Select 
-                                        value={rule.connector} 
-                                        onValueChange={(value) => updateRuleConnector(rule.id, value as 'E' | 'OU')}
-                                      >
-                                        <SelectTrigger className="w-24 h-10 text-sm bg-white border-blue-300 text-blue-900 focus:border-blue-500 hover:border-blue-500">
-                                          <SelectValue className="text-sm" />
-                                        </SelectTrigger>
-                                        <SelectContent>
-                                          <SelectItem value="E" className="text-sm">E</SelectItem>
-                                          <SelectItem value="OU" className="text-sm">OU</SelectItem>
-                                        </SelectContent>
-                                      </Select>
-                                    </div>
-                                  )}
-                                  <Select 
-                                    value={condition.dimension} 
-                                    onValueChange={(value) => updateCondition(rule.id, condition.id, { dimension: value as 'R' | 'F' | 'V' })}
-                                  >
-                                    <SelectTrigger className="w-32 h-10 text-sm bg-white border-blue-300 text-blue-900 focus:border-blue-500 hover:border-blue-500">
-                                      <SelectValue className="text-sm" />
-                                    </SelectTrigger>
-                                    <SelectContent>
-                                      <SelectItem value="R" className="text-sm">R (Recência)</SelectItem>
-                                      <SelectItem value="F" className="text-sm">F (Frequência)</SelectItem>
-                                      <SelectItem value="V" className="text-sm">V (Monetário)</SelectItem>
-                                    </SelectContent>
-                                  </Select>
-                                  <Select 
-                                    value={condition.operator} 
-                                    onValueChange={(value) => updateCondition(rule.id, condition.id, { operator: value as any })}
-                                  >
-                                    <SelectTrigger className="w-24 h-10 text-sm bg-white border-blue-300 text-blue-900 focus:border-blue-500 hover:border-blue-500">
-                                      <SelectValue className="text-sm" />
-                                    </SelectTrigger>
-                                    <SelectContent>
-                                      <SelectItem value=">=" className="text-sm">&gt;=</SelectItem>
-                                      <SelectItem value="<=" className="text-sm">&lt;=</SelectItem>
-                                      <SelectItem value="=" className="text-sm">=</SelectItem>
-                                      <SelectItem value=">" className="text-sm">&gt;</SelectItem>
-                                      <SelectItem value="<" className="text-sm">&lt;</SelectItem>
-                                    </SelectContent>
-                                  </Select>
-                                  <input
-                                    type="number"
-                                    min="1"
-                                    max="5"
-                                    className="w-24 h-10 px-2 py-1 border rounded text-center text-sm bg-white border-blue-300 text-blue-900 focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                                    value={condition.value}
-                                    onChange={(e) => updateCondition(rule.id, condition.id, { value: +e.target.value })}
-                                  />
-                                  {rule.conditions.length > 1 && (
-                                    <Button
-                                      onClick={() => removeCondition(rule.id, condition.id)}
-                                      variant="outline"
-                                      size="sm"
-                                      className="text-red-600 border-red-200 bg-white hover:bg-red-50 hover:cursor-pointer transition-transform duration-150 hover:scale-105 w-8 h-8 p-0"
-                                    >
-                                      <Trash2 className="w-3 h-3" />
-                                    </Button>
-                                  )}
-                                </div>
-                              ))}
-                            </div>
-
-                            {/* Rule Preview */}
-                            <div className="p-3 bg-blue-50 rounded-lg border border-blue-200">
-                              <div className="text-xs font-semibold text-blue-900 mb-1">
-                                Prévia da Regra:
-                              </div>
-                              <div className="text-sm text-blue-800 font-mono">
-                                {rule.conditions.map((condition, index) => (
-                                  <span key={condition.id}>
-                                    {index > 0 && ` ${rule.connector} `}
-                                    {condition.dimension} Score {condition.operator} {condition.value}
-                                  </span>
-                                ))}
-                              </div>
-                            </div>
-                          </div>
-                        </CardContent>
-                      </Card>
-                    ))}
-                  </div>
-                )}
-              </div>
-            )}
-          </div>
-        </CardContent>
+        <div className="p-6">
+          {renderSegmentationMethod()}
+        </div>
       </Card>
 
       {/* Action Buttons */}
-      <div className="flex flex-col sm:flex-row gap-4 justify-between items-center">
-        <div className="flex gap-3 order-2 sm:order-1">
-          <Button 
-            variant="outline" 
-            onClick={resetToDefaults}
-            className="border-gray-300 text-gray-700 bg-white hover:bg-gray-50 hover:cursor-pointer transition-transform duration-150 hover:scale-105 hover:text-blue-900"
-          >
-            🔄 Restaurar Padrões
-          </Button>
-          
-          <Button
-            onClick={executeRFVAnalysis}
-            disabled={isLoading}
-            variant="outline"
-            className="border-green-200 text-green-700 bg-white hover:bg-green-50 hover:cursor-pointer transition-transform duration-150 hover:scale-105 hover:text-green-900"
-            title={!currentParameterSet ? "Salve uma configuração primeiro para executar análise com parâmetros específicos, ou execute com parâmetros padrão" : ""}
-          >
-            {isLoading ? (
-              <>
-                <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                Executando...
-              </>
-            ) : (
-              <>
-                📊 Executar Análise RFV
-              </>
-            )}
-          </Button>
+      <div className="flex justify-end gap-3 pt-6">
+        <Button
+          onClick={resetConfiguration}
+          variant="outline"
+          className="flex items-center gap-2 text-gray-700 border-gray-300 hover:bg-gray-50 hover:cursor-pointer"
+        >
+          <RotateCcw className="w-4 h-4" />
+          Resetar
+        </Button>
+      </div>
+    </>
+  );
+
+  const renderExistingConfigurationsContent = () => {
+    const stats = getStatistics();
+    
+    return (
+    <div className="space-y-6">
+      {/* Estatísticas */}
+      {existingParameters.length > 0 && (
+        <Card className="bg-white border border-gray-200 shadow-sm">
+          <div className="p-6">
+            <h3 className="text-lg font-semibold text-gray-900 flex items-center mb-4">
+              <BarChart3 className="h-5 w-5 text-indigo-600 mr-2" />
+              Resumo das Configurações
+            </h3>
+            <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
+              <div className="text-center">
+                <div className="text-2xl font-bold text-gray-900">{stats.total}</div>
+                <div className="text-sm text-gray-600">Total</div>
+              </div>
+              <div className="text-center">
+                <div className="text-2xl font-bold text-green-600">{stats.active}</div>
+                <div className="text-sm text-gray-600">Ativas</div>
+              </div>
+              <div className="text-center">
+                <div className="text-2xl font-bold text-blue-600">{stats.automatic}</div>
+                <div className="text-sm text-gray-600">Automáticas</div>
+              </div>
+              <div className="text-center">
+                <div className="text-2xl font-bold text-purple-600">{stats.manual}</div>
+                <div className="text-sm text-gray-600">Manuais</div>
+              </div>
+              <div className="text-center">
+                <div className="text-2xl font-bold text-orange-600">{stats.withFilial}</div>
+                <div className="text-sm text-gray-600">Por Filial</div>
+              </div>
+            </div>
+          </div>
+        </Card>
+      )}
+      {/* Filtros */}
+      <Card className="bg-white border border-gray-200 shadow-sm">
+        <div className="p-6 border-b border-gray-100">
+          <h3 className="text-lg font-semibold text-gray-900 flex items-center">
+            <Filter className="h-5 w-5 text-blue-600 mr-2" />
+            Filtros
+          </h3>
+          <p className="text-sm text-gray-600 mt-1">
+            Filtre as configurações por diferentes critérios para encontrar o que precisa.
+          </p>
         </div>
-        
-        <div className="flex gap-3 order-1 sm:order-2">
-          <Button 
-            variant="outline" 
-            className="border-blue-200 text-blue-700 bg-white hover:bg-blue-50 hover:cursor-pointer transition-transform duration-150 hover:scale-105 hover:text-blue-900"
+
+        <div className="p-6">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+            {/* Busca por nome */}
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                <Search className="w-4 h-4 inline mr-1" />
+                Buscar
+              </label>
+              <Input
+                type="text"
+                placeholder="Nome ou filial..."
+                value={filters.search}
+                onChange={(e) => updateFilters({ search: e.target.value })}
+                className="border-gray-300"
+              />
+            </div>
+
+            {/* Filtro por status ativo */}
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                <Calendar className="w-4 h-4 inline mr-1" />
+                Status
+              </label>
+              <Select
+                value={filters.active === null ? 'all' : filters.active.toString()}
+                onValueChange={(value) => updateFilters({ 
+                  active: value === 'all' ? null : value === 'true' 
+                })}
+              >
+                <SelectTrigger className="border-gray-300">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent className="bg-white border-gray-300">
+                  <SelectItem value="all">Todos</SelectItem>
+                  <SelectItem value="true">Apenas Ativos</SelectItem>
+                  <SelectItem value="false">Apenas Inativos</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+
+            {/* Filtro por filial */}
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                <Building className="w-4 h-4 inline mr-1" />
+                Filial
+              </label>
+              <Select
+                value={filters.filialId === null ? 'all' : filters.filialId.toString()}
+                onValueChange={(value) => updateFilters({ 
+                  filialId: value === 'all' ? null : parseInt(value)
+                })}
+              >
+                <SelectTrigger className="border-gray-300">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent className="bg-white border-gray-300">
+                  <SelectItem value="all">Todas as Filiais</SelectItem>
+                  {filiais.map((filial) => (
+                    <SelectItem key={filial.id} value={filial.id.toString()}>
+                      {filial.nome}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+
+            {/* Filtro por estratégia */}
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                <TrendingUp className="w-4 h-4 inline mr-1" />
+                Estratégia
+              </label>
+              <Select
+                value={filters.calculationStrategy || 'all'}
+                onValueChange={(value) => updateFilters({ 
+                  calculationStrategy: value === 'all' ? null : value
+                })}
+              >
+                <SelectTrigger className="border-gray-300">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent className="bg-white border-gray-300">
+                  <SelectItem value="all">Todas</SelectItem>
+                  <SelectItem value="automatic">Automática</SelectItem>
+                  <SelectItem value="manual">Manual</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+          </div>
+
+          {/* Botão para limpar filtros e indicador de filtros ativos */}
+          <div className="mt-4 flex justify-between items-center">
+            <div className="text-sm text-gray-600">
+              {(filters.search || filters.active !== null || filters.filialId !== null || filters.calculationStrategy !== null) && (
+                <span className="inline-flex items-center px-2 py-1 rounded-full text-xs bg-blue-100 text-blue-700 mr-2">
+                  <Filter className="w-3 h-3 mr-1" />
+                  Filtros ativos
+                </span>
+              )}
+              {filteredParameters.length !== existingParameters.length && (
+                <span className="text-gray-500">
+                  Mostrando {filteredParameters.length} de {existingParameters.length} configurações
+                </span>
+              )}
+            </div>
+            <Button
+              onClick={clearFilters}
+              variant="outline"
+              size="sm"
+              className="text-gray-600 border-gray-300 hover:bg-gray-50"
+              disabled={!filters.search && filters.active === null && filters.filialId === null && filters.calculationStrategy === null}
+            >
+              <RotateCcw className="w-4 h-4 mr-2" />
+              Limpar Filtros
+            </Button>
+          </div>
+        </div>
+      </Card>
+
+      {/* Lista de Configurações */}
+      <Card className="bg-white border border-gray-200 shadow-sm">
+        <div className="p-6 border-b border-gray-100">
+          <div className="flex items-center justify-between">
+            <div>
+              <h3 className="text-lg font-semibold text-gray-900 flex items-center">
+                <Settings className="h-5 w-5 text-purple-600 mr-2" />
+                Configurações RFV
+              </h3>
+              <p className="text-sm text-gray-600 mt-1">
+                Gerencie suas configurações RFV existentes.
+              </p>
+            </div>
+            <div className="text-sm text-gray-500">
+              {filteredParameters.length} de {existingParameters.length} configuração(ões)
+            </div>
+          </div>
+        </div>
+
+        <div className="p-6">
+          {loading ? (
+            <div className="text-center py-8">
+              <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto"></div>
+              <p className="text-gray-600 mt-2">Carregando configurações...</p>
+            </div>
+          ) : filteredParameters.length === 0 ? (
+            <div className="text-center py-8 text-gray-500">
+              <Settings className="h-12 w-12 mx-auto mb-4 text-gray-300" />
+              <p>Nenhuma configuração encontrada.</p>
+              {existingParameters.length > 0 ? (
+                <p className="text-sm mt-1">Tente ajustar os filtros para encontrar o que procura.</p>
+              ) : (
+                <p className="text-sm mt-1">Crie sua primeira configuração na aba 'Nova Configuração'.</p>
+              )}
+            </div>
+          ) : (
+            <div className="space-y-4">
+              {filteredParameters.map((param) => (
+                <div key={param.id} className="border border-gray-200 rounded-lg p-6 hover:shadow-md transition-all">
+                  <div className="flex justify-between items-start">
+                    <div className="flex-1">
+                      <div className="flex items-center gap-3 mb-3">
+                        <h5 className="font-semibold text-gray-900 text-lg">{param.name}</h5>
+                        <span className={`px-2 py-1 rounded-full text-xs font-medium ${
+                          param.calculationStrategy === 'automatic' 
+                            ? 'bg-blue-100 text-blue-700' 
+                            : 'bg-purple-100 text-purple-700'
+                        }`}>
+                          {param.calculationStrategy === 'automatic' ? 'Automático' : 'Manual'}
+                        </span>
+                        {isConfigurationActive(param) && (
+                          <span className="px-2 py-1 rounded-full text-xs font-medium bg-green-100 text-green-700">
+                            Ativo
+                          </span>
+                        )}
+                      </div>
+                      
+                      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 text-sm text-gray-600">
+                        <div className="flex items-center">
+                          <Building className="w-4 h-4 mr-2 text-gray-400" />
+                          <span>
+                            {param.filial ? param.filial.nome : 'Todas as filiais'}
+                          </span>
+                        </div>
+                        
+                        <div className="flex items-center">
+                          <Calendar className="w-4 h-4 mr-2 text-gray-400" />
+                          <span>
+                            Vigência: {new Date(param.effectiveFrom).toLocaleDateString()}
+                            {param.effectiveTo && ` - ${new Date(param.effectiveTo).toLocaleDateString()}`}
+                          </span>
+                        </div>
+                        
+                        <div className="flex items-center">
+                          <TrendingUp className="w-4 h-4 mr-2 text-gray-400" />
+                          <span>
+                            Janela: {param.windowDays} dias
+                          </span>
+                        </div>
+                      </div>
+
+                      {/* Detalhes das regras RFV */}
+                      <div className="mt-4 grid grid-cols-1 md:grid-cols-3 gap-4">
+                        <div className="bg-blue-50 p-3 rounded-lg border border-blue-100">
+                          <h6 className="font-medium text-blue-900 text-sm mb-1">Recência</h6>
+                          <div className="text-xs text-blue-700">
+                            {formatRuleDisplay(param.ruleRecency.bins, 'recency')}
+                          </div>
+                        </div>
+                        
+                        <div className="bg-green-50 p-3 rounded-lg border border-green-100">
+                          <h6 className="font-medium text-green-900 text-sm mb-1">Frequência</h6>
+                          <div className="text-xs text-green-700">
+                            {formatRuleDisplay(param.ruleFrequency.bins, 'frequency')}
+                          </div>
+                        </div>
+                        
+                        <div className="bg-purple-50 p-3 rounded-lg border border-purple-100">
+                          <h6 className="font-medium text-purple-900 text-sm mb-1">Valor</h6>
+                          <div className="text-xs text-purple-700">
+                            {formatRuleDisplay(param.ruleValue.bins, 'value')}
+                          </div>
+                        </div>
+                      </div>
+
+                      {/* Segmentos associados */}
+                      {param.segments && param.segments.length > 0 && (
+                        <div className="mt-4">
+                          <h6 className="font-medium text-gray-900 text-sm mb-2">Segmentos:</h6>
+                          <div className="flex flex-wrap gap-2">
+                            {param.segments.map((segment) => (
+                              <span 
+                                key={segment.id}
+                                className="px-2 py-1 bg-gray-100 text-gray-700 rounded text-xs"
+                              >
+                                {segment.name} (Prioridade: {segment.priority})
+                              </span>
+                            ))}
+                          </div>
+                        </div>
+                      )}
+
+                      {/* Metadados */}
+                      <div className="mt-4 pt-3 border-t border-gray-100 text-xs text-gray-500">
+                        <span>Criado em: {new Date(param.createdAt).toLocaleString()}</span>
+                        {param.updatedAt !== param.createdAt && (
+                          <span className="mx-2">• Atualizado em: {new Date(param.updatedAt).toLocaleString()}</span>
+                        )}
+                      </div>
+                    </div>
+                    
+                    <div className="flex gap-2 ml-4">
+                      <Button
+                        onClick={() => duplicateParameter(param)}
+                        variant="outline"
+                        size="sm"
+                        className="text-green-600 border-green-200 hover:bg-green-50"
+                        title="Duplicar configuração"
+                      >
+                        <Copy className="w-4 h-4" />
+                      </Button>
+                      <Button
+                        onClick={() => editParameter(param)}
+                        variant="outline"
+                        size="sm"
+                        className="text-blue-600 border-blue-200 hover:bg-blue-50"
+                      >
+                        Editar
+                      </Button>
+                      <Button
+                        onClick={() => openDeleteParameterDialog(param)}
+                        variant="outline"
+                        size="sm"
+                        className="text-red-600 border-red-200 hover:bg-red-50"
+                      >
+                        <Trash2 className="w-4 h-4" />
+                      </Button>
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
+      </Card>
+
+      {/* Segmentos RFV */}
+      {existingSegments.length > 0 && (
+        <Card className="bg-white border border-gray-200 shadow-sm">
+          <div className="p-6 border-b border-gray-100">
+            <h3 className="text-lg font-semibold text-gray-900 flex items-center">
+              <Users className="h-5 w-5 text-green-600 mr-2" />
+              Segmentos RFV
+            </h3>
+            <p className="text-sm text-gray-600 mt-1">
+              Segmentos criados através das configurações manuais.
+            </p>
+          </div>
+
+          <div className="p-6">
+            <div className="grid gap-4">
+              {existingSegments.map((segment) => (
+                <div key={segment.id} className="border border-gray-200 rounded-lg p-4 hover:shadow-md transition-shadow">
+                  <div className="flex justify-between items-start">
+                    <div className="flex-1">
+                      <h5 className="font-semibold text-gray-900">{segment.segment_name}</h5>
+                      <div className="text-sm text-gray-600 mt-1">
+                        <span>Prioridade: {segment.priority}</span>
+                        <span className="mx-2">•</span>
+                        <span>Regras: {JSON.stringify(segment.rules)}</span>
+                      </div>
+                    </div>
+                    <div className="flex gap-2">
+                      <Button
+                        onClick={() => openDeleteSegmentDialog(segment)}
+                        variant="outline"
+                        size="sm"
+                        className="text-red-600 border-red-200 hover:bg-red-50"
+                      >
+                        <Trash2 className="w-4 h-4" />
+                      </Button>
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        </Card>
+      )}
+    </div>
+    );
+  };
+
+  const renderSegmentationMethod = () => (
+    <>
+      <div className="mb-6">
+        <label className="block text-sm font-medium text-gray-700 mb-3">
+          Método de Segmentação
+        </label>
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div
+            className={`p-4 rounded-lg border-2 cursor-pointer transition-all hover:cursor-pointer ${configuration.segmentationMethod === 'automatic'
+                ? 'border-blue-500 bg-blue-50'
+                : 'border-gray-200 bg-white hover:border-gray-300'
+              }`}
+            onClick={() => setConfiguration(prev => ({ ...prev, segmentationMethod: 'automatic' }))}
           >
-            Cancelar
-          </Button>
-          <Button 
-            onClick={handleSave}
-            disabled={isLoading}
-            className="bg-blue-700 hover:bg-blue-800 hover:cursor-pointer text-white font-semibold px-6 py-2 rounded-lg shadow-lg hover:shadow-xl transition-all duration-200"
+            <div className="flex items-start space-x-3">
+              <div className={`w-5 h-5 rounded-full border-2 mt-1 ${configuration.segmentationMethod === 'automatic'
+                  ? 'border-blue-500 bg-blue-500'
+                  : 'border-gray-300'
+                }`}>
+                {configuration.segmentationMethod === 'automatic' && (
+                  <div className="w-full h-full rounded-full bg-white scale-50"></div>
+                )}
+              </div>
+              <div>
+                <h4 className="font-semibold text-gray-900">Automático</h4>
+                <p className="text-sm text-gray-600 mt-1">
+                  Segmentação baseada na soma das pontuações R+F+V. Simples e rápido.
+                </p>
+              </div>
+            </div>
+          </div>
+
+          <div
+            className={`p-4 rounded-lg border-2 cursor-pointer transition-all hover:cursor-pointer ${configuration.segmentationMethod === 'manual'
+                ? 'border-blue-500 bg-blue-50'
+                : 'border-gray-200 bg-white hover:border-gray-300'
+              }`}
+            onClick={() => setConfiguration(prev => ({ ...prev, segmentationMethod: 'manual' }))}
           >
-            {isLoading ? (
-              <>
-                <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                Salvando...
-              </>
-            ) : (
-              "💾 Salvar Configuração"
-            )}
-          </Button>
+            <div className="flex items-start space-x-3">
+              <div className={`w-5 h-5 rounded-full border-2 mt-1 ${configuration.segmentationMethod === 'manual'
+                  ? 'border-blue-500 bg-blue-500'
+                  : 'border-gray-300'
+                }`}>
+                {configuration.segmentationMethod === 'manual' && (
+                  <div className="w-full h-full rounded-full bg-white scale-50"></div>
+                )}
+              </div>
+              <div>
+                <h4 className="font-semibold text-gray-900">Manual</h4>
+                <p className="text-sm text-gray-600 mt-1">
+                  Regras personalizadas para segmentação. Máximo controle e flexibilidade.
+                </p>
+              </div>
+            </div>
+          </div>
         </div>
       </div>
-        </>
+
+      {/* Configurações específicas do método */}
+      {configuration.segmentationMethod === 'automatic' && (
+        <div className="mt-6 p-4 bg-gray-50 rounded-lg border border-gray-200">
+          <h4 className="font-semibold text-gray-900 mb-3">Faixas de Pontuação Automática</h4>
+          <p className="text-sm text-gray-600 mb-4">
+            Configure as faixas de pontuação para cada segmento. A pontuação é calculada como R + F + V.
+          </p>
+          
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+            <div className="bg-orange-100 p-3 rounded-lg border border-orange-300">
+              <h5 className="font-semibold text-orange-700 mb-2">🥉 Bronze</h5>
+              <div className="space-y-2">
+                <Input
+                  type="number"
+                  placeholder="Min"
+                  value={configuration.automaticRanges?.bronze.min || ''}
+                  onChange={(e) => setConfiguration(prev => ({
+                    ...prev,
+                    automaticRanges: {
+                      ...prev.automaticRanges!,
+                      bronze: { ...prev.automaticRanges!.bronze, min: parseInt(e.target.value) || 0 }
+                    }
+                  }))}
+                  className="h-8 text-sm"
+                />
+                <Input
+                  type="number"
+                  placeholder="Max"
+                  value={configuration.automaticRanges?.bronze.max || ''}
+                  onChange={(e) => setConfiguration(prev => ({
+                    ...prev,
+                    automaticRanges: {
+                      ...prev.automaticRanges!,
+                      bronze: { ...prev.automaticRanges!.bronze, max: parseInt(e.target.value) || 0 }
+                    }
+                  }))}
+                  className="h-8 text-sm"
+                />
+              </div>
+            </div>
+
+            <div className="bg-gray-100 p-3 rounded-lg border border-gray-300">
+              <h5 className="font-semibold text-gray-700 mb-2">🥈 Prata</h5>
+              <div className="space-y-2">
+                <Input
+                  type="number"
+                  placeholder="Min"
+                  value={configuration.automaticRanges?.prata.min || ''}
+                  onChange={(e) => setConfiguration(prev => ({
+                    ...prev,
+                    automaticRanges: {
+                      ...prev.automaticRanges!,
+                      prata: { ...prev.automaticRanges!.prata, min: parseInt(e.target.value) || 0 }
+                    }
+                  }))}
+                  className="h-8 text-sm"
+                />
+                <Input
+                  type="number"
+                  placeholder="Max"
+                  value={configuration.automaticRanges?.prata.max || ''}
+                  onChange={(e) => setConfiguration(prev => ({
+                    ...prev,
+                    automaticRanges: {
+                      ...prev.automaticRanges!,
+                      prata: { ...prev.automaticRanges!.prata, max: parseInt(e.target.value) || 0 }
+                    }
+                  }))}
+                  className="h-8 text-sm"
+                />
+              </div>
+            </div>
+
+            <div className="bg-yellow-100 p-3 rounded-lg border border-yellow-300">
+              <h5 className="font-semibold text-yellow-700 mb-2">🥇 Ouro</h5>
+              <div className="space-y-2">
+                <Input
+                  type="number"
+                  placeholder="Min"
+                  value={configuration.automaticRanges?.ouro.min || ''}
+                  onChange={(e) => setConfiguration(prev => ({
+                    ...prev,
+                    automaticRanges: {
+                      ...prev.automaticRanges!,
+                      ouro: { ...prev.automaticRanges!.ouro, min: parseInt(e.target.value) || 0 }
+                    }
+                  }))}
+                  className="h-8 text-sm"
+                />
+                <Input
+                  type="number"
+                  placeholder="Max"
+                  value={configuration.automaticRanges?.ouro.max || ''}
+                  onChange={(e) => setConfiguration(prev => ({
+                    ...prev,
+                    automaticRanges: {
+                      ...prev.automaticRanges!,
+                      ouro: { ...prev.automaticRanges!.ouro, max: parseInt(e.target.value) || 0 }
+                    }
+                  }))}
+                  className="h-8 text-sm"
+                />
+              </div>
+            </div>
+          </div>
+        </div>
       )}
+
+      {configuration.segmentationMethod === 'manual' && (
+        <div className="mt-6 p-4 bg-blue-50 rounded-lg border border-blue-200">
+          <h4 className="font-semibold text-gray-900 mb-3">Segmentos Personalizados</h4>
+          <p className="text-sm text-gray-600 mb-4">
+            Crie regras específicas para cada segmento de clientes.
+          </p>
+          
+          <div className="space-y-4">
+            {configuration.segments?.map((segment, index) => (
+              <div key={index} className="bg-white p-4 rounded-lg border border-gray-200">
+                <div className="flex justify-between items-center mb-3">
+                  <Input
+                    placeholder="Nome do Segmento"
+                    value={segment.segment_name}
+                    onChange={(e) => {
+                      const newSegments = [...(configuration.segments || [])];
+                      newSegments[index].segment_name = e.target.value;
+                      setConfiguration(prev => ({ ...prev, segments: newSegments }));
+                    }}
+                    className="flex-1 mr-3"
+                  />
+                  <Button
+                    onClick={() => {
+                      const newSegments = [...(configuration.segments || [])];
+                      newSegments.splice(index, 1);
+                      setConfiguration(prev => ({ ...prev, segments: newSegments }));
+                    }}
+                    variant="outline"
+                    size="sm"
+                    className="text-red-600 border-red-200 hover:bg-red-50"
+                  >
+                    <Trash2 className="w-4 h-4" />
+                  </Button>
+                </div>
+                
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+                  <Input
+                    placeholder="Regra R (ex: >=4)"
+                    value={segment.rules.R || ''}
+                    onChange={(e) => {
+                      const newSegments = [...(configuration.segments || [])];
+                      newSegments[index].rules.R = e.target.value;
+                      setConfiguration(prev => ({ ...prev, segments: newSegments }));
+                    }}
+                  />
+                  <Input
+                    placeholder="Regra F (ex: >=3)"
+                    value={segment.rules.F || ''}
+                    onChange={(e) => {
+                      const newSegments = [...(configuration.segments || [])];
+                      newSegments[index].rules.F = e.target.value;
+                      setConfiguration(prev => ({ ...prev, segments: newSegments }));
+                    }}
+                  />
+                  <Input
+                    placeholder="Regra V (ex: >=5)"
+                    value={segment.rules.V || ''}
+                    onChange={(e) => {
+                      const newSegments = [...(configuration.segments || [])];
+                      newSegments[index].rules.V = e.target.value;
+                      setConfiguration(prev => ({ ...prev, segments: newSegments }));
+                    }}
+                  />
+                </div>
+              </div>
+            ))}
+            
+            <Button
+              onClick={() => {
+                const newSegment: Segment = {
+                  segment_name: '',
+                  rules: { R: '', F: '', V: '' },
+                  priority: (configuration.segments?.length || 0) + 1
+                };
+                setConfiguration(prev => ({
+                  ...prev,
+                  segments: [...(prev.segments || []), newSegment]
+                }));
+              }}
+              variant="outline"
+              className="w-full flex items-center justify-center gap-2 border-dashed border-gray-300 text-gray-600 hover:border-gray-400 hover:text-gray-700"
+            >
+              <Plus className="w-4 h-4" />
+              Adicionar Segmento
+            </Button>
+            
+            {/* Botão para salvar apenas os segmentos */}
+            <div className="flex justify-end pt-4 mt-4 border-t border-gray-200">
+              <Button
+                onClick={saveSegments}
+                disabled={savingSegments || !configuration.segments?.length || !editingParameter?.id}
+                className="flex items-center gap-2 bg-green-600 hover:bg-green-700 text-white"
+              >
+                <Save className="w-4 h-4" />
+                {savingSegments ? 'Salvando...' : 'Salvar'} Segmentos
+              </Button>
+            </div>
+          </div>
+        </div>
+      )}
+    </>
+  );
+
+  return (
+    <div className="min-h-screen bg-gray-50">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        {/* Header */}
+        <div className="mb-8">
+          <div className="flex justify-between items-start">
+            <div>
+              <h1 className="text-3xl font-bold text-gray-900">Configuração RFV</h1>
+              <p className="text-gray-600 mt-2">Configure as regras de Recência, Frequência e Valor para segmentação de clientes</p>
+            </div>
+          </div>
+        </div>
+
+        {/* Navigation Tabs */}
+        <div className="mb-6">
+          <div className="border-b border-gray-200">
+            <nav className="-mb-px flex space-x-8">
+              <button
+                onClick={() => setShowExisting(false)}
+                className={`py-2 px-1 border-b-2 font-medium text-sm hover:cursor-pointer ${
+                  !showExisting
+                    ? 'border-blue-500 text-blue-600'
+                    : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+                }`}
+              >
+                <Settings className="w-4 h-4 inline mr-2" />
+                Nova Configuração
+              </button>
+              <button
+                onClick={() => {
+                  setShowExisting(true);
+                  loadExistingData();
+                }}
+                className={`py-2 px-1 border-b-2 font-medium text-sm hover:cursor-pointer ${
+                  showExisting
+                    ? 'border-blue-500 text-blue-600'
+                    : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+                }`}
+              >
+                <Users className="w-4 h-4 inline mr-2" />
+                Gerenciar Existentes
+              </button>
+            </nav>
+          </div>
+        </div>
+
+        {/* Content Area */}
+        {!showExisting ? (
+          <div className="space-y-6">{renderNewConfigurationContent()}</div>
+        ) : (
+          <div className="space-y-6">{renderExistingConfigurationsContent()}</div>
+        )}
+
+        {/* Modais de Confirmação */}
+        <ConfirmDialog
+          isOpen={deleteDialog.isOpen}
+          onClose={() => setDeleteDialog({ isOpen: false, type: 'parameter', id: null, name: '' })}
+          onConfirm={handleConfirmDelete}
+          title={`Excluir ${deleteDialog.type === 'parameter' ? 'Parâmetro' : 'Segmento'}`}
+          message={`Tem certeza que deseja excluir ${deleteDialog.type === 'parameter' ? 'o parâmetro' : 'o segmento'} "${deleteDialog.name}"? Esta ação não pode ser desfeita.`}
+          confirmText="Excluir"
+          cancelText="Cancelar"
+          type="danger"
+        />
+
+        <ConfirmDialog
+          isOpen={overwriteDialog.isOpen}
+          onClose={() => setOverwriteDialog({ isOpen: false, message: '', onConfirm: null })}
+          onConfirm={() => {
+            if (overwriteDialog.onConfirm) {
+              overwriteDialog.onConfirm();
+            }
+            setOverwriteDialog({ isOpen: false, message: '', onConfirm: null });
+          }}
+          title="Sobrescrever Configuração"
+          message={overwriteDialog.message}
+          confirmText="Sobrescrever"
+          cancelText="Cancelar"
+          type="warning"
+        />
+      </div>
     </div>
   );
 }

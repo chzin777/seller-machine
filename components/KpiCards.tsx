@@ -31,9 +31,9 @@ export function KpiCards({ recommendations, alerts, topAssociations, onRecompute
         </div>
       </div>
       <div className="flex gap-4">
-        <button className="bg-blue-600 text-white px-4 py-2 rounded" onClick={onRecompute}>Recompute</button>
-        <button className="bg-green-600 text-white px-4 py-2 rounded" onClick={onGenerateRecs}>Gerar Recomendações</button>
-        <button className="bg-yellow-500 text-white px-4 py-2 rounded" onClick={onRunAlerts}>Rodar Alertas</button>
+        <button className="bg-blue-600 text-white px-4 py-2 rounded hover:cursor-pointer" onClick={onRecompute}>Recompute</button>
+        <button className="bg-green-600 text-white px-4 py-2 rounded hover:cursor-pointer" onClick={onGenerateRecs}>Gerar Recomendações</button>
+        <button className="bg-yellow-500 text-white px-4 py-2 rounded hover:cursor-pointer" onClick={onRunAlerts}>Rodar Alertas</button>
       </div>
     </div>
   );
