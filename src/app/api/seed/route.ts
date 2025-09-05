@@ -7,7 +7,7 @@ function randomInt(min: number, max: number) {
 }
 
 const categories = ['Descartáveis', 'Limpeza', 'Copa'];
-const basket = ['Garfo', 'Prato', 'Faca', 'Copo'];
+const basket = ['Garfo', 'Prato', 'Faca', 'Copo', 'Máquina de Lavar', 'Serviço de Limpeza', 'Equipamento Industrial', 'Manutenção'];
 
 export async function POST() {
   const supabase = createServerClient();
@@ -48,14 +48,21 @@ export async function POST() {
         created_at: order_date
       }).select('id').single();
       if (!order) continue;
-      // Itens correlacionados
-      const items = basket.map((name, idx) => ({
-        order_id: order.id,
-        product_id: (idx + (c%basket.length)*basket.length + 1),
-        quantity: randomInt(1, 5).toString(),
-        unit_price: randomInt(5, 20).toString(),
-        line_total: randomInt(10, 100).toString()
-      }));
+      // Itens correlacionados - usar IDs de produtos válidos
+      const numItemsPerOrder = randomInt(2, 5); // 2 a 4 itens por pedido
+      const items = [];
+      
+      for (let i = 0; i < numItemsPerOrder; i++) {
+        const productIndex = (c + i) % 120 + 1; // Garantir que seja entre 1 e 120
+        items.push({
+          order_id: order.id,
+          product_id: productIndex,
+          quantity: randomInt(1, 5).toString(),
+          unit_price: randomInt(5, 20).toString(),
+          line_total: randomInt(10, 100).toString()
+        });
+      }
+      
       await supabase.from('order_items').insert(items);
     }
   }

@@ -1,6 +1,7 @@
 "use client";
 import { useState, useEffect, useMemo } from 'react';
 import { Users, Search } from 'lucide-react';
+import HistoricoComprasModal from '../../components/HistoricoComprasModal';
 
 // Função para formatar CPF
 function formatarCPF(cpf: string) {
@@ -57,6 +58,8 @@ export default function ClientesPage() {
   const [erro, setErro] = useState('');
   const [pagina, setPagina] = useState(1);
   const [porPagina, setPorPagina] = useState(10);
+  const [clienteSelecionado, setClienteSelecionado] = useState<Cliente | null>(null);
+  const [modalAberto, setModalAberto] = useState(false);
 
   useEffect(() => {
     const buscarClientes = async () => {
@@ -94,6 +97,16 @@ export default function ClientesPage() {
 
   // Sempre que a busca mudar, volta para página 1
   useEffect(() => { setPagina(1); }, [busca]);
+
+  const abrirHistorico = (cliente: Cliente) => {
+    setClienteSelecionado(cliente);
+    setModalAberto(true);
+  };
+
+  const fecharModal = () => {
+    setModalAberto(false);
+    setClienteSelecionado(null);
+  };
   return (
     <main className="max-w-6xl mx-auto py-6 px-3 sm:px-6">
       <div className="flex items-center gap-3 mb-6 sm:mb-8">
@@ -126,7 +139,11 @@ export default function ClientesPage() {
             <div className="text-center py-8 text-gray-400 bg-white rounded-xl shadow border border-gray-100">Nenhum cliente encontrado.</div>
           ) : (
              paginados.map((c, i) => (
-              <div key={i} className="rounded-xl shadow-lg border border-gray-100 bg-white p-4 flex flex-col gap-3">
+              <div 
+                key={i} 
+                className="rounded-xl shadow-lg border border-gray-100 bg-white p-4 flex flex-col gap-3 hover:shadow-xl hover:bg-blue-50 transition cursor-pointer"
+                onClick={() => abrirHistorico(c)}
+              >
                 <div className="flex items-start gap-3 mb-2">
                   <div className="w-10 h-10 bg-gradient-to-br from-blue-500 to-blue-600 rounded-full flex items-center justify-center text-white font-bold text-sm flex-shrink-0">
                     {c.nome.split(' ').map(n => n[0]).join('').toUpperCase().slice(0, 2)}
@@ -152,6 +169,7 @@ export default function ClientesPage() {
                     {c.logradouro}, {c.numero} - {c.bairro} - CEP: {c.cep}
                   </div>
                 )}
+                <div className="text-xs text-blue-600 mt-2 font-medium">Clique para ver histórico de compras</div>
               </div>
             ))
           )}
@@ -183,7 +201,11 @@ export default function ClientesPage() {
                  </tr>
                ) : (
                  paginados.map((c, i) => (
-                   <tr key={i} className="border-t border-gray-100 hover:bg-blue-50/40 transition">
+                   <tr 
+                     key={i} 
+                     className="border-t border-gray-100 hover:bg-blue-50/40 transition cursor-pointer"
+                     onClick={() => abrirHistorico(c)}
+                   >
                      <td className="p-3 font-medium text-gray-800">{c.nome}</td>
                      <td className="p-3 text-gray-700">{formatarCpfCnpj(c.cpfCnpj)}</td>
                      <td className="p-3 text-gray-700">{c.cidade}</td>
@@ -279,6 +301,15 @@ export default function ClientesPage() {
           </div>
         )}
       </div>
+      
+      {/* Modal de Histórico de Compras */}
+      {modalAberto && clienteSelecionado && (
+        <HistoricoComprasModal
+          cliente={clienteSelecionado}
+          isOpen={modalAberto}
+          onClose={fecharModal}
+        />
+      )}
     </main>
   );
 }

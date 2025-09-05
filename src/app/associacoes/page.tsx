@@ -60,8 +60,8 @@ export default function AssociacoesPage() {
     const buscarDados = async () => {
       setLoading(true);
       try {
-        // Busca via proxy interno para evitar CORS
-        const res = await fetch('/api/proxy?url=/api/associacoes');
+        // Busca via endpoint local
+        const res = await fetch('/api/associacoes');
         if (!res.ok) throw new Error('Erro ao buscar associações');
         const json = await res.json();
         // Se a resposta vier paginada, use json.data, senão use json direto
