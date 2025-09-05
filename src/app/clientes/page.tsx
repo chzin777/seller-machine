@@ -68,7 +68,7 @@ export default function ClientesPage() {
   const data = await res.json();
   console.log('Resposta clientes:', data);
   setClientes(Array.isArray(data) ? data : (data.data || []));
-      } catch (e) {
+      } catch {
         setErro('Erro ao buscar clientes.');
         setClientes([]);
       } finally {

@@ -60,7 +60,7 @@ export async function POST() {
     }
   }
   await recomputeStats();
-  await recomputeAssociations(0);
+  await recomputeAssociations();
   await generateRecommendations({});
   await runRecompraAlerts();
   return NextResponse.json({ seeded: true });

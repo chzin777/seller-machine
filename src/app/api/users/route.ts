@@ -35,7 +35,7 @@ export async function GET() {
   }
   // Não retornar senha se existir
   const safeData = (data || []).map((user: Record<string, unknown>) => {
-    const { senha, ...rest } = user;
+    const { senha: _, ...rest } = user;
     return rest;
   });
   return NextResponse.json(safeData);

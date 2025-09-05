@@ -2,7 +2,7 @@
 	Installed from https://reactbits.dev/ts/tailwind/
 */
 
-import { useRef, useEffect, MouseEvent } from "react";
+import { useRef, useEffect } from "react";
 
 type Props = {
   children: React.ReactNode;

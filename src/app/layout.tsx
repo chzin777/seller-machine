@@ -81,7 +81,6 @@ function LayoutContent({ children }: { children: React.ReactNode }) {
 	}, []);
 	const [sidebarOpen, setSidebarOpen] = useState(false);
 	const sidebarRef = useRef<HTMLDivElement>(null);
-	const router = useRouter();
 	const pathname = usePathname();
 	const [userName, setUserName] = useState<string | undefined>(undefined);
 	const [userConta, setUserConta] = useState<string | undefined>(undefined);

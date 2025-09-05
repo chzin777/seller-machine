@@ -15,7 +15,7 @@ export async function POST(req: NextRequest) {
     });
     const data = await res.json();
     return NextResponse.json(data);
-  } catch (e) {
+  } catch {
     return NextResponse.json({ error: 'Erro ao buscar dados da API' }, { status: 500 });
   }
 }

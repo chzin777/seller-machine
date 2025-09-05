@@ -21,13 +21,6 @@ function corrigirAcentuacao(tipo: string): string {
 }
 import { useEffect, useState, useMemo } from 'react';
 import { Link2, TrendingUp, Search } from 'lucide-react';
-type Produto = {
-  id: number;
-  descricao: string;
-  tipo?: string;
-  Tipo_Produto?: string;
-  preco: string;
-};
 
 type Assoc = {
   product_a_id: number;
@@ -52,16 +45,12 @@ export default function AssociacoesPage() {
   const [pagina, setPagina] = useState(1);
   const [porPagina, setPorPagina] = useState(10);
   const [loading, setLoading] = useState(true);
-  // Estado para detectar menu lateral aberto/fechado
-  const [sidebarOpen, setSidebarOpen] = useState(false);
-  const [isClient, setIsClient] = useState(false);
 
   // Detecta o estado do menu lateral via evento customizado
   useEffect(() => {
-    setIsClient(true);
     function handleSidebar(event: Event) {
       const customEvent = event as CustomEvent;
-      if (typeof customEvent.detail === 'boolean') setSidebarOpen(customEvent.detail);
+      // Sidebar state handling removed
     }
     window.addEventListener('sidebar-toggle', handleSidebar);
     return () => window.removeEventListener('sidebar-toggle', handleSidebar);

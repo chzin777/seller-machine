@@ -2,6 +2,6 @@ import { NextResponse } from 'next/server';
 import { recomputeAssociations } from '../../../../../lib/rules';
 
 export async function POST() {
-  await recomputeAssociations(0);
+  await recomputeAssociations();
   return NextResponse.json({ updated: true });
 }

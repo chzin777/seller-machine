@@ -7,7 +7,7 @@ import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { ConfirmDialog } from '@/components/ui/dialog';
 import { useToast } from '@/components/ui/toast';
-import { Plus, Trash2, Save, RotateCcw, Settings, Users, TrendingUp, Filter, Search, Calendar, Building, Copy, Download, BarChart3 } from 'lucide-react';
+import { Plus, Trash2, Save, RotateCcw, Settings, Users, TrendingUp, Filter, Search, Calendar, Building, Copy, BarChart3 } from 'lucide-react';
 
 // Interfaces
 interface RFVBin {
@@ -147,7 +147,6 @@ export default function ConfigurarRFVPage() {
 
   const [filiais, setFiliais] = useState<FilialOption[]>([]);
   const [loading, setLoading] = useState(false);
-  const [saving, setSaving] = useState(false);
   const [savingParameters, setSavingParameters] = useState(false);
   const [savingSegments, setSavingSegments] = useState(false);
   const [existingParameters, setExistingParameters] = useState<RFVParameterFromAPI[]>([]);
@@ -779,7 +778,6 @@ export default function ConfigurarRFVPage() {
   };
 
   const saveConfiguration = async () => {
-    setSaving(true);
     try {
       const validation = await validateConfiguration();
       if (!validation.valid) {
@@ -789,7 +787,6 @@ export default function ConfigurarRFVPage() {
           message: validation.message!,
           onConfirm: () => performSave()
         });
-        setSaving(false);
         return;
       }
 
@@ -797,7 +794,6 @@ export default function ConfigurarRFVPage() {
     } catch (error) {
       console.error('Erro ao salvar:', error);
       showToast(`Erro ao ${editingParameter ? 'atualizar' : 'salvar'} configuração`, 'error');
-      setSaving(false);
     }
   };
 
@@ -891,8 +887,6 @@ export default function ConfigurarRFVPage() {
       console.error('Erro ao salvar:', error);
       const errorMessage = error instanceof Error ? error.message : 'Erro desconhecido';
       showToast(`Erro ao ${editingParameter ? 'atualizar' : 'salvar'} configuração: ${errorMessage}`, 'error');
-    } finally {
-      setSaving(false);
     }
   };
 
@@ -1447,7 +1441,7 @@ export default function ConfigurarRFVPage() {
               {existingParameters.length > 0 ? (
                 <p className="text-sm mt-1">Tente ajustar os filtros para encontrar o que procura.</p>
               ) : (
-                <p className="text-sm mt-1">Crie sua primeira configuração na aba 'Nova Configuração'.</p>
+                <p className="text-sm mt-1">Crie sua primeira configuração na aba &apos;Nova Configuração&apos;.</p>
               )}
             </div>
           ) : (

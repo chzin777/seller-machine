@@ -2,7 +2,7 @@ import { recomputeStats, recomputeAssociations, generateRecommendations, runReco
 
 export async function recomputeAll() {
   await recomputeStats();
-  await recomputeAssociations(0);
+  await recomputeAssociations();
 }
 
 export async function nightly() {

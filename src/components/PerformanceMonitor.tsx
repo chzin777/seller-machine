@@ -20,7 +20,6 @@ export function PerformanceMonitor() {
 
   useEffect(() => {
     // Monitora métricas de performance
-    const startTime = performance.now();
     
     const observer = new PerformanceObserver((list) => {
       const entries = list.getEntries();

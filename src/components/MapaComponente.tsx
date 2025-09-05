@@ -39,7 +39,7 @@ export default function MapaComponente({ dados }: MapaComponenteProps) {
         minimumFractionDigits: 2,
         maximumFractionDigits: 2
       })}`;
-    } catch (error) {
+    } catch {
       return `R$ ${valorLimitado.toFixed(2).replace('.', ',')}`;
     }
   };
@@ -49,7 +49,7 @@ export default function MapaComponente({ dados }: MapaComponenteProps) {
     const valorLimitado = Math.min(Math.abs(valor), 999999999999);
     try {
       return valorLimitado.toLocaleString('pt-BR');
-    } catch (error) {
+    } catch {
       return valorLimitado.toString();
     }
   };

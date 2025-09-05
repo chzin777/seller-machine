@@ -11,7 +11,7 @@ export type ProductAssociation = { product_a_id: number; product_b_id: number; s
 export type Recommendation = { id: number; customer_id: number; product_id: number; reason?: string; score?: string; priority?: string; created_at: string; expires_at?: string; };
 export type SalesAlert = { id: number; customer_id: number; product_id?: number; alert_type: string; message: string; status: 'open'|'working'|'done'|'ignored'; owner_sales_rep?: string; created_at: string; resolved_at?: string; };
 
-export async function recomputeAssociations(window_days = 0) {
+export async function recomputeAssociations() {
   const supabase = createServerClient();
   // language=PostgreSQL
   const sql = `with pairs as (

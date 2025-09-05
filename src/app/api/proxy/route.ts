@@ -11,7 +11,7 @@ export async function GET(req: NextRequest) {
     const res = await fetch(`${API_BASE}${url.startsWith('/') ? url : '/' + url}`);
     const data = await res.json();
     return NextResponse.json(data);
-  } catch (e) {
+  } catch {
     return NextResponse.json({ error: 'Erro ao buscar dados da API' }, { status: 500 });
   }
 }
@@ -47,7 +47,7 @@ export async function POST(req: NextRequest) {
       const errorData = await res.text();
       return NextResponse.json({ error: errorData || 'Erro na API externa' }, { status: res.status });
     }
-  } catch (e) {
+  } catch {
     return NextResponse.json({ error: 'Erro ao processar requisição' }, { status: 500 });
   }
 }

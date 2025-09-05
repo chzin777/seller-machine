@@ -1,6 +1,6 @@
 "use client";
 
-import React, { Suspense, ComponentType, ReactElement, cloneElement } from 'react';
+import React, { Suspense, ComponentType, ReactElement } from 'react';
 import { useIntersectionObserver } from '../hooks/usePerformance';
 import { Skeleton } from './ui/skeleton';
 

@@ -64,7 +64,6 @@ const coordenadasCidades: Record<string, { lat: number; lng: number }> = {
 
 export default function MapaCalorVendas({ vendasPorFilial = [] }: MapaCalorVendasProps) {
   const [dadosVendas, setDadosVendas] = useState<DadosVendaPorRegiao[]>([]);
-  const [clientesPorRegiao, setClientesPorRegiao] = useState<DadosVendaPorRegiao[]>([]);
   const [loading, setLoading] = useState(true);
   const [pagina, setPagina] = useState(1);
   const [porPagina, setPorPagina] = useState(10);
@@ -167,9 +166,8 @@ export default function MapaCalorVendas({ vendasPorFilial = [] }: MapaCalorVenda
         console.log('Debug - Total receita calculado:', dadosProcessados.reduce((sum, item) => sum + (Number(item.receitaTotal) || 0), 0));
 
         setDadosVendas(dadosProcessados);
-        setClientesPorRegiao(dadosProcessados);
-      } catch (error) {
-        console.error('Erro ao buscar dados de vendas:', error);
+      } catch {
+        console.error('Erro ao buscar dados de vendas');
         setDadosVendas([]);
       } finally {
         setLoading(false);
@@ -195,7 +193,7 @@ export default function MapaCalorVendas({ vendasPorFilial = [] }: MapaCalorVenda
         minimumFractionDigits: 2,
         maximumFractionDigits: 2
       })}`;
-    } catch (error) {
+    } catch {
       return `R$ ${valorLimitado.toFixed(2).replace('.', ',')}`;
     }
   };
@@ -208,7 +206,7 @@ export default function MapaCalorVendas({ vendasPorFilial = [] }: MapaCalorVenda
     
     try {
       return valorLimitado.toLocaleString('pt-BR');
-    } catch (error) {
+    } catch {
       return valorLimitado.toString();
     }
   };
