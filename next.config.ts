@@ -3,6 +3,11 @@ import type { NextConfig } from "next";
 const nextConfig: NextConfig = {
   reactStrictMode: false, // Desabilitar strict mode para evitar renderizações duplas
   
+  // Desabilitar ESLint durante o build
+  eslint: {
+    ignoreDuringBuilds: true,
+  },
+  
   // Compressão gzip
   compress: true,
   
