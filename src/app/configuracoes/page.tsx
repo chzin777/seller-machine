@@ -216,6 +216,7 @@ export default function ConfiguracoesPage() {
             <h2 className="text-lg font-bold mb-4">Alterar e-mail</h2>
             <div className="flex flex-col gap-3">
               <input
+                id="novo-email"
                 type="email"
                 className="border rounded px-3 py-2 bg-gray-50"
                 placeholder="Novo e-mail"
@@ -242,6 +243,7 @@ export default function ConfiguracoesPage() {
             <h2 className="text-lg font-bold mb-4">Alterar dados pessoais</h2>
             <div className="flex flex-col gap-3">
               <input
+                id="novo-nome"
                 type="text"
                 className="border rounded px-3 py-2 bg-gray-50"
                 placeholder="Novo nome"
@@ -250,6 +252,7 @@ export default function ConfiguracoesPage() {
                 disabled={loadingDados}
               />
               <input
+                id="novo-sobrenome"
                 type="text"
                 className="border rounded px-3 py-2 bg-gray-50"
                 placeholder="Novo sobrenome"

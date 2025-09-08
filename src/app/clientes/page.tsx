@@ -1,7 +1,9 @@
 "use client";
 import { useState, useEffect, useMemo } from 'react';
-import { Users, Search } from 'lucide-react';
+import { Users, Search, Database, Wifi, WifiOff } from 'lucide-react';
 import HistoricoComprasModal from '../../components/HistoricoComprasModal';
+import { useClientes } from '../../hooks/useDashboardData';
+import { GRAPHQL_CONFIG } from '../../config/graphql';
 
 // Função para formatar CPF
 function formatarCPF(cpf: string) {
@@ -37,63 +39,148 @@ function formatarTelefone(telefone?: string | null) {
   return telefone;
 }
 
-type Cliente = {
+// Tipo para dados REST API
+type ClienteRest = {
   id: number;
   nome: string;
-  cpfCnpj: string;
-  cidade: string;
-  estado: string;
-  logradouro: string;
-  numero: string;
-  bairro: string;
-  cep: string;
-  telefone: string;
+  cpfCnpj?: string;
+  cidade?: string;
+  estado?: string;
+  logradouro?: string;
+  numero?: string;
+  bairro?: string;
+  cep?: string;
+  telefone?: string;
+  email?: string;
 };
+
+// Tipo para dados GraphQL
+type ClienteGraphQL = {
+  id: number;
+  nome: string;
+  cpfCnpj?: string;
+  cidade?: string;
+  estado?: string;
+  email?: string;
+  telefone?: string;
+  total_pedidos?: number;
+  valor_total?: number;
+};
+
+// Tipo união para compatibilidade
+type Cliente = ClienteRest & ClienteGraphQL;
 
 
 export default function ClientesPage() {
-  const [clientes, setClientes] = useState<Cliente[]>([]);
   const [busca, setBusca] = useState('');
-  const [loading, setLoading] = useState(true);
-  const [erro, setErro] = useState('');
   const [pagina, setPagina] = useState(1);
   const [porPagina, setPorPagina] = useState(10);
   const [clienteSelecionado, setClienteSelecionado] = useState<Cliente | null>(null);
   const [modalAberto, setModalAberto] = useState(false);
+  
+  // Estados para REST API (fallback)
+  const [clientesRest, setClientesRest] = useState<Cliente[]>([]);
+  const [loadingRest, setLoadingRest] = useState(false);
+  const [erroRest, setErroRest] = useState('');
 
+  // GraphQL hook (quando habilitado)
+  const { 
+    data: clientesDataGraphQL, 
+    loading: loadingGraphQL, 
+    error: erroGraphQL,
+    refetch: refetchGraphQL
+  } = useClientes(porPagina, (pagina - 1) * porPagina, busca);
+
+
+
+
+
+  // Buscar via REST API quando GraphQL está desabilitado OU quando GraphQL falha
   useEffect(() => {
-    const buscarClientes = async () => {
-      setLoading(true);
-      setErro('');
-      try {
-  const res = await fetch('/api/proxy?url=/api/clientes');
-        if (!res.ok) throw new Error('Erro ao buscar clientes');
-  const data = await res.json();
-  console.log('Resposta clientes:', data);
-  setClientes(Array.isArray(data) ? data : (data.data || []));
-      } catch {
-        setErro('Erro ao buscar clientes.');
-        setClientes([]);
-      } finally {
-        setLoading(false);
-      }
-    };
-    buscarClientes();
-  }, []);
+    // Se GraphQL está desabilitado, usar REST imediatamente
+    if (!GRAPHQL_CONFIG.enabled) {
+      buscarClientesRest();
+      return;
+    }
+    
+    // Se GraphQL está habilitado mas com erro, fazer fallback para REST
+    if (GRAPHQL_CONFIG.enabled && erroGraphQL) {
+      buscarClientesRest();
+      return;
+    }
+  }, [erroGraphQL]);
+  
+  const buscarClientesRest = async () => {
+    setLoadingRest(true);
+    setErroRest('');
+    try {
+      const res = await fetch('/api/proxy?url=/api/clientes');
+      if (!res.ok) throw new Error('Erro ao buscar clientes');
+      const data = await res.json();
+      setClientesRest(Array.isArray(data) ? data : (data.data || []));
+    } catch {
+      setErroRest('Erro ao buscar clientes via REST API.');
+      setClientesRest([]);
+    } finally {
+      setLoadingRest(false);
+    }
+  };
 
-  const filtrados = useMemo(() => (
-    Array.isArray(clientes)
-      ? clientes.filter(c =>
-          c.nome.toLowerCase().includes(busca.toLowerCase()) ||
-          c.cpfCnpj.toLowerCase().includes(busca.toLowerCase()) ||
-          c.cidade.toLowerCase().includes(busca.toLowerCase()) ||
-          c.estado.toLowerCase().includes(busca.toLowerCase())
-        )
-      : []
-  ), [clientes, busca]);
+  // Determinar qual fonte de dados usar
+  const usingGraphQL = GRAPHQL_CONFIG.enabled && !erroGraphQL;
+  const clientes = usingGraphQL 
+    ? (clientesDataGraphQL?.clientes || [])
+    : clientesRest;
+  const totalRegistros = usingGraphQL 
+    ? (clientesDataGraphQL?.total || 0)
+    : clientesRest.length;
+  const loading = usingGraphQL ? loadingGraphQL : loadingRest;
+  const erro = usingGraphQL ? erroGraphQL : erroRest;
+  const refetch = usingGraphQL ? refetchGraphQL : () => window.location.reload();
 
-  const totalPaginas = Math.ceil(filtrados.length / porPagina) || 1;
-  const paginados = filtrados.slice((pagina - 1) * porPagina, pagina * porPagina);
+  // A API já retorna dados filtrados, não precisa filtrar no frontend
+  const filtrados = Array.isArray(clientes) ? clientes : [];
+
+  // Componente de status da API
+  const ApiStatus = () => (
+    <div className="flex items-center gap-2 text-xs">
+      {usingGraphQL ? (
+        <>
+          <Wifi className="w-4 h-4 text-green-600" />
+          <span className="text-green-600 font-medium">GraphQL</span>
+          {loading && <span className="text-blue-600">Carregando...</span>}
+          {erro && (
+            <div className="flex items-center gap-2">
+              <span className="text-red-600 text-xs">Erro</span>
+              <button 
+                onClick={refetch}
+                className="text-red-600 hover:text-red-700 underline text-xs"
+              >
+                Tentar novamente
+              </button>
+            </div>
+          )}
+        </>
+      ) : (
+        <>
+          <Database className="w-4 h-4 text-blue-600" />
+          <span className="text-blue-600 font-medium">REST API</span>
+          {loading && <span className="text-blue-600">Carregando...</span>}
+          {erro && (
+            <button 
+              onClick={refetch}
+              className="text-red-600 hover:text-red-700 underline"
+            >
+              Erro - Recarregar
+            </button>
+          )}
+        </>
+      )}
+    </div>
+  );
+
+  const totalPaginas = Math.ceil(totalRegistros / porPagina) || 1;
+  const paginados = filtrados; // GraphQL já retorna os dados paginados
 
   // Sempre que a busca mudar, volta para página 1
   useEffect(() => { setPagina(1); }, [busca]);
@@ -114,13 +201,17 @@ export default function ClientesPage() {
           <Users className="w-5 h-5 sm:w-7 sm:h-7" />
         </div>
         <div className="min-w-0 flex-1">
-          <h1 className="text-2xl sm:text-3xl font-extrabold leading-tight truncate text-[#1e3a8a]">Clientes</h1>
+          <div className="flex items-center gap-3 mb-1">
+            <h1 className="text-2xl sm:text-3xl font-extrabold leading-tight truncate text-[#1e3a8a]">Clientes</h1>
+            <ApiStatus />
+          </div>
           <p className="text-gray-600 text-xs sm:text-sm mt-1 line-clamp-2 sm:line-clamp-none">Veja a lista de clientes cadastrados e seus dados principais.</p>
         </div>
       </div>
       <div className="relative mb-6">
         <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 w-4 h-4 sm:w-5 sm:h-5" />
         <input
+          id="busca-cliente"
           className="pl-9 sm:pl-10 pr-4 py-2 sm:py-3 rounded-lg border border-gray-200 bg-white shadow-sm w-full focus:outline-none focus:ring-2 focus:ring-blue-400 text-sm sm:text-base transition"
           placeholder="Buscar cliente..."
           value={busca}
@@ -146,27 +237,32 @@ export default function ClientesPage() {
               >
                 <div className="flex items-start gap-3 mb-2">
                   <div className="w-10 h-10 bg-gradient-to-br from-blue-500 to-blue-600 rounded-full flex items-center justify-center text-white font-bold text-sm flex-shrink-0">
-                    {c.nome.split(' ').map(n => n[0]).join('').toUpperCase().slice(0, 2)}
+                    {c.nome.split(' ').map((n: string) => n[0]).join('').toUpperCase().slice(0, 2)}
                   </div>
                   <div className="min-w-0 flex-1">
                     <h3 className="font-bold text-blue-800 text-base leading-tight truncate">{c.nome}</h3>
-                    <p className="text-xs text-gray-500 mt-1">{formatarCpfCnpj(c.cpfCnpj)}</p>
+                    <p className="text-xs text-gray-500 mt-1">{c.cpfCnpj ? formatarCpfCnpj(c.cpfCnpj) : 'CPF/CNPJ não informado'}</p>
                   </div>
                 </div>
                 <div className="grid grid-cols-2 gap-2 text-xs">
                   <div className="bg-blue-50 rounded-lg px-3 py-2">
-                    <span className="text-blue-600 font-medium">Cidade</span>
-                    <p className="text-blue-900 font-semibold mt-1">{c.cidade} - {c.estado}</p>
+                    <span className="text-blue-600 font-medium">Localização</span>
+                    <p className="text-blue-900 font-semibold mt-1">
+                      {c.cidade && c.estado ? `${c.cidade} - ${c.estado}` : c.cidade || c.estado || 'N/A'}
+                    </p>
                   </div>
                   <div className="bg-green-50 rounded-lg px-3 py-2">
-                    <span className="text-green-600 font-medium">Telefone</span>
-                    <p className="text-green-900 font-semibold mt-1">{formatarTelefone(c.telefone) || 'N/A'}</p>
+                    <span className="text-green-600 font-medium">Contato</span>
+                    <p className="text-green-900 font-semibold mt-1">
+                      {formatarTelefone(c.telefone) || 'N/A'}
+                    </p>
                   </div>
                 </div>
-                {c.logradouro && (
+
+                {!usingGraphQL && (c as ClienteRest).logradouro && (
                   <div className="text-xs text-gray-600 bg-gray-50 rounded-lg px-3 py-2">
                     <span className="font-medium">Endereço: </span>
-                    {c.logradouro}, {c.numero} - {c.bairro} - CEP: {c.cep}
+                    {(c as ClienteRest).logradouro}, {(c as ClienteRest).numero} - {(c as ClienteRest).bairro} - CEP: {(c as ClienteRest).cep}
                   </div>
                 )}
                 <div className="text-xs text-blue-600 mt-2 font-medium">Clique para ver histórico de compras</div>
@@ -181,23 +277,22 @@ export default function ClientesPage() {
               <tr className="bg-blue-50 text-blue-900">
                  <th className="p-3 font-semibold text-left">Nome</th>
                  <th className="p-3 font-semibold text-left">CPF/CNPJ</th>
-                 <th className="p-3 font-semibold text-left">Cidade</th>
-                 <th className="p-3 font-semibold text-left">Estado</th>
-                 <th className="p-3 font-semibold text-left">Telefone</th>
+                 <th className="p-3 font-semibold text-left">Localização</th>
+                 <th className="p-3 font-semibold text-left">Contato</th>
               </tr>
             </thead>
             <tbody>
                {loading ? (
                  <tr>
-                   <td colSpan={5} className="text-center py-8 text-gray-400">Carregando...</td>
+                   <td colSpan={4} className="text-center py-8 text-gray-400">Carregando...</td>
                  </tr>
                ) : erro ? (
                  <tr>
-                   <td colSpan={5} className="text-center py-8 text-red-500">{erro}</td>
+                   <td colSpan={4} className="text-center py-8 text-red-500">{erro}</td>
                  </tr>
                ) : filtrados.length === 0 ? (
                  <tr>
-                   <td colSpan={5} className="text-center py-8 text-gray-400">Nenhum cliente encontrado.</td>
+                   <td colSpan={4} className="text-center py-8 text-gray-400">Nenhum cliente encontrado.</td>
                  </tr>
                ) : (
                  paginados.map((c, i) => (
@@ -207,17 +302,20 @@ export default function ClientesPage() {
                      onClick={() => abrirHistorico(c)}
                    >
                      <td className="p-3 font-medium text-gray-800">{c.nome}</td>
-                     <td className="p-3 text-gray-700">{formatarCpfCnpj(c.cpfCnpj)}</td>
-                     <td className="p-3 text-gray-700">{c.cidade}</td>
-                     <td className="p-3 text-gray-700">{c.estado}</td>
-                     <td className="p-3 text-gray-700">{formatarTelefone(c.telefone)}</td>
+                     <td className="p-3 text-gray-700">{c.cpfCnpj ? formatarCpfCnpj(c.cpfCnpj) : 'N/A'}</td>
+                     <td className="p-3 text-gray-700">
+                       {c.cidade && c.estado ? `${c.cidade} - ${c.estado}` : c.cidade || c.estado || 'N/A'}
+                     </td>
+                     <td className="p-3 text-gray-700">
+                       {formatarTelefone(c.telefone) || 'N/A'}
+                     </td>
                    </tr>
                  ))
                )}
             </tbody>
             <tfoot>
               <tr>
-                <td colSpan={5} className="py-4">
+                <td colSpan={4} className="py-4">
                   <div className="flex flex-col sm:flex-row justify-center items-center gap-4">
                     <div className="flex items-center gap-2">
                       <label htmlFor="porPagina" className="text-sm text-gray-700">Exibir por página:</label>
@@ -238,7 +336,7 @@ export default function ClientesPage() {
                         <option value={100}>100</option>
                       </select>
                     </div>
-                    {filtrados.length > porPagina && (
+                    {totalRegistros > porPagina && (
                       <div className="flex items-center gap-2">
                         <button
                           className="px-3 py-1 rounded border bg-white text-blue-700 disabled:opacity-50 hover:cursor-pointer"
@@ -260,7 +358,7 @@ export default function ClientesPage() {
           </table>
         </div>
         {/* Paginação para Mobile */}
-        {filtrados.length > porPagina && (
+        {totalRegistros > porPagina && (
           <div className="lg:hidden mt-4 flex flex-col gap-3">
             <div className="flex items-center justify-center gap-2">
               <label htmlFor="porPaginaMobile" className="text-sm text-gray-700">Por página:</label>

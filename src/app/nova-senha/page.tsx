@@ -58,6 +58,7 @@ export default function NovaSenhaPage() {
           <div>
             <label className="block text-blue-800 dark:text-blue-200 font-semibold mb-1">Nova senha</label>
             <input
+              id="nova-senha"
               type="password"
               className="w-full px-4 py-2 border-2 border-blue-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 bg-blue-50 text-blue-900 dark:bg-blue-950 dark:text-blue-100 placeholder-blue-400"
               value={senha}
@@ -70,6 +71,7 @@ export default function NovaSenhaPage() {
           <div>
             <label className="block text-blue-800 dark:text-blue-200 font-semibold mb-1">Confirmar senha</label>
             <input
+              id="confirmar-senha"
               type="password"
               className="w-full px-4 py-2 border-2 border-blue-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 bg-blue-50 text-blue-900 dark:bg-blue-950 dark:text-blue-100 placeholder-blue-400"
               value={confirmar}

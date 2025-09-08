@@ -124,6 +124,7 @@ export default function AssociacoesPage() {
         <div className="relative">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 w-4 h-4 sm:w-5 sm:h-5" />
           <input
+            id="busca-produto"
             className="pl-9 sm:pl-10 pr-4 py-2 sm:py-3 rounded-lg border border-gray-200 bg-white shadow-sm w-full focus:outline-none focus:ring-2 focus:ring-blue-400 text-sm sm:text-base transition"
             placeholder="Buscar produto geral..."
             value={busca}
@@ -132,6 +133,7 @@ export default function AssociacoesPage() {
         </div>
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
           <select
+            id="filtro-tipo-a"
             className="rounded-lg border border-gray-200 bg-white shadow-sm w-full focus:outline-none focus:ring-2 focus:ring-blue-400 text-sm transition px-3 py-2"
             value={filtroTipoA}
             onChange={e => setFiltroTipoA(e.target.value)}
@@ -142,6 +144,7 @@ export default function AssociacoesPage() {
             ))}
           </select>
           <select
+            id="filtro-tipo-b"
             className="rounded-lg border border-gray-200 bg-white shadow-sm w-full focus:outline-none focus:ring-2 focus:ring-blue-400 text-sm transition px-3 py-2"
             value={filtroTipoB}
             onChange={e => setFiltroTipoB(e.target.value)}

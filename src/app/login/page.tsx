@@ -69,6 +69,7 @@ export default function LoginPage() {
               Email
             </label>
             <input
+              id="email"
               type="email"
               className="w-full px-4 py-3 border-2 border-blue-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 bg-blue-50 text-blue-900 placeholder-blue-400 text-base transition-colors"
               placeholder="user@example.com"
@@ -82,6 +83,7 @@ export default function LoginPage() {
               Senha
             </label>
             <input
+              id="senha"
               type="password"
               className="w-full px-4 py-3 border-2 border-blue-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 bg-blue-50 text-blue-900 placeholder-blue-400 text-base transition-colors"
               placeholder="••••••••"

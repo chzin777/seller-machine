@@ -49,9 +49,9 @@ type HistoricoData = {
 type Cliente = {
   id: number;
   nome: string;
-  cpfCnpj: string;
-  cidade: string;
-  estado: string;
+  cpfCnpj?: string;
+  cidade?: string;
+  estado?: string;
 };
 
 interface HistoricoComprasModalProps {
@@ -146,7 +146,7 @@ export default function HistoricoComprasModal({ cliente, isOpen, onClose }: Hist
               </h2>
               {cliente && (
                 <p className="text-sm text-gray-600">
-                  {cliente.nome} • {formatarCpfCnpj(cliente.cpfCnpj)}
+                  {cliente.nome} • {cliente.cpfCnpj ? formatarCpfCnpj(cliente.cpfCnpj) : 'N/A'}
                 </p>
               )}
             </div>

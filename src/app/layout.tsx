@@ -41,7 +41,8 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
 				   <meta name="color-scheme" content="light" />
 			</head>
 			   <body className="bg-white text-gray-900 min-h-screen w-full h-full m-0 p-0 font-sans overflow-x-hidden"
-				   style={{ background: '#fff' }}>
+				   style={{ background: '#fff' }}
+				   suppressHydrationWarning>
 				<ServiceWorkerProvider>
 					<LoadingProvider>
 						<DataProvider>

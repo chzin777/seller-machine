@@ -1,0 +1,1 @@
+﻿console.log('NEXT_PUBLIC_ENABLE_GRAPHQL:', process.env.NEXT_PUBLIC_ENABLE_GRAPHQL);
