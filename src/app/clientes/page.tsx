@@ -126,7 +126,10 @@ export default function ClientesPage() {
     }
   };
 
+
+
   // Determinar qual fonte de dados usar
+  // Usar GraphQL se estiver habilitado e não houver erro (mesmo se ainda estiver carregando)
   const usingGraphQL = GRAPHQL_CONFIG.enabled && !erroGraphQL;
   const clientes = usingGraphQL 
     ? (clientesDataGraphQL?.clientes || [])
