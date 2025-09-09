@@ -121,7 +121,7 @@ function LayoutContent({ children }: { children: React.ReactNode }) {
 										   width={sidebarOpen ? 140 : 36}
 										   height={sidebarOpen ? 48 : 36}
 										   style={{ height: sidebarOpen ? 48 : 36, maxWidth: sidebarOpen ? 140 : 36, marginBottom: 0 }}
-										   aria-label="Logo Máquina de Vendas"
+										   aria-label="Logo Sales Machine"
 									   />
 								   </div>
 							   </div>
@@ -191,7 +191,7 @@ function LayoutContent({ children }: { children: React.ReactNode }) {
 									width={110}
 									height={40}
 									style={{ height: 40, maxWidth: 110 }}
-									aria-label="Logo Máquina de Vendas"
+									aria-label="Logo Sales Machine"
 								/>
 								<div className="w-10 h-10" /> {/* Espaço para alinhar */}
 							</div>
@@ -210,7 +210,7 @@ function LayoutContent({ children }: { children: React.ReactNode }) {
 												width={120}
 												height={42}
 												style={{ height: 42, maxWidth: 120 }}
-												aria-label="Logo Máquina de Vendas"
+												aria-label="Logo Sales Machine"
 											/>
 											<button
 												className="text-gray-400 hover:text-blue-700 p-2 rounded-lg hover:bg-gray-100 transition-colors hover:cursor-pointer"
@@ -323,7 +323,7 @@ function LayoutContent({ children }: { children: React.ReactNode }) {
 						{/* Rodapé "quieto" no fim da tela, fora do login */}
 						{!isLoginPage && (
 							<footer className="w-full text-center text-xs text-blue-900 bg-transparent py-2 select-none">
-								© 2025 Máquina de Vendas
+								© 2025 Sales Machine
 							</footer>
 						)}
 					</div>

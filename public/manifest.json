@@ -1,6 +1,6 @@
 {
-  "name": "Seller Machine - Dashboard Comercial",
-  "short_name": "Seller Machine",
+  "name": "Sales Machine - Dashboard Comercial",
+  "short_name": "Sales Machine",
   "description": "Dashboard comercial com indicadores, gráficos e análise de vendas",
   "start_url": "/",
   "display": "standalone",
