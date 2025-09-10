@@ -18,7 +18,7 @@ import {
 
 // Hook para estatísticas do dashboard
 export function useDashboardStats() {
-  return useGraphQL<{ dashboardStats: DashboardStats }>(
+  return useGraphQL<{ clientes: { total: number } }>(
     GET_DASHBOARD_STATS,
     {},
     []
@@ -105,46 +105,54 @@ export function useClientes(limit = 50, offset = 0, search = '') {
 
 // Hook para histórico de um cliente específico
 export function useClienteHistorico(clienteId: number, skip = false) {
-  return useGraphQL<{ cliente: Cliente & { pedidos: any[] } }>(
+  return useGraphQL<{ clientes: { clientes: Cliente[], total: number, limit: number, offset: number } }>(
     GET_CLIENTE_HISTORICO,
-    { clienteId },
+    { limit: 100, offset: 0 },
     [clienteId],
     { skip }
   )
 }
 
-// Hook para lista de produtos
+// Hook para lista de produtos (usando clientes como fallback)
 export function useProdutos(limit = 50, offset = 0, categoria = '') {
-  return useGraphQL<{ produtos: Produto[] }>(
+  return useGraphQL<{ clientes: { clientes: any[], total: number } }>(
     GET_PRODUTOS,
-    { limit, offset, categoria },
-    [limit, offset, categoria]
+    { limit, offset },
+    [limit, offset]
   )
 }
 
-// Hook para vendas por mês
-export function useVendasPorMes(ano = new Date().getFullYear()) {
-  return useGraphQL<{ vendasPorMes: VendaPorMes[] }>(
+// Hook para vendas por mês (usando CRM novos/recorrentes)
+export function useVendasPorMes() {
+  const currentYear = new Date().getFullYear()
+  return useGraphQL<{ crmNovosRecorrentes: { meses: any[] } }>(
     GET_VENDAS_POR_MES,
-    { ano },
-    [ano]
+    { 
+      input: { 
+        dataInicio: `${currentYear}-01-01`, 
+        dataFim: `${currentYear}-12-31`, 
+        filialId: 1 
+      } 
+    },
+    []
   )
 }
 
-// Hook para top produtos
+// Hook para top produtos (usando mix por tipo)
 export function useTopProdutos(limit = 10) {
-  return useGraphQL<{ topProdutos: TopProduto[] }>(
+  return useGraphQL<{ mixPorTipo: { tipos: any[] } }>(
     GET_TOP_PRODUTOS,
-    { limit },
-    [limit]
+    { periodo: "mes", filialId: 1 },
+    []
   )
 }
 
-// Hook para associações de produtos
+// Hook para associações de produtos (usando cross sell)
 export function useAssociacoes() {
-  return useGraphQL<{ associacoes: any[] }>(
+  const currentYear = new Date().getFullYear()
+  return useGraphQL<{ crossSell: any }>(
     GET_ASSOCIACOES,
-    {},
+    { input: { dataInicio: `${currentYear}-01-01`, dataFim: `${currentYear}-12-31`, filialId: 1 } },
     []
   )
 }
@@ -158,22 +166,28 @@ export function useDashboardData() {
   
   return {
     stats: {
-      data: stats.data?.dashboardStats,
+      data: stats.data?.clientes ? {
+        total_clientes: stats.data.clientes.total,
+        total_vendas: 0,
+        total_produtos: 0,
+        vendas_mes: 0,
+        crescimento_vendas: 0
+      } : null,
       loading: stats.loading,
       error: stats.error
     },
     vendasPorMes: {
-      data: vendasPorMes.data?.vendasPorMes,
+      data: vendasPorMes.data?.crmNovosRecorrentes?.meses || null,
       loading: vendasPorMes.loading,
       error: vendasPorMes.error
     },
     topProdutos: {
-      data: topProdutos.data?.topProdutos,
+      data: topProdutos.data?.mixPorTipo?.tipos || null,
       loading: topProdutos.loading,
       error: topProdutos.error
     },
     clientes: {
-      data: clientes.data?.clientes,
+      data: clientes.data?.clientes || null,
       loading: clientes.loading,
       error: clientes.error
     },

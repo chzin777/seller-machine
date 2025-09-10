@@ -2,8 +2,11 @@
 
 import { useState, useEffect } from 'react';
 import { X, ShoppingBag, Calendar, DollarSign, TrendingUp, Package } from 'lucide-react';
+import { useClienteHistorico } from '../hooks/useDashboardData';
+import { GRAPHQL_CONFIG } from '../config/graphql';
 
-type Pedido = {
+// Tipos para REST API
+type PedidoRest = {
   id: number;
   numeroNota: number;
   dataEmissao: string;
@@ -34,6 +37,27 @@ type Pedido = {
   };
 };
 
+// Tipos para GraphQL
+type PedidoGraphQL = {
+  id: number;
+  data_pedido: string;
+  valor_total: number;
+  status: string;
+  items?: {
+    id: number;
+    quantidade: number;
+    preco_unitario: number;
+    produto: {
+      id: number;
+      nome: string;
+      categoria: string;
+    };
+  }[];
+};
+
+// Tipo união para compatibilidade
+type Pedido = PedidoRest | PedidoGraphQL;
+
 type ResumoHistorico = {
   totalPedidos: number;
   valorTotal: number;
@@ -55,7 +79,8 @@ type Cliente = {
 };
 
 interface HistoricoComprasModalProps {
-  cliente: Cliente | null;
+  clienteId: number | null;
+  clienteNome: string;
   isOpen: boolean;
   onClose: () => void;
 }
@@ -95,38 +120,126 @@ function formatarCpfCnpj(cpfCnpj: string): string {
   return cpfCnpj;
 }
 
-export default function HistoricoComprasModal({ cliente, isOpen, onClose }: HistoricoComprasModalProps) {
-  const [historico, setHistorico] = useState<HistoricoData | null>(null);
+export default function HistoricoComprasModal({ clienteId, clienteNome, isOpen, onClose }: HistoricoComprasModalProps) {
+  const [pedidos, setPedidos] = useState<Pedido[]>([]);
+  const [resumo, setResumo] = useState<ResumoHistorico | null>(null);
   const [loading, setLoading] = useState(false);
-  const [erro, setErro] = useState('');
+  const [error, setError] = useState<string | null>(null);
+  const [usingGraphQL, setUsingGraphQL] = useState(false);
+  
+  // Hook GraphQL
+  const { data: graphqlData, loading: graphqlLoading, error: graphqlError } = useClienteHistorico(clienteId || 0, !clienteId);
 
   useEffect(() => {
-    if (isOpen && cliente) {
+    if (isOpen && clienteId) {
       buscarHistorico();
     }
-  }, [isOpen, cliente]);
+  }, [isOpen, clienteId]);
+  
+  // Processar dados do GraphQL quando chegarem
+  useEffect(() => {
+    if (usingGraphQL && graphqlData && graphqlData.clientes && graphqlData.clientes.clientes && !graphqlLoading && !graphqlError) {
+      // Filtrar cliente específico dos dados retornados
+      const clienteEncontrado = graphqlData.clientes.clientes.find(c => c.id === clienteId);
+      
+      if (clienteEncontrado) {
+        // GraphQL retorna apenas dados básicos do cliente, sem pedidos
+        // Fazer fallback para REST API para buscar histórico completo
+        setUsingGraphQL(false);
+        buscarHistoricoRest();
+      } else {
+        // Cliente não encontrado, fazer fallback para REST API
+        setUsingGraphQL(false);
+        buscarHistoricoRest();
+      }
+    }
+  }, [usingGraphQL, graphqlData, graphqlLoading, graphqlError, clienteId]);
+  
+  // Tratar erros do GraphQL
+  useEffect(() => {
+    if (usingGraphQL && graphqlError && !graphqlLoading) {
+      console.warn('GraphQL falhou, tentando REST API:', graphqlError);
+      buscarHistoricoRest();
+    }
+  }, [usingGraphQL, graphqlError, graphqlLoading]);
 
-  const buscarHistorico = async () => {
-    if (!cliente) return;
+  const buscarHistoricoRest = async () => {
+    if (!clienteId) return;
     
     setLoading(true);
-    setErro('');
+    setError(null);
     
     try {
-      const res = await fetch(`/api/clientes/${cliente.id}/historico`);
+      const response = await fetch(`/api/clientes/${clienteId}/historico`);
       
-      if (!res.ok) {
+      if (!response.ok) {
         throw new Error('Erro ao buscar histórico');
       }
       
-      const data = await res.json();
-      setHistorico(data);
-    } catch (error) {
-      console.error('Erro ao buscar histórico:', error);
-      setErro('Erro ao carregar histórico de compras');
+      const data = await response.json();
+      const pedidos = data.pedidos || [];
+      const resumo = data.resumo || null;
+      
+      setPedidos(pedidos);
+      setResumo(resumo);
+      setUsingGraphQL(false);
+      
+      // Salvar no cache para próximas consultas
+      const cacheKey = `historico_${clienteId}`;
+      const cacheData = {
+        pedidos,
+        resumo,
+        timestamp: Date.now()
+      };
+      
+      try {
+        sessionStorage.setItem(cacheKey, JSON.stringify(cacheData));
+      } catch (e) {
+        // Ignorar erros de storage (quota excedida, etc.)
+        console.warn('Não foi possível salvar no cache:', e);
+      }
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Erro desconhecido');
+      console.error('Erro ao buscar histórico via REST:', err);
     } finally {
       setLoading(false);
     }
+  };
+  
+  const buscarHistorico = async () => {
+    if (!clienteId) return;
+    
+    // Cache simples para evitar requisições desnecessárias
+    const cacheKey = `historico_${clienteId}`;
+    const cached = sessionStorage.getItem(cacheKey);
+    
+    if (cached) {
+      try {
+        const cachedData = JSON.parse(cached);
+        const cacheTime = cachedData.timestamp;
+        const now = Date.now();
+        
+        // Cache válido por 5 minutos
+        if (now - cacheTime < 5 * 60 * 1000) {
+          setPedidos(cachedData.pedidos || []);
+          setResumo(cachedData.resumo || null);
+          return;
+        }
+      } catch (e) {
+        // Cache inválido, remover
+        sessionStorage.removeItem(cacheKey);
+      }
+    }
+    
+    // Tentar GraphQL primeiro se estiver habilitado
+    if (GRAPHQL_CONFIG.enabled && !graphqlError) {
+      setUsingGraphQL(true);
+      setLoading(true);
+      return;
+    }
+    
+    // Fallback para REST API
+    await buscarHistoricoRest();
   };
 
   if (!isOpen) return null;
@@ -144,11 +257,9 @@ export default function HistoricoComprasModal({ cliente, isOpen, onClose }: Hist
               <h2 className="text-xl font-bold text-gray-900">
                 Histórico de Compras
               </h2>
-              {cliente && (
-                <p className="text-sm text-gray-600">
-                  {cliente.nome} • {cliente.cpfCnpj ? formatarCpfCnpj(cliente.cpfCnpj) : 'N/A'}
-                </p>
-              )}
+              <p className="text-sm text-gray-600">
+                {clienteNome}
+              </p>
             </div>
           </div>
           <button
@@ -161,26 +272,37 @@ export default function HistoricoComprasModal({ cliente, isOpen, onClose }: Hist
 
         {/* Content */}
         <div className="p-6 overflow-y-auto max-h-[calc(90vh-140px)]">
-          {loading && (
-            <div className="flex items-center justify-center py-12">
-              <div className="w-8 h-8 border-4 border-gray-600 border-t-transparent rounded-full animate-spin"></div>
-              <span className="ml-3 text-gray-600">Carregando histórico...</span>
+          {(loading || (usingGraphQL && graphqlLoading)) && (
+            <div className="text-center py-12">
+              <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto mb-4"></div>
+              <div className="space-y-2">
+                <span className="text-gray-600 block">
+                  Carregando histórico{usingGraphQL ? ' (GraphQL)' : ' (REST API)'}...
+                </span>
+                {!usingGraphQL && (
+                  <span className="text-xs text-gray-500 block">
+                    Verificando cache local...
+                  </span>
+                )}
+              </div>
             </div>
           )}
 
-          {erro && (
+          {(error || (usingGraphQL && graphqlError)) && (
             <div className="text-center py-12">
-              <div className="text-red-600 mb-2">{erro}</div>
+              <div className="text-red-600 mb-2">
+                {error || (graphqlError && 'Erro ao carregar dados via GraphQL')}
+              </div>
               <button
-                onClick={buscarHistorico}
+                onClick={usingGraphQL ? buscarHistoricoRest : buscarHistorico}
                 className="text-gray-600 hover:text-gray-800 font-medium"
               >
-                Tentar novamente
+                {usingGraphQL ? 'Tentar via REST API' : 'Tentar novamente'}
               </button>
             </div>
           )}
 
-          {historico && !loading && !erro && (
+          {resumo && pedidos && !loading && !error && (
             <div className="space-y-6">
               {/* Cards de Resumo */}
               <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
@@ -190,7 +312,7 @@ export default function HistoricoComprasModal({ cliente, isOpen, onClose }: Hist
                     <span className="text-sm font-medium text-gray-800">Total de Pedidos</span>
                   </div>
                   <div className="text-2xl font-bold text-gray-900">
-                    {historico.resumo.totalPedidos}
+                    {resumo?.totalPedidos || 0}
                   </div>
                 </div>
 
@@ -200,7 +322,7 @@ export default function HistoricoComprasModal({ cliente, isOpen, onClose }: Hist
                     <span className="text-sm font-medium text-green-800">Valor Total</span>
                   </div>
                   <div className="text-2xl font-bold text-green-900">
-                    {formatarMoedaCompacta(historico.resumo.valorTotal)}
+                    {formatarMoedaCompacta(resumo?.valorTotal || 0)}
                   </div>
                 </div>
 
@@ -210,7 +332,7 @@ export default function HistoricoComprasModal({ cliente, isOpen, onClose }: Hist
                     <span className="text-sm font-medium text-purple-800">Ticket Médio</span>
                   </div>
                   <div className="text-2xl font-bold text-purple-900">
-                    {formatarMoedaCompacta(historico.resumo.ticketMedio)}
+                    {formatarMoedaCompacta(resumo?.ticketMedio || 0)}
                   </div>
                 </div>
 
@@ -220,10 +342,7 @@ export default function HistoricoComprasModal({ cliente, isOpen, onClose }: Hist
                     <span className="text-sm font-medium text-orange-800">Última Compra</span>
                   </div>
                   <div className="text-lg font-bold text-orange-900">
-                    {historico.resumo.ultimaCompra 
-                      ? formatarData(historico.resumo.ultimaCompra)
-                      : 'N/A'
-                    }
+                    {resumo?.ultimaCompra ? formatarData(resumo.ultimaCompra) : 'N/A'}
                   </div>
                 </div>
               </div>
@@ -231,46 +350,58 @@ export default function HistoricoComprasModal({ cliente, isOpen, onClose }: Hist
               {/* Lista de Pedidos */}
               <div>
                 <h3 className="text-lg font-semibold text-gray-900 mb-4">
-                  Histórico de Pedidos ({historico.pedidos.length})
+                  Histórico de Pedidos ({pedidos.length})
                 </h3>
                 
-                {historico.pedidos.length === 0 ? (
+                {pedidos.length === 0 ? (
                   <div className="text-center py-8 text-gray-500">
                     <ShoppingBag className="w-12 h-12 mx-auto mb-3 text-gray-300" />
                     <p>Nenhum pedido encontrado para este cliente.</p>
                   </div>
                 ) : (
                   <div className="space-y-3">
-                    {historico.pedidos.map((pedido) => (
-                      <div
-                        key={pedido.id}
-                        className="border border-gray-200 rounded-lg p-4 hover:bg-gray-50 transition-colors"
-                      >
-                        <div className="flex items-center justify-between">
-                          <div className="flex items-center gap-3">
-                            <div className="w-2 h-2 bg-gray-500 rounded-full"></div>
-                            <div>
-                              <div className="font-medium text-gray-900">
-                                Pedido #{pedido.numeroNota}
+                    {pedidos.map((pedido) => {
+                      const isGraphQL = 'data_pedido' in pedido;
+                      return (
+                        <div
+                          key={pedido.id}
+                          className="border border-gray-200 rounded-lg p-4 hover:bg-gray-50 transition-colors"
+                        >
+                          <div className="flex items-center justify-between">
+                            <div className="flex items-center gap-3">
+                              <div className="w-2 h-2 bg-gray-500 rounded-full"></div>
+                              <div>
+                                <div className="font-medium text-gray-900">
+                                  Pedido #{isGraphQL ? pedido.id : (pedido as PedidoRest).numeroNota}
+                                </div>
+                                <div className="text-sm text-gray-600">
+                                  {formatarData(isGraphQL ? (pedido as PedidoGraphQL).data_pedido : (pedido as PedidoRest).dataEmissao)}
+                                  {!isGraphQL && (pedido as PedidoRest).filial && (
+                                    <span className="ml-2 px-2 py-1 bg-gray-100 rounded text-xs">
+                                      {(pedido as PedidoRest).filial!.nome}
+                                    </span>
+                                  )}
+                                  {isGraphQL && (
+                                    <span className="ml-2 px-2 py-1 bg-blue-100 rounded text-xs text-blue-800">
+                                      {(pedido as PedidoGraphQL).status}
+                                    </span>
+                                  )}
+                                </div>
                               </div>
-                              <div className="text-sm text-gray-600">
-                                {formatarData(pedido.dataEmissao)}
-                                {pedido.filial && (
-                                  <span className="ml-2 px-2 py-1 bg-gray-100 rounded text-xs">
-                                    {pedido.filial.nome}
-                                  </span>
+                            </div>
+                            <div className="text-right">
+                              <div className="font-bold text-green-600">
+                                {formatarMoeda(
+                                  isGraphQL 
+                                    ? (pedido as PedidoGraphQL).valor_total
+                                    : parseFloat((pedido as PedidoRest).valorTotal)
                                 )}
                               </div>
                             </div>
                           </div>
-                          <div className="text-right">
-                            <div className="font-bold text-green-600">
-                              {formatarMoeda(parseFloat(pedido.valorTotal))}
-                            </div>
-                          </div>
                         </div>
-                      </div>
-                    ))}
+                      );
+                    })}
                   </div>
                 )}
               </div>

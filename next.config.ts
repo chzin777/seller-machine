@@ -65,14 +65,6 @@ const nextConfig: NextConfig = {
   // Experimental features para performance
   experimental: {
     optimizePackageImports: ['lucide-react', 'recharts'],
-    turbo: {
-      rules: {
-        '*.svg': {
-          loaders: ['@svgr/webpack'],
-          as: '*.js',
-        },
-      },
-    },
   },
 
   // Webpack optimizations

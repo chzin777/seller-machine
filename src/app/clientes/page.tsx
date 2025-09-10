@@ -406,7 +406,8 @@ export default function ClientesPage() {
       {/* Modal de Histórico de Compras */}
       {modalAberto && clienteSelecionado && (
         <HistoricoComprasModal
-          cliente={clienteSelecionado}
+          clienteId={clienteSelecionado.id}
+          clienteNome={clienteSelecionado.nome}
           isOpen={modalAberto}
           onClose={fecharModal}
         />

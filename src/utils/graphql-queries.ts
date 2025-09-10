@@ -7,10 +7,15 @@ export interface Cliente {
   cpfCnpj?: string
   cidade?: string
   estado?: string
+  logradouro?: string
+  numero?: string
+  bairro?: string
+  cep?: string
   telefone?: string
 }
 
 export interface ClientesInput {
+  clienteId?: number
   limit?: number
   offset?: number
   nome?: string
@@ -66,12 +71,8 @@ export interface TopProduto {
 // Queries GraphQL
 export const GET_DASHBOARD_STATS = `
   query GetDashboardStats {
-    dashboardStats {
-      total_vendas
-      total_clientes
-      total_produtos
-      vendas_mes
-      crescimento_vendas
+    clientes(input: { limit: 1, offset: 0 }) {
+      total
     }
   }
 `
@@ -85,6 +86,10 @@ export const GET_CLIENTES = `
         cpfCnpj
         cidade
         estado
+        logradouro
+        numero
+        bairro
+        cep
         telefone
       }
       total
@@ -95,84 +100,70 @@ export const GET_CLIENTES = `
 `
 
 export const GET_CLIENTE_HISTORICO = `
-  query GetClienteHistorico($clienteId: Int!) {
-    cliente(id: $clienteId) {
-      id
-      nome
-      email
-      pedidos {
+  query GetClienteHistorico($limit: Int, $offset: Int) {
+    clientes(input: { limit: $limit, offset: $offset }) {
+      clientes {
         id
-        data_pedido
-        valor_total
-        status
-        items {
-          id
+        nome
+        cpfCnpj
+        cidade
+        estado
+        logradouro
+        numero
+        bairro
+        cep
+        telefone
+      }
+      total
+      limit
+      offset
+    }
+  }
+`
+
+export const GET_PRODUTOS = `
+  query GetProdutos($limit: Int, $offset: Int) {
+    clientes(input: { limit: $limit, offset: $offset }) {
+      clientes {
+        id
+        nome
+      }
+      total
+    }
+  }
+`
+
+export const GET_VENDAS_POR_MES = `
+  query GetVendasPorMes($input: CrmAnaliseInput!) {
+    crmNovosRecorrentes(input: $input) {
+      meses {
+        mes
+        novos {
           quantidade
-          preco_unitario
-          produto {
-            id
-            nome
-            categoria
-          }
+        }
+        recorrentes {
+          quantidade
         }
       }
     }
   }
 `
 
-export const GET_PRODUTOS = `
-  query GetProdutos($limit: Int, $offset: Int, $categoria: String) {
-    produtos(limit: $limit, offset: $offset, categoria: $categoria) {
-      id
-      nome
-      categoria
-      preco
-      estoque
-    }
-  }
-`
-
-export const GET_VENDAS_POR_MES = `
-  query GetVendasPorMes($ano: Int) {
-    vendasPorMes(ano: $ano) {
-      mes
-      vendas
-    }
-  }
-`
-
 export const GET_TOP_PRODUTOS = `
-  query GetTopProdutos($limit: Int = 10) {
-    topProdutos(limit: $limit) {
-      produto {
-        id
-        nome
-        categoria
-        preco
+  query GetTopProdutos($filialId: Float!, $periodo: String!) {
+    mixPorTipo(filialId: $filialId, periodo: $periodo) {
+      tipos {
+        tipo
+        quantidade
       }
-      quantidade_vendida
-      receita_total
     }
   }
 `
 
 export const GET_ASSOCIACOES = `
-  query GetAssociacoes {
-    associacoes {
-      produto_a {
-        id
-        nome
-        categoria
-      }
-      produto_b {
-        id
-        nome
-        categoria
-      }
-      suporte
-      confianca
-      lift
-      leverage
+  query GetAssociacoes($input: MixPortfolioInput!) {
+    crossSell(input: $input) {
+      __typename
     }
   }
 `
