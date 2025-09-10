@@ -12,9 +12,11 @@ import {
   DashboardStats,
   Cliente,
   Produto,
+  Pedido,
   VendaPorMes,
   TopProduto
 } from '../utils/graphql-queries'
+import { GET_PEDIDOS, PedidosInput } from '../utils/graphql-queries'
 
 // Hook para estatísticas do dashboard
 export function useDashboardStats() {
@@ -105,9 +107,9 @@ export function useClientes(limit = 50, offset = 0, search = '') {
 
 // Hook para histórico de um cliente específico
 export function useClienteHistorico(clienteId: number, skip = false) {
-  return useGraphQL<{ clientes: { clientes: Cliente[], total: number, limit: number, offset: number } }>(
+  return useGraphQL<{ pedidos: { pedidos: Pedido[], total: number } }>(
     GET_CLIENTE_HISTORICO,
-    { limit: 100, offset: 0 },
+    { clienteId },
     [clienteId],
     { skip }
   )
@@ -199,4 +201,14 @@ export function useDashboardData() {
       clientes.refetch()
     }
   }
+}
+
+// Hook para buscar pedidos com filtros
+export function usePedidos(input: PedidosInput, skip = false) {
+  return useGraphQL<{ pedidos: { pedidos: Pedido[], total: number, limit: number, offset: number } }>(
+    GET_PEDIDOS,
+    { input },
+    [input.clienteId, input.filialId, input.vendedorId, input.limit, input.offset, input.dataInicio, input.dataFim, input.status],
+    { skip }
+  )
 }

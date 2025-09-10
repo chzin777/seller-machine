@@ -12,9 +12,11 @@ export async function GET(req: NextRequest, { params }: { params: Promise<{ id: 
   }
 
   try {
-    // Buscar notas fiscais do cliente usando os endpoints disponíveis na API
-    // Endpoints disponíveis: /api/notas-fiscais e /api/notas-fiscais-itens
+    // Buscar todas as notas fiscais (a API externa não suporta filtro efetivo)
     const notasEndpoint = `/api/notas-fiscais`;
+    
+    console.log('🔍 Buscando todas as notas fiscais para filtrar localmente');
+    console.log('📡 Endpoint:', notasEndpoint);
     
     const notasResponse = await fetch(`${req.nextUrl.origin}/api/proxy?url=${encodeURIComponent(notasEndpoint)}`);
     
@@ -32,18 +34,37 @@ export async function GET(req: NextRequest, { params }: { params: Promise<{ id: 
     }
     
     const notasData = await notasResponse.json();
-    console.log('Resposta da API notas-fiscais:', JSON.stringify(notasData, null, 2));
     
-    // Filtrar notas fiscais do cliente específico
+    // Debug: verificar o que está sendo retornado
+    console.log('📊 Resposta da API:', {
+      isArray: Array.isArray(notasData),
+      totalItems: Array.isArray(notasData) ? notasData.length : (notasData.data ? notasData.data.length : 'N/A'),
+      hasData: !!notasData.data,
+      firstItemClienteId: Array.isArray(notasData) && notasData.length > 0 ? notasData[0].clienteId : 'N/A'
+    });
+    
+    // Extrair o array de notas da resposta
     let todasNotas = Array.isArray(notasData) ? notasData : (notasData.data || []);
-    const notasCliente = todasNotas.filter((nota: any) => 
-      nota.clienteId === parseInt(clienteId) || 
-      nota.cliente_id === parseInt(clienteId) || 
-      nota.customer_id === parseInt(clienteId) ||
-      nota.id_cliente === parseInt(clienteId)
-    );
     
-    console.log(`Notas fiscais encontradas para cliente ${clienteId}:`, notasCliente.length);
+    console.log('📋 Total de notas antes do filtro:', todasNotas.length);
+    
+    // Filtrar notas do cliente específico
+    const clienteIdNum = parseInt(clienteId);
+    let notasCliente = todasNotas.filter((nota: any) => {
+      return nota.clienteId === clienteIdNum || 
+             nota.cliente_id === clienteIdNum || 
+             nota.customer_id === clienteIdNum || 
+             nota.id_cliente === clienteIdNum;
+    });
+    
+    console.log('🎯 Notas encontradas para o cliente', clienteId + ':', notasCliente.length);
+    
+    console.log('✅ Notas fiscais recebidas já filtradas:', {
+      clienteId,
+      totalNotas: notasCliente.length,
+      primeiraNotaId: notasCliente[0]?.id,
+      primeiraNotaClienteId: notasCliente[0]?.clienteId
+    });
     
     if (!Array.isArray(notasCliente)) {
       return NextResponse.json({

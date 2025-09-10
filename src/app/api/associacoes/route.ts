@@ -243,7 +243,7 @@ export async function GET() {
         // Mapear produtos da API externa
         produtos.forEach((produto: any) => {
            productMap.set(produto.id, {
-             name: produto.descricao || produto.nome || produto.name || `Produto ${produto.id}`,
+             name: produto.descricao || produto.name || `Produto ${produto.id}`,
              type: categoryToType[produto.categoria] || produto.tipo || produto.type || 'Outros'
            });
          });

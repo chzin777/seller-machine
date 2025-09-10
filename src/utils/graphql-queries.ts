@@ -24,29 +24,59 @@ export interface ClientesInput {
   filialId?: number
 }
 
+export interface PedidosInput {
+  clienteId?: number
+  filialId?: number
+  vendedorId?: number
+  limit?: number
+  offset?: number
+  dataInicio?: string
+  dataFim?: string
+  status?: string
+  incluirItens?: boolean
+}
+
 export interface Produto {
   id: number
-  nome: string
-  categoria: string
+  descricao: string
+  categoria?: string
   preco: number
   estoque?: number
 }
 
 export interface Pedido {
   id: number
-  cliente_id: number
-  data_pedido: string
-  valor_total: number
+  numeroNota?: number
+  dataEmissao: string
+  valorTotal: number
   status: string
+  cliente_id?: number
+  data_pedido?: string
+  valor_total?: number
+  filial?: {
+    nome: string
+    cidade: string
+  }
+  cliente?: {
+    nome: string
+    cpfCnpj: string
+  }
+  itens?: PedidoItem[]
   items?: PedidoItem[]
 }
 
 export interface PedidoItem {
-  id: number
-  produto_id: number
+  id?: number
+  produto_id?: number
   quantidade: number
-  preco_unitario: number
-  produto?: Produto
+  preco_unitario?: number
+  valorTotalItem?: number
+  produto?: {
+    id?: number
+    nome?: string
+    categoria?: string
+    descricao?: string
+  }
 }
 
 export interface DashboardStats {
@@ -100,19 +130,76 @@ export const GET_CLIENTES = `
 `
 
 export const GET_CLIENTE_HISTORICO = `
-  query GetClienteHistorico($limit: Int, $offset: Int) {
-    clientes(input: { limit: $limit, offset: $offset }) {
-      clientes {
+  query GetClienteHistorico($clienteId: Int!) {
+    pedidos(input: { clienteId: $clienteId, incluirItens: true }) {
+      pedidos {
         id
-        nome
-        cpfCnpj
-        cidade
-        estado
-        logradouro
-        numero
-        bairro
-        cep
-        telefone
+        numeroNota
+        dataEmissao
+        valorTotal
+        status
+        filial {
+          nome
+          cidade
+        }
+        cliente {
+          nome
+          cpfCnpj
+        }
+        itens {
+          quantidade
+          valorTotalItem
+          produto {
+            descricao
+          }
+        }
+      }
+      total
+    }
+  }
+`
+
+export const GET_PEDIDOS = `
+  query GetPedidos($input: PedidosInput!) {
+    pedidos(input: $input) {
+      pedidos {
+        id
+        numeroNota
+        dataEmissao
+        valorTotal
+        status
+        clienteId
+        filialId
+        vendedorId
+        filial {
+          id
+          nome
+          cidade
+          estado
+        }
+        cliente {
+          id
+          nome
+          cpfCnpj
+          cidade
+          estado
+        }
+        vendedor {
+          id
+          nome
+          cpf
+        }
+        itens {
+          id
+          quantidade
+          valorUnitario
+          valorTotalItem
+          produto {
+            id
+            descricao
+          }
+        }
+
       }
       total
       limit
@@ -123,10 +210,10 @@ export const GET_CLIENTE_HISTORICO = `
 
 export const GET_PRODUTOS = `
   query GetProdutos($limit: Int, $offset: Int) {
-    clientes(input: { limit: $limit, offset: $offset }) {
-      clientes {
+    produtos(input: { limit: $limit, offset: $offset }) {
+      produtos {
         id
-        nome
+        descricao
       }
       total
     }
@@ -199,8 +286,7 @@ export const CREATE_PRODUTO = `
   mutation CreateProduto($input: ProdutoInput!) {
     createProduto(input: $input) {
       id
-      nome
-      categoria
+      descricao
       preco
       estoque
     }

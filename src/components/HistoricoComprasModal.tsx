@@ -1,8 +1,8 @@
 "use client";
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { X, ShoppingBag, Calendar, DollarSign, TrendingUp, Package } from 'lucide-react';
-import { useClienteHistorico } from '../hooks/useDashboardData';
+import { useClienteHistorico, usePedidos } from '../hooks/useDashboardData';
 import { GRAPHQL_CONFIG } from '../config/graphql';
 
 // Tipos para REST API
@@ -37,20 +37,61 @@ type PedidoRest = {
   };
 };
 
-// Tipos para GraphQL
-type PedidoGraphQL = {
+// Tipos para GraphQL (dados originais da query)
+type PedidoGraphQLOriginal = {
   id: number;
-  data_pedido: string;
-  valor_total: number;
-  status: string;
-  items?: {
+  numeroNota?: number;
+  dataEmissao: string;
+  valorTotal: string | number;
+  status?: string;
+  filial?: {
+    id: number;
+    nome: string;
+    cidade: string;
+    estado: string;
+  };
+  cliente?: {
+    id: number;
+    nome: string;
+  };
+  itens?: {
     id: number;
     quantidade: number;
-    preco_unitario: number;
+    valorTotalItem: number;
     produto: {
       id: number;
-      nome: string;
-      categoria: string;
+      descricao: string;
+    };
+  }[];
+};
+
+// Tipos para GraphQL (após processamento)
+type PedidoGraphQL = {
+  id: number;
+  numeroNota?: number;
+  dataEmissao?: string;
+  valorTotal?: string | number;
+  data_pedido: string;
+  valor_total: number;
+  status?: string;
+  cliente_id?: number;
+  filial?: {
+    id: number;
+    nome: string;
+    cidade: string;
+    estado: string;
+  };
+  cliente?: {
+    id: number;
+    nome: string;
+  };
+  itens?: {
+    id: number;
+    quantidade: number;
+    valorTotalItem: number;
+    produto: {
+      id: number;
+      descricao: string;
     };
   }[];
 };
@@ -127,58 +168,117 @@ export default function HistoricoComprasModal({ clienteId, clienteNome, isOpen, 
   const [error, setError] = useState<string | null>(null);
   const [usingGraphQL, setUsingGraphQL] = useState(false);
   
-  // Hook GraphQL
-  const { data: graphqlData, loading: graphqlLoading, error: graphqlError } = useClienteHistorico(clienteId || 0, !clienteId);
+  // Hook do GraphQL para buscar pedidos
+  const { data: graphqlData, loading: graphqlLoading, error: graphqlError } = usePedidos(
+    {
+      clienteId: clienteId || 0,
+      incluirItens: true,
+      limit: 1000
+    },
+    !clienteId || !GRAPHQL_CONFIG.enabled
+  );
 
   useEffect(() => {
     if (isOpen && clienteId) {
+      console.log('🔍 Modal aberto para cliente:', {
+        clienteId,
+        clienteNome,
+        tipo: typeof clienteId
+      });
+      
+      // Limpar cache para garantir dados frescos
+      const cacheKey = `historico_${clienteId}`;
+      sessionStorage.removeItem(cacheKey);
+      console.log('🧹 Cache limpo para cliente:', clienteId);
+      
       buscarHistorico();
     }
   }, [isOpen, clienteId]);
   
   // Processar dados do GraphQL quando chegarem
   useEffect(() => {
-    if (usingGraphQL && graphqlData && graphqlData.clientes && graphqlData.clientes.clientes && !graphqlLoading && !graphqlError) {
-      // Filtrar cliente específico dos dados retornados
-      const clienteEncontrado = graphqlData.clientes.clientes.find(c => c.id === clienteId);
+    if (GRAPHQL_CONFIG.enabled && graphqlData && graphqlData.pedidos && graphqlData.pedidos.pedidos && !graphqlLoading && !graphqlError) {
+      console.log('✅ Dados GraphQL recebidos:', {
+        total: graphqlData.pedidos.total,
+        pedidos: graphqlData.pedidos.pedidos.length
+      });
       
-      if (clienteEncontrado) {
-        // GraphQL retorna apenas dados básicos do cliente, sem pedidos
-        // Fazer fallback para REST API para buscar histórico completo
-        setUsingGraphQL(false);
-        buscarHistoricoRest();
-      } else {
-        // Cliente não encontrado, fazer fallback para REST API
-        setUsingGraphQL(false);
-        buscarHistoricoRest();
-      }
+      // Processar pedidos do GraphQL
+      const pedidosOriginal = graphqlData.pedidos.pedidos;
+      const pedidosGraphQL: PedidoGraphQL[] = pedidosOriginal.map((pedido: any) => ({
+        ...pedido,
+        // Manter compatibilidade com campos antigos
+        data_pedido: pedido.dataEmissao,
+        valor_total: typeof pedido.valorTotal === 'string' ? parseFloat(pedido.valorTotal) : pedido.valorTotal,
+        cliente_id: pedido.clienteId || clienteId || undefined
+      }));
+      
+      setPedidos(pedidosGraphQL);
+      
+      // Calcular resumo
+      const totalPedidos = pedidosGraphQL.length;
+      const valorTotal = pedidosGraphQL.reduce((sum, p) => {
+        const valor = typeof p.valor_total === 'string' ? parseFloat(p.valor_total) : p.valor_total;
+        return sum + valor;
+      }, 0);
+      const ticketMedio = totalPedidos > 0 ? valorTotal / totalPedidos : 0;
+      const ultimaCompra = pedidosGraphQL.length > 0 
+        ? pedidosGraphQL.sort((a, b) => new Date(b.data_pedido).getTime() - new Date(a.data_pedido).getTime())[0].data_pedido
+        : null;
+      
+      setResumo({
+        totalPedidos,
+        valorTotal,
+        ticketMedio,
+        ultimaCompra
+      });
+      
+      setLoading(false);
+      setError(null);
+      setUsingGraphQL(true);
+    } else if (GRAPHQL_CONFIG.enabled && graphqlError) {
+      // Se GraphQL falhou, fazer fallback para REST
+      console.log('❌ Erro GraphQL, fazendo fallback para REST API:', graphqlError);
+      setUsingGraphQL(false);
+      buscarHistoricoRest();
+    } else if (!GRAPHQL_CONFIG.enabled) {
+      // GraphQL desabilitado, usar REST
+      console.log('🔄 GraphQL desabilitado, usando REST API');
+      setUsingGraphQL(false);
     }
   }, [usingGraphQL, graphqlData, graphqlLoading, graphqlError, clienteId]);
   
-  // Tratar erros do GraphQL
-  useEffect(() => {
-    if (usingGraphQL && graphqlError && !graphqlLoading) {
-      console.warn('GraphQL falhou, tentando REST API:', graphqlError);
-      buscarHistoricoRest();
-    }
-  }, [usingGraphQL, graphqlError, graphqlLoading]);
-
-  const buscarHistoricoRest = async () => {
+  const buscarHistoricoRest = useCallback(async () => {
     if (!clienteId) return;
     
+    console.log(`🔍 Iniciando busca REST para cliente ${clienteId}`);
     setLoading(true);
     setError(null);
     
     try {
-      const response = await fetch(`/api/clientes/${clienteId}/historico`);
+      const url = `/api/clientes/${clienteId}/historico`;
+      console.log('🌐 Fazendo requisição REST:', {
+        clienteId,
+        url,
+        tipoClienteId: typeof clienteId
+      });
+      
+      const response = await fetch(url);
+      console.log(`📡 Resposta REST recebida - Status: ${response.status}`);
       
       if (!response.ok) {
-        throw new Error('Erro ao buscar histórico');
+        throw new Error(`Erro HTTP ${response.status}: ${response.statusText}`);
       }
       
       const data = await response.json();
       const pedidos = data.pedidos || [];
       const resumo = data.resumo || null;
+      
+      console.log('📦 Dados recebidos da API REST:', {
+        clienteId,
+        totalPedidos: pedidos.length,
+        resumo: resumo
+      });
       
       setPedidos(pedidos);
       setResumo(resumo);
@@ -204,8 +304,16 @@ export default function HistoricoComprasModal({ clienteId, clienteNome, isOpen, 
     } finally {
       setLoading(false);
     }
-  };
-  
+  }, [clienteId]);
+
+  // Tratar erros do GraphQL
+  useEffect(() => {
+    if (usingGraphQL && graphqlError && !graphqlLoading) {
+      console.warn('GraphQL falhou, tentando REST API:', graphqlError);
+      buscarHistoricoRest();
+    }
+  }, [usingGraphQL, graphqlError, graphqlLoading, buscarHistoricoRest]);
+    
   const buscarHistorico = async () => {
     if (!clienteId) return;
     
@@ -213,33 +321,49 @@ export default function HistoricoComprasModal({ clienteId, clienteNome, isOpen, 
     const cacheKey = `historico_${clienteId}`;
     const cached = sessionStorage.getItem(cacheKey);
     
+    console.log('🗄️ Verificando cache:', {
+      clienteId,
+      cacheKey,
+      temCache: !!cached
+    });
+    
     if (cached) {
       try {
         const cachedData = JSON.parse(cached);
         const cacheTime = cachedData.timestamp;
         const now = Date.now();
         
+        console.log('📋 Dados do cache:', {
+          clienteId,
+          pedidosNoCache: cachedData.pedidos?.length || 0,
+          idadeCache: Math.round((now - cacheTime) / 1000) + 's'
+        });
+        
         // Cache válido por 5 minutos
         if (now - cacheTime < 5 * 60 * 1000) {
           setPedidos(cachedData.pedidos || []);
           setResumo(cachedData.resumo || null);
+          console.log('✅ Usando dados do cache');
           return;
         }
       } catch (e) {
         // Cache inválido, remover
         sessionStorage.removeItem(cacheKey);
+        console.log('❌ Cache inválido removido');
       }
     }
     
     // Tentar GraphQL primeiro se estiver habilitado
-    if (GRAPHQL_CONFIG.enabled && !graphqlError) {
-      setUsingGraphQL(true);
+    if (GRAPHQL_CONFIG.enabled) {
+      console.log(`🚀 Tentando GraphQL para cliente ${clienteId}`);
       setLoading(true);
-      return;
+      setUsingGraphQL(true);
+      // Os dados serão processados pelo useEffect quando chegarem
+    } else {
+      // Usar REST API diretamente
+      console.log(`🔍 Buscando histórico do cliente ${clienteId} via REST API`);
+      await buscarHistoricoRest();
     }
-    
-    // Fallback para REST API
-    await buscarHistoricoRest();
   };
 
   if (!isOpen) return null;
@@ -381,9 +505,9 @@ export default function HistoricoComprasModal({ clienteId, clienteNome, isOpen, 
                                       {(pedido as PedidoRest).filial!.nome}
                                     </span>
                                   )}
-                                  {isGraphQL && (
+                                  {isGraphQL && (pedido as PedidoGraphQL).filial && (
                                     <span className="ml-2 px-2 py-1 bg-blue-100 rounded text-xs text-blue-800">
-                                      {(pedido as PedidoGraphQL).status}
+                                      {(pedido as PedidoGraphQL).filial!.nome}
                                     </span>
                                   )}
                                 </div>
