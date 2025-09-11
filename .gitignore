@@ -16,6 +16,12 @@
 # next.js
 /.next/
 /out/
+.next/
+.next/**/*
+.next/cache/
+.next/standalone/
+.next/static/
+.next/server/
 
 # production
 /build
@@ -39,3 +45,20 @@ yarn-error.log*
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+
+# Windows specific
+Thumbs.db
+Desktop.ini
+
+# OneDrive temp files
+~$*
+
+# Cache directories
+node_modules/.cache/
+.cache/
+.temp/
+.tmp/
+
+# IDE
+.vscode/settings.json
+.idea/

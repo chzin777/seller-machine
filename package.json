@@ -6,7 +6,13 @@
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "lint": "next lint"
+    "lint": "next lint",
+    "clean": "rimraf .next",
+    "clean:full": "rimraf .next && rimraf node_modules/.cache && rimraf .next/cache",
+    "dev:clean": "npm run clean && npm run dev",
+    "dev:fresh": "npm run clean:full && npm run dev",
+    "dev:safe": "npm run clean:full && timeout 2 && npm run dev",
+    "reset": "npm run clean:full && npm cache clean --force && npm install"
   },
   "dependencies": {
     "@radix-ui/react-avatar": "^1.1.10",

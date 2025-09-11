@@ -1,15 +1,18 @@
 import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
-  reactStrictMode: false, // Desabilitar strict mode para evitar renderizações duplas
+  reactStrictMode: false,
   
-  // Desabilitar ESLint durante o build
   eslint: {
     ignoreDuringBuilds: true,
   },
   
-  // Compressão gzip
   compress: true,
+  
+  // Experimental features para performance
+  experimental: {
+    optimizePackageImports: ['lucide-react', 'recharts'],
+  },
   
   // Otimização de imagens
   images: {
@@ -60,11 +63,6 @@ const nextConfig: NextConfig = {
         ],
       },
     ];
-  },
-
-  // Experimental features para performance
-  experimental: {
-    optimizePackageImports: ['lucide-react', 'recharts'],
   },
 
   // Webpack optimizations

@@ -13,6 +13,8 @@ interface DataContextType {
   receitaTotal: number | null;
   ticketMedio: number | null;
   itensVendidos: number | null;
+  numeroNotas: number | null;
+  itensP95PorNota: number | null;
   receitaMensal: ReceitaMensal | null;
   receitaPorTipo: ReceitaPorTipo;
   vendasPorFilial: VendaPorFilial;
@@ -124,6 +126,8 @@ class DataManager {
       receitaTotal: null,
       ticketMedio: null,
       itensVendidos: null,
+      numeroNotas: null,
+      itensP95PorNota: null,
       receitaMensal: null,
       receitaPorTipo: [],
       vendasPorFilial: [],
@@ -176,10 +180,22 @@ class DataManager {
       
       let ticketMedio = null;
       let itensVendidos = null;
+      let numeroNotas = null;
+      let itensP95PorNota = null;
+      
       if (Array.isArray(notasData) && notasData.length > 0) {
         const soma = notasData.reduce((acc, nf) => acc + (parseFloat(nf.valorTotal) || 0), 0);
         ticketMedio = soma / notasData.length;
         itensVendidos = notasData.reduce((acc, nf) => acc + (nf._count?.itens || 0), 0);
+        numeroNotas = notasData.length;
+        
+        // Calcular P95 de itens por nota fiscal
+        const itensArray = notasData.map(nf => nf._count?.itens || 0).filter(itens => itens > 0);
+        if (itensArray.length > 0) {
+          itensArray.sort((a, b) => a - b);
+          const index = Math.ceil(itensArray.length * 0.95) - 1;
+          itensP95PorNota = itensArray[Math.min(index, itensArray.length - 1)];
+        }
       }
 
       let receitaPorTipo: ReceitaPorTipo = [];
@@ -199,6 +215,8 @@ class DataManager {
         receitaTotal,
         ticketMedio,
         itensVendidos,
+        numeroNotas,
+        itensP95PorNota,
         receitaMensal: receitaMensalData,
         receitaPorTipo,
         vendasPorFilial,
@@ -217,6 +235,8 @@ class DataManager {
         receitaTotal: null,
         ticketMedio: null,
         itensVendidos: null,
+        numeroNotas: null,
+        itensP95PorNota: null,
         receitaMensal: null,
         receitaPorTipo: [],
         vendasPorFilial: [],
@@ -247,6 +267,8 @@ export function DataProvider({ children }: { children: ReactNode }) {
     receitaTotal: null,
     ticketMedio: null,
     itensVendidos: null,
+    numeroNotas: null,
+    itensP95PorNota: null,
     receitaMensal: null,
     receitaPorTipo: [],
     vendasPorFilial: [],

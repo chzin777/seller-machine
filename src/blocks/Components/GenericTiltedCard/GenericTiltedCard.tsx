@@ -60,12 +60,16 @@ export default function GenericTiltedCard({
   return (
     <div
       ref={cardRef}
-      className={`transform-gpu transition-all duration-200 ease-out cursor-pointer w-full min-w-0 ${className}`}
+      className={`transform-gpu transition-all duration-200 ease-out cursor-pointer w-full min-w-0 rounded-xl ${className}`}
       style={{
         transformStyle: "preserve-3d",
         boxShadow: "0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06)",
         maxWidth: "100%",
-        overflow: "hidden"
+        borderRadius: "0.75rem",
+        position: "relative",
+        zIndex: 1,
+        margin: "10px", // Adiciona margem para evitar recorte
+        transformOrigin: "center center"
       }}
     >
       {children}

@@ -4,7 +4,7 @@ import { useEffect, useState } from 'react';
 import dynamic from 'next/dynamic';
 import { Card, CardContent, CardHeader, CardTitle } from './ui/card';
 import { MapPin } from 'lucide-react';
-import GenericTiltedCard from '../blocks/Components/GenericTiltedCard/GenericTiltedCard';
+import GenericTiltedCard from '../blocks/Components/GenericTiltedCard';
 
 // Importação dinâmica do mapa para evitar problemas de SSR
 const MapaComponent = dynamic(() => import('../components/MapaComponente'), {

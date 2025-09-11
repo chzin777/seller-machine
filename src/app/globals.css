@@ -191,6 +191,21 @@
     -webkit-overflow-scrolling: touch;
   }
   
+  /* Estilo para prevenir corte nos KPI cards durante hover */
+  .kpi-grid-container {
+    padding: 15px 5px;
+    overflow: visible;
+  }
+  
+  .kpi-card-wrapper {
+    position: relative;
+    z-index: 1;
+  }
+  
+  .kpi-card-wrapper:hover {
+    z-index: 10;
+  }
+  
   /* Better touch targets for mobile */
   @media (max-width: 768px) {
     button, 

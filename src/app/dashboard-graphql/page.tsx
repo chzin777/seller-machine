@@ -5,7 +5,7 @@ import { useEffect, useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from '../../components/ui/card';
 import { ResponsiveContainer, Tooltip, Legend, BarChart, Bar, XAxis, YAxis, CartesianGrid } from 'recharts';
 import { LayoutDashboard, Database, Wifi, WifiOff } from 'lucide-react';
-import GenericTiltedCard from "../../blocks/Components/GenericTiltedCard/GenericTiltedCard";
+import GenericTiltedCard from "../../blocks/Components/GenericTiltedCard";
 import { GraphQLDataProvider, useGraphQLData } from "../../components/GraphQLDataProvider";
 
 // Skeleton simples
