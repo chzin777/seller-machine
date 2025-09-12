@@ -68,7 +68,7 @@ export default function KpiCards() {
         <GenericTiltedCard>
           <Card className="shadow-lg bg-gradient-to-br from-orange-500 to-orange-600 h-full kpi-container rounded-xl border-0">
             <CardHeader className="flex flex-row items-start pb-1 pt-4 px-3 flex-shrink-0 justify-center">
-              <CardTitle className="text-sm sm:text-base md:text-xl font-bold text-white leading-tight w-full text-center">Ticket Médio (NF)</CardTitle>
+              <CardTitle className="text-sm sm:text-base md:text-xl font-bold text-white leading-tight w-full text-center">Ticket Médio</CardTitle>
             </CardHeader>
             <CardContent className="kpi-content px-3 pt-0 pb-4 flex flex-col items-center justify-center">
               <div className="font-extrabold tracking-tight text-white kpi-number-responsive kpi-number text-xl sm:text-2xl md:text-3xl text-center">
