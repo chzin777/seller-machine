@@ -13,7 +13,7 @@ Para que o GraphQL funcione corretamente na aplicação hospedada, você precisa
 
 ```
 NEXT_PUBLIC_ENABLE_GRAPHQL=true
-NEXT_PUBLIC_GRAPHQL_URL=https://api-seller-machine-production.up.railway.app/graphql
+NEXT_PUBLIC_GRAPHQL_URL=https://api-dev-production-6bb5.up.railway.app/graphql
 ```
 
 ### Configuração Automática
@@ -61,6 +61,6 @@ Para verificar se tudo está funcionando:
    ```
    🔧 Debug GraphQL Config:
      NEXT_PUBLIC_ENABLE_GRAPHQL: true
-     NEXT_PUBLIC_GRAPHQL_URL: https://api-seller-machine-production.up.railway.app/graphql
+     NEXT_PUBLIC_GRAPHQL_URL: https://api-dev-production-6bb5.up.railway.app/graphql
    ```
 5. O indicador na página deve mostrar "GraphQL"

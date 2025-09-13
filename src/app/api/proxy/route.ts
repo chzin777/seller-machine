@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 
-const API_BASE = 'https://api-seller-machine-production.up.railway.app';
+const API_BASE = 'https://api-dev-production-6bb5.up.railway.app';
 
 export async function GET(req: NextRequest) {
   const url = req.nextUrl.searchParams.get('url');

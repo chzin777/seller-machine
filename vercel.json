@@ -1,12 +1,12 @@
 {
   "env": {
     "NEXT_PUBLIC_ENABLE_GRAPHQL": "true",
-    "NEXT_PUBLIC_GRAPHQL_URL": "https://api-seller-machine-production.up.railway.app/graphql"
+    "NEXT_PUBLIC_GRAPHQL_URL": "https://api-dev-production-6bb5.up.railway.app/graphql"
   },
   "build": {
     "env": {
       "NEXT_PUBLIC_ENABLE_GRAPHQL": "true",
-      "NEXT_PUBLIC_GRAPHQL_URL": "https://api-seller-machine-production.up.railway.app/graphql"
+      "NEXT_PUBLIC_GRAPHQL_URL": "https://api-dev-production-6bb5.up.railway.app/graphql"
     }
   },
   "functions": {
@@ -17,7 +17,7 @@
   "rewrites": [
     {
       "source": "/api/graphql",
-      "destination": "https://api-seller-machine-production.up.railway.app/graphql"
+      "destination": "https://api-dev-production-6bb5.up.railway.app/graphql"
     }
   ]
 }

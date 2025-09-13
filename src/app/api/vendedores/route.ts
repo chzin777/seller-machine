@@ -4,7 +4,7 @@ import { NextResponse } from 'next/server';
 export async function GET() {
   try {
     // Buscar dados das notas fiscais para calcular vendas por vendedor
-    const notasResponse = await fetch('https://api-seller-machine-production.up.railway.app/api/notas-fiscais');
+    const notasResponse = await fetch('https://api-dev-production-6bb5.up.railway.app/api/notas-fiscais');
     
     if (!notasResponse.ok) {
       throw new Error('Erro ao buscar notas fiscais');
