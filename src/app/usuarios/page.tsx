@@ -4,6 +4,7 @@ import { useRouter } from "next/navigation";
 
 import { Button } from "../../components/ui/button";
 import { UserPlus, Pencil, Users, Search } from "lucide-react";
+import LoadingSpinner from "../../components/LoadingSpinner";
 // import Header from "../../components/header";
 // Modal para editar usuário
 function EditarUsuarioModal({ open, onClose, onSuccess, usuario }: { open: boolean; onClose: () => void; onSuccess: () => void; usuario: Usuario | null }) {
@@ -284,7 +285,7 @@ export default function UsuariosPage() {
   });
 
   if (!authChecked) {
-    return <div className="w-full flex justify-center items-center py-20 text-blue-700">Carregando...</div>;
+    return <LoadingSpinner size="full" text="Carregando página..." />;
   }
 
   return (

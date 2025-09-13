@@ -5,18 +5,12 @@ import dynamic from 'next/dynamic';
 import { Card, CardContent, CardHeader, CardTitle } from './ui/card';
 import { MapPin } from 'lucide-react';
 import GenericTiltedCard from '../blocks/Components/GenericTiltedCard';
+import { CardLoader } from './LoadingSpinner';
 
 // Importação dinâmica do mapa para evitar problemas de SSR
 const MapaComponent = dynamic(() => import('../components/MapaComponente'), {
   ssr: false,
-  loading: () => (
-  <div className="h-96 bg-gray-100 rounded-lg flex items-center justify-center">
-      <div className="text-center">
-        <div className="w-8 h-8 border-4 border-blue-600 border-t-transparent rounded-full animate-spin mx-auto mb-2"></div>
-  <p className="text-gray-600">Carregando mapa...</p>
-      </div>
-    </div>
-  )
+  loading: () => <CardLoader text="Carregando mapa..." />
 });
 
 type DadosVendaPorRegiao = {
@@ -278,12 +272,7 @@ export default function MapaCalorVendas({ vendasPorFilial = [] }: MapaCalorVenda
         </CardHeader>
         <CardContent className="p-0">
           {loading ? (
-            <div className="h-96 bg-gray-100 flex items-center justify-center">
-              <div className="text-center">
-                <div className="w-8 h-8 border-4 border-blue-600 border-t-transparent rounded-full animate-spin mx-auto mb-2"></div>
-                <p className="text-gray-600">Carregando dados...</p>
-              </div>
-            </div>
+            <CardLoader text="Carregando dados..." />
           ) : (
             <div className="h-96">
               <MapaComponent dados={dadosVendas} />
@@ -296,7 +285,7 @@ export default function MapaCalorVendas({ vendasPorFilial = [] }: MapaCalorVenda
       {/* Mobile: Cards */}
       <div className="flex flex-col gap-3 sm:gap-4 lg:hidden">
         {loading ? (
-          <div className="text-center py-8 text-gray-400 bg-white rounded-xl shadow border border-gray-100 ">Carregando...</div>
+          <CardLoader text="Carregando dados..." />
         ) : dadosVendas.length === 0 ? (
           <div className="text-center py-8 text-gray-400 bg-white  rounded-xl shadow border border-gray-100 ">Nenhum dado de vendas disponível</div>
         ) : (
@@ -392,7 +381,9 @@ export default function MapaCalorVendas({ vendasPorFilial = [] }: MapaCalorVenda
               <tbody>
                 {loading ? (
                   <tr>
-                    <td colSpan={5} className="text-center py-8 text-gray-400">Carregando...</td>
+                    <td colSpan={5} className="py-8">
+                      <CardLoader text="Carregando dados da tabela..." />
+                    </td>
                   </tr>
                 ) : dadosVendas.length === 0 ? (
                   <tr>

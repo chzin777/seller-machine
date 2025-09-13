@@ -3,6 +3,7 @@
 import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader } from './ui/card';
 import { TrendingUp, TrendingDown, Award, Target, Calendar, BarChart3, ChevronLeft, ChevronRight } from 'lucide-react';
+import { CardLoader } from './LoadingSpinner';
 
 interface Vendedor {
   id: number;
@@ -125,29 +126,7 @@ export default function RankingVendedores() {
   }, []);
 
   if (loading) {
-    return (
-      <Card className="shadow-xl border border-blue-200/30 bg-white rounded-2xl overflow-hidden h-full">
-        <CardHeader className="p-4 sm:p-6 border-b border-blue-200/30">
-          <div className="flex items-center gap-3">
-            <div className="w-8 h-8 sm:w-10 sm:h-10 rounded-xl bg-gradient-to-br from-blue-500 to-indigo-600 flex items-center justify-center shadow-lg flex-shrink-0">
-              <BarChart3 className="w-4 h-4 sm:w-5 sm:h-5 text-white" />
-            </div>
-            <div>
-              <h3 className="text-lg sm:text-xl font-bold text-blue-800">Ranking de Vendedores</h3>
-              <p className="text-xs sm:text-sm text-gray-600 mt-1">Performance de receita e volume</p>
-            </div>
-          </div>
-        </CardHeader>
-        <CardContent className="p-6">
-          <div className="flex justify-center items-center h-64">
-            <div className="text-center">
-              <div className="w-8 h-8 border-4 border-blue-500 border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
-              <p className="text-gray-500">Carregando ranking...</p>
-            </div>
-          </div>
-        </CardContent>
-      </Card>
-    );
+    return <CardLoader text="Carregando ranking..." />;
   }
 
   if (error) {

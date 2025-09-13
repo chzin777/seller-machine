@@ -4,6 +4,7 @@ import { Card, CardContent, CardHeader, CardTitle } from './ui/card';
 import { ResponsiveContainer, BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Cell } from 'recharts';
 import { TrendingUp, TrendingDown, Minus } from 'lucide-react';
 import { useData } from './DataProvider';
+import { CardLoader } from './LoadingSpinner';
 
 // Função para formatar valores compactos
 function formatCompact(value: number) {
@@ -172,29 +173,7 @@ export default function GraficoCrescimentoMensal() {
   const crescimento = calcularCrescimento();
 
   if (data.loading) {
-    return (
-      <Card className="shadow-xl border border-indigo-200/30 bg-white rounded-2xl overflow-hidden h-auto max-h-80">
-        <CardHeader className="p-2 sm:p-3 border-b border-indigo-200/30">
-          <div className="flex items-center gap-2">
-            <div className="w-6 h-6 rounded-xl bg-gradient-to-br from-indigo-500 to-purple-600 flex items-center justify-center shadow-lg animate-pulse">
-              <TrendingUp className="w-3 h-3 text-white" />
-            </div>
-            <div>
-              <div className="h-4 bg-gray-200 rounded animate-pulse w-24 mb-1"></div>
-              <div className="h-3 bg-gray-200 rounded animate-pulse w-16"></div>
-            </div>
-          </div>
-        </CardHeader>
-        <CardContent className="p-2">
-          <div className="h-16 flex items-center justify-center">
-            <div className="text-center">
-              <div className="w-4 h-4 border-2 border-indigo-200 border-t-indigo-600 rounded-full animate-spin mx-auto mb-1"></div>
-              <p className="text-gray-500 text-xs">Carregando...</p>
-            </div>
-          </div>
-        </CardContent>
-      </Card>
-    );
+    return <CardLoader text="Carregando crescimento..." />;
   }
 
   if (!crescimento) {

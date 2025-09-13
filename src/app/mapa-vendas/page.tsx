@@ -3,6 +3,7 @@
 import { useData } from '../../components/DataProvider';
 import MapaCalorVendas from '../../components/MapaCalorVendas';
 import { Map } from 'lucide-react';
+import { SkeletonLoader } from '../../components/LoadingSpinner';
 
 export default function MapaCalorPage() {
   const data = useData();
@@ -26,45 +27,7 @@ export default function MapaCalorPage() {
 
       {/* Componente do mapa de calor */}
       {data.loading ? (
-        <div className="space-y-6">
-          {/* Skeleton para cards de estatísticas */}
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-            {[1, 2, 3].map((i) => (
-              <div key={i} className="bg-white/50 backdrop-blur-xl rounded-lg p-4 animate-pulse">
-                <div className="flex items-center gap-3">
-                  <div className="w-10 h-10 bg-gray-300 rounded-lg"></div>
-                  <div>
-                    <div className="h-4 bg-gray-300 rounded w-20 mb-2"></div>
-                    <div className="h-6 bg-gray-300 rounded w-32"></div>
-                  </div>
-                </div>
-              </div>
-            ))}
-          </div>
-
-          {/* Skeleton para o mapa */}
-          <div className="bg-white/50 backdrop-blur-xl rounded-2xl p-6">
-            <div className="h-4 bg-gray-300 rounded w-48 mb-2"></div>
-            <div className="h-3 bg-gray-300 rounded w-64 mb-6"></div>
-            <div className="h-96 bg-gray-300 rounded-lg animate-pulse"></div>
-          </div>
-
-          {/* Skeleton para a tabela */}
-          <div className="bg-white/50 backdrop-blur-xl rounded-lg p-6">
-            <div className="h-4 bg-gray-300 rounded w-32 mb-4"></div>
-            <div className="space-y-3">
-              {[1, 2, 3, 4, 5].map((i) => (
-                <div key={i} className="flex justify-between">
-                  <div className="h-3 bg-gray-300 rounded w-24"></div>
-                  <div className="h-3 bg-gray-300 rounded w-16"></div>
-                  <div className="h-3 bg-gray-300 rounded w-20"></div>
-                  <div className="h-3 bg-gray-300 rounded w-16"></div>
-                  <div className="h-3 bg-gray-300 rounded w-24"></div>
-                </div>
-              ))}
-            </div>
-          </div>
-        </div>
+        <SkeletonLoader />
       ) : (
         <MapaCalorVendas vendasPorFilial={data.vendasPorFilial} />
       )}

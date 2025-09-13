@@ -11,6 +11,7 @@ import GraficoReceitaPorTipo from "../components/GraficoReceitaPorTipo";
 import GraficoCrescimentoMensal from "../components/GraficoCrescimentoMensal";
 import RankingVendedores from "../components/RankingVendedores";
 import { useData } from "../components/DataProvider";
+import LoadingSpinner from "../components/LoadingSpinner";
 
 export default function Home() {
   const router = useRouter();
@@ -27,9 +28,7 @@ export default function Home() {
   }, [router]);
 
   if (data.loading) {
-    return (
-      <div className="flex justify-center items-center h-96 text-xl">Carregando dados...</div>
-    );
+    return <LoadingSpinner size="full" text="Carregando dashboard..." />;
   }
   
   if (data.error) {

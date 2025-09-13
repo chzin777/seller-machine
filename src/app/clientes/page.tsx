@@ -4,6 +4,7 @@ import { Users, Search, Database, Wifi, WifiOff } from 'lucide-react';
 import HistoricoComprasModal from '../../components/HistoricoComprasModal';
 import { useClientes } from '../../hooks/useDashboardData';
 import { GRAPHQL_CONFIG } from '../../config/graphql';
+import { CardLoader } from '../../components/LoadingSpinner';
 
 // Função para formatar CPF
 function formatarCPF(cpf: string) {
@@ -226,7 +227,7 @@ export default function ClientesPage() {
         {/* Mobile: Cards */}
         <div className="flex flex-col gap-3 sm:gap-4 lg:hidden">
           {loading ? (
-            <div className="text-center py-8 text-gray-400 bg-white rounded-xl shadow border border-gray-100">Carregando...</div>
+            <CardLoader text="Carregando clientes..." />
           ) : erro ? (
             <div className="text-center py-8 text-red-500 bg-white rounded-xl shadow border border-gray-100">{erro}</div>
           ) : filtrados.length === 0 ? (
@@ -287,7 +288,9 @@ export default function ClientesPage() {
             <tbody>
                {loading ? (
                  <tr>
-                   <td colSpan={4} className="text-center py-8 text-gray-400">Carregando...</td>
+                   <td colSpan={4} className="py-8">
+                     <CardLoader text="Carregando lista de clientes..." />
+                   </td>
                  </tr>
                ) : erro ? (
                  <tr>
