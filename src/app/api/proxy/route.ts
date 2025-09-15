@@ -51,3 +51,47 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: 'Erro ao processar requisição' }, { status: 500 });
   }
 }
+
+export async function PUT(req: NextRequest) {
+  const url = req.nextUrl.searchParams.get('url');
+  if (!url) {
+    return NextResponse.json({ error: 'Missing url param' }, { status: 400 });
+  }
+  
+  try {
+    const body = await req.json();
+    
+    const res = await fetch(`${API_BASE}${url.startsWith('/') ? url : '/' + url}`, {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(body)
+    });
+    
+    if (res.ok) {
+      const responseData = await res.json();
+      return NextResponse.json(responseData);
+    } else {
+      const errorData = await res.text();
+      return NextResponse.json({ error: errorData || 'Erro na API externa' }, { status: res.status });
+    }
+  } catch {
+    return NextResponse.json({ error: 'Erro ao processar requisição PUT' }, { status: 500 });
+  }
+}
+
+export async function HEAD(req: NextRequest) {
+  const url = req.nextUrl.searchParams.get('url');
+  if (!url) {
+    return new NextResponse(null, { status: 400 });
+  }
+  
+  try {
+    const res = await fetch(`${API_BASE}${url.startsWith('/') ? url : '/' + url}`, {
+      method: 'HEAD'
+    });
+    
+    return new NextResponse(null, { status: res.status });
+  } catch {
+    return new NextResponse(null, { status: 500 });
+  }
+}

@@ -60,6 +60,9 @@ export default function Header({ userName }: HeaderProps) {
           <div ref={menuRef} className="absolute right-0 top-12 mt-2 w-72 max-w-[90vw] bg-white dark:bg-gray-900 rounded-lg shadow-lg border border-gray-200 dark:border-gray-800 z-50 animate-fade-in">
             <ul className="py-2">
               <li>
+                <a href="/parametros-negocio" className="block px-4 py-2 text-sm text-gray-700 dark:text-gray-200 hover:bg-blue-50 dark:hover:bg-blue-900/40 transition-colors hover:cursor-pointer">Parâmetros de Negócio</a>
+              </li>
+              <li>
                 <a href="/configuracoes" className="block px-4 py-2 text-sm text-gray-700 dark:text-gray-200 hover:bg-blue-50 dark:hover:bg-blue-900/40 transition-colors hover:cursor-pointer">Configurações</a>
               </li>
               <li>

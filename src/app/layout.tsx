@@ -8,7 +8,7 @@ import { ServiceWorkerProvider } from "../components/ServiceWorkerProvider";
 import { PerformanceMonitor } from "../components/PerformanceMonitor";
 import { ToastProvider } from "../components/ui/toast";
 import ProgressBar from "../components/ui/progress-bar";
-import { LayoutDashboard, Link2, Users, Menu, UserCog, X, Map, BarChart3 } from "lucide-react";
+import { LayoutDashboard, Link2, Users, Menu, UserCog, X, Map, Settings } from "lucide-react";
 import { useState, useRef, useEffect } from "react";
 import "./globals.css";
 import { useRouter, usePathname } from "next/navigation";
@@ -21,7 +21,7 @@ function getNavLinks(userConta?: string) {
 		{ href: "/mapa-vendas", label: "Mapa de Vendas", icon: Map },
 		{ href: "/associacoes", label: "Associações", icon: Link2 },
 		{ href: "/clientes", label: "Clientes", icon: Users },
-		{ href: "/configurar-rfv", label: "Configurar RFV", icon: BarChart3 },
+		{ href: "/parametros-negocio", label: "Parâmetros de Negócio", icon: Settings },
 	];
 	if (userConta === "Admin") {
 		baseLinks.push({ href: "/usuarios", label: "Usuários", icon: UserCog });
