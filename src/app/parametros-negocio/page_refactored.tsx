@@ -8,6 +8,7 @@ import InactivityTab from './components/InactivityTab';
 import RFVTab from './components/RFVTab';
 import ExistingTab from './components/ExistingTab';
 import type { RFVRule, RFVParameterSet, FilialOption } from './types';
+import type { ConfiguracaoInatividade } from './hooks/useInactivity';
 
 export default function ParametrosNegocio() {
   const { showToast } = useToast();
@@ -59,6 +60,29 @@ export default function ParametrosNegocio() {
   const [status, setStatus] = useState<'all' | 'active' | 'inactive'>('all');
   const [mostrar, setMostrar] = useState<{ [k: number]: boolean }>({});
   const [filiais, setFiliais] = useState<FilialOption[]>([]);
+
+  // Estado da configuração de inatividade
+  const [configuracaoInatividade, setConfiguracaoInatividade] = useState<ConfiguracaoInatividade>({
+    diasSemCompra: 90,
+    valorMinimoCompra: 0,
+    considerarTipoCliente: false,
+    tiposClienteExcluidos: [],
+    ativo: true
+  });
+
+  // Função para atualizar campos da configuração de inatividade
+  const updateInactivityField = <K extends keyof ConfiguracaoInatividade>(
+    field: K, 
+    value: ConfiguracaoInatividade[K]
+  ) => {
+    setConfiguracaoInatividade(prev => ({
+      ...prev,
+      [field]: value
+    }));
+    if (field === 'diasSemCompra') {
+      setDiasInatividade(value as number);
+    }
+  };
 
   useEffect(() => {
     carregarFiliais();
@@ -113,6 +137,13 @@ export default function ParametrosNegocio() {
           const config = await response.json();
           console.log('✅ Configuração carregada da API:', config);
           setDiasInatividade(config.diasSemCompra || 90);
+          setConfiguracaoInatividade({
+            diasSemCompra: config.diasSemCompra || 90,
+            valorMinimoCompra: config.valorMinimoCompra || 0,
+            considerarTipoCliente: config.considerarTipoCliente || false,
+            tiposClienteExcluidos: config.tiposClienteExcluidos || [],
+            ativo: config.ativo !== false
+          });
           setApiStatus('online');
           return;
         } else if (response.status === 404) {
@@ -494,6 +525,8 @@ export default function ParametrosNegocio() {
 
         {activeTab === 'inatividade' && (
           <InactivityTab
+            configuracao={configuracaoInatividade}
+            updateField={updateInactivityField}
             diasInatividade={diasInatividade}
             setDiasInatividade={setDiasInatividade}
             loadingFiltros={loadingFiltros}

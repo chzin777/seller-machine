@@ -1,5 +1,49 @@
 import { NextRequest, NextResponse } from 'next/server';
 
+// Tipo para cliente baseado na interface existente
+interface Cliente {
+  id: number;
+  nome: string;
+  cpfCnpj?: string;
+  cidade?: string;
+  estado?: string;
+  logradouro?: string;
+  numero?: string;
+  bairro?: string;
+  cep?: string;
+  telefone?: string;
+}
+
+// Tipo para nota fiscal
+interface NotaFiscal {
+  id: number;
+  clienteId?: number;
+  cliente_id?: number;
+  valorTotal?: string;
+  valor_total?: string;
+  dataEmissao?: string;
+  data_emissao?: string;
+}
+
+// Tipo para cliente inativo
+interface ClienteInativo {
+  id: number;
+  nome: string;
+  ultimaCompraValida: string | null;
+  valorUltimaCompra?: number;
+  diasSemCompraValida: number;
+  motivo: string;
+}
+
+// Tipo para cliente ativo
+interface ClienteAtivo {
+  id: number;
+  nome: string;
+  ultimaCompraValida: string;
+  valorUltimaCompra: number;
+  diasSemCompraValida: number;
+}
+
 /**
  * Endpoint de teste que simula a lógica avançada de clientes inativos
  * que deve ser implementada na API externa
@@ -63,7 +107,7 @@ export async function GET(req: NextRequest) {
     }
 
     const notasData = await notasResponse.json();
-    const todasNotas = Array.isArray(notasData) ? notasData : (notasData.data || []);
+    const todasNotas: NotaFiscal[] = Array.isArray(notasData) ? notasData : (notasData.data || []);
     
     console.log(`📋 Total de notas fiscais: ${todasNotas.length}`);
 
@@ -74,14 +118,14 @@ export async function GET(req: NextRequest) {
     }
 
     const clientesData = await clientesResponse.json();
-    const todosClientes = Array.isArray(clientesData) ? clientesData : (clientesData.data || []);
+    const todosClientes: Cliente[] = Array.isArray(clientesData) ? clientesData : (clientesData.data || []);
     
     console.log(`👥 Total de clientes: ${todosClientes.length}`);
 
     // 4. Aplicar filtros
 
     // Filtro por tipo de cliente (simular campo tipo_cliente)
-    let clientesPermitidos = todosClientes;
+    let clientesPermitidos: Cliente[] = todosClientes;
     if (config.considerarTipoCliente && config.tiposClienteExcluidos.length > 0) {
       // Simular tipos de cliente baseado em padrões do nome/ID
       clientesPermitidos = todosClientes.filter(cliente => {
@@ -101,12 +145,18 @@ export async function GET(req: NextRequest) {
     const clientesPermitidosIds = new Set(clientesPermitidos.map(c => c.id));
 
     // 5. Calcular última compra válida por cliente
-    const ultimasComprasValidas = new Map();
+    const ultimasComprasValidas = new Map<number, {data: Date, valor: number, notaId: number}>();
     
-    todasNotas.forEach(nota => {
+    todasNotas.forEach((nota: NotaFiscal) => {
       const clienteId = nota.clienteId || nota.cliente_id;
-      const valorTotal = parseFloat(nota.valorTotal || nota.valor_total || 0);
+      if (!clienteId) return; // Pular se não há ID do cliente
+      
+      const valorTotalStr = nota.valorTotal || nota.valor_total;
+      if (!valorTotalStr) return; // Pular se não há valor
+      
+      const valorTotal = parseFloat(valorTotalStr.toString());
       const dataEmissao = nota.dataEmissao || nota.data_emissao;
+      if (!dataEmissao) return; // Pular se não há data
       
       // Aplicar filtros
       if (!clientesPermitidosIds.has(clienteId)) return; // Filtro por tipo
@@ -128,10 +178,10 @@ export async function GET(req: NextRequest) {
 
     // 6. Identificar clientes inativos
     const dataAtual = new Date();
-    const clientesInativos = [];
-    const clientesAtivos = [];
+    const clientesInativos: ClienteInativo[] = [];
+    const clientesAtivos: ClienteAtivo[] = [];
     
-    clientesPermitidos.forEach(cliente => {
+    clientesPermitidos.forEach((cliente: Cliente) => {
       const ultimaCompra = ultimasComprasValidas.get(cliente.id);
       
       if (!ultimaCompra) {
