@@ -21,25 +21,25 @@ function MetricCard({
   color?: 'blue' | 'green' | 'red' | 'yellow' | 'purple';
 }) {
   const colorClasses = {
-    blue: 'bg-blue-50 text-blue-600 border-blue-200',
-    green: 'bg-green-50 text-green-600 border-green-200',
-    red: 'bg-red-50 text-red-600 border-red-200',
-    yellow: 'bg-yellow-50 text-yellow-600 border-yellow-200',
-    purple: 'bg-purple-50 text-purple-600 border-purple-200'
+    blue: 'bg-blue-500 text-white shadow-lg',
+    green: 'bg-green-500 text-white shadow-lg',
+    red: 'bg-red-500 text-white shadow-lg',
+    yellow: 'bg-yellow-500 text-white shadow-lg',
+    purple: 'bg-purple-500 text-white shadow-lg'
   };
 
   return (
-    <Card className={`${colorClasses[color]} border-2`}>
+    <Card className={`${colorClasses[color]} border-0`}>
       <CardContent className="p-6">
         <div className="flex items-center justify-between">
           <div>
-            <p className="text-sm font-medium opacity-70">{title}</p>
-            <p className="text-2xl font-bold">{value}</p>
+            <p className="text-sm font-medium text-white/80">{title}</p>
+            <p className="text-2xl font-bold text-white">{value}</p>
             {trend && (
-              <p className="text-xs opacity-60 mt-1">{trend}</p>
+              <p className="text-xs text-white/70 mt-1">{trend}</p>
             )}
           </div>
-          <Icon className="h-8 w-8 opacity-70" />
+          <Icon className="h-8 w-8 text-white/80" />
         </div>
       </CardContent>
     </Card>
@@ -255,25 +255,25 @@ export default function AIDashboard() {
         </CardHeader>
         <CardContent>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-            <button className="p-4 border-2 border-blue-200 rounded-lg hover:bg-blue-50 transition-colors text-left">
-              <Users className="h-6 w-6 text-blue-600 mb-2" />
-              <h4 className="font-semibold text-gray-900">Ver Clientes em Risco</h4>
-              <p className="text-sm text-gray-600">Análise detalhada de churn</p>
+            <button className="p-4 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition-colors text-left shadow-lg hover:cursor-pointer">
+              <Users className="h-6 w-6 text-white mb-2" />
+              <h4 className="font-semibold text-white">Ver Clientes em Risco</h4>
+              <p className="text-sm text-blue-100">Análise detalhada de churn</p>
             </button>
-            <button className="p-4 border-2 border-green-200 rounded-lg hover:bg-green-50 transition-colors text-left">
-              <Target className="h-6 w-6 text-green-600 mb-2" />
-              <h4 className="font-semibold text-gray-900">Gerar Recomendações</h4>
-              <p className="text-sm text-gray-600">Produtos para clientes</p>
+            <button className="p-4 bg-green-500 text-white rounded-lg hover:bg-green-600 transition-colors text-left shadow-lg hover:cursor-pointer">
+              <Target className="h-6 w-6 text-white mb-2" />
+              <h4 className="font-semibold text-white">Gerar Recomendações</h4>
+              <p className="text-sm text-green-100">Produtos para clientes</p>
             </button>
-            <button className="p-4 border-2 border-purple-200 rounded-lg hover:bg-purple-50 transition-colors text-left">
-              <TrendingUp className="h-6 w-6 text-purple-600 mb-2" />
-              <h4 className="font-semibold text-gray-900">Predição de Vendas</h4>
-              <p className="text-sm text-gray-600">Projeções futuras</p>
+            <button className="p-4 bg-purple-500 text-white rounded-lg hover:bg-purple-600 transition-colors text-left shadow-lg hover:cursor-pointer">
+              <TrendingUp className="h-6 w-6 text-white mb-2" />
+              <h4 className="font-semibold text-white">Predição de Vendas</h4>
+              <p className="text-sm text-purple-100">Projeções futuras</p>
             </button>
-            <button className="p-4 border-2 border-yellow-200 rounded-lg hover:bg-yellow-50 transition-colors text-left">
-              <BarChart3 className="h-6 w-6 text-yellow-600 mb-2" />
-              <h4 className="font-semibold text-gray-900">Treinar Modelos</h4>
-              <p className="text-sm text-gray-600">Atualizar IA</p>
+            <button className="p-4 bg-yellow-500 text-white rounded-lg hover:bg-yellow-600 transition-colors text-left shadow-lg hover:cursor-pointer">
+              <BarChart3 className="h-6 w-6 text-white mb-2" />
+              <h4 className="font-semibold text-white">Treinar Modelos</h4>
+              <p className="text-sm text-yellow-100">Atualizar IA</p>
             </button>
           </div>
         </CardContent>

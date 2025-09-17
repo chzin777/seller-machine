@@ -158,8 +158,8 @@ function ClusterClientsCard({
         ) : (
           <>
             <div className="space-y-2 mb-4">
-              {displayClients.map((cliente, index) => (
-                <div key={index} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors">
+              {displayClients.map((cliente) => (
+                <div key={cliente.clienteId} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors">
                   <div className="flex-1">
                     <p className="font-medium text-gray-900">
                       {cliente.nome || `Cliente #${cliente.clienteId}`}
