@@ -8,6 +8,9 @@ import { ServiceWorkerProvider } from "../components/ServiceWorkerProvider";
 import { PerformanceMonitor } from "../components/PerformanceMonitor";
 import { ToastProvider } from "../components/ui/toast";
 import ProgressBar from "../components/ui/progress-bar";
+import { GlobalNotificationProvider } from "../providers/GlobalNotificationProvider";
+import GlobalToastContainer from "../components/GlobalToastContainer";
+import GlobalNotificationBell from "../components/GlobalNotificationBell";
 import { LayoutDashboard, Link2, Users, Menu, UserCog, X, Map, Settings, Brain } from "lucide-react";
 import { useState, useRef, useEffect } from "react";
 import "./globals.css";
@@ -48,7 +51,10 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
 					<LoadingProvider>
 						<DataProvider>
 							<ToastProvider>
-								<LayoutContent>{children}</LayoutContent>
+								<GlobalNotificationProvider>
+									<LayoutContent>{children}</LayoutContent>
+									<GlobalToastContainer />
+								</GlobalNotificationProvider>
 								<PerformanceMonitor />
 							</ToastProvider>
 						</DataProvider>
@@ -194,7 +200,10 @@ function LayoutContent({ children }: { children: React.ReactNode }) {
 									style={{ height: 40, maxWidth: 110 }}
 									aria-label="Logo Sales Machine"
 								/>
-								<div className="w-10 h-10" /> {/* Espaço para alinhar */}
+								{/* Sino de notificações mobile */}
+								<div className="flex items-center">
+									<GlobalNotificationBell />
+								</div>
 							</div>
 							{sidebarOpen && (
 								<>
@@ -315,7 +324,7 @@ function LayoutContent({ children }: { children: React.ReactNode }) {
 							   <Header userName={userName} />
 						)}
 						<main
-							className={`flex-1 overflow-y-auto overflow-x-hidden relative z-0 ${isLoginPage ? "p-0 bg-gradient-to-br from-gray-50 via-blue-50 to-white" : "pt-16 sm:pt-6 p-3 sm:p-6 md:p-8"
+							className={`flex-1 overflow-y-auto overflow-x-hidden relative z-0 ${isLoginPage ? "p-0 bg-gradient-to-br from-gray-50 via-blue-50 to-white" : "pt-20 sm:pt-16 lg:pt-6 p-2 sm:p-4 lg:p-6 xl:p-8"
 								}`}
 							style={isLoginPage ? {} : { background: "transparent", backgroundColor: "transparent" }}
 						>

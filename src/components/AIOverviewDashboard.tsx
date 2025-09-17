@@ -50,29 +50,29 @@ function FeatureCard({ title, description, icon: Icon, color, bgColor, status, m
 
   return (
     <Card className="hover:shadow-lg transition-all duration-300 hover:scale-105 cursor-pointer group" onClick={onNavigate}>
-      <CardHeader className="pb-3">
+      <CardHeader className="pb-3 p-4 sm:p-6">
         <div className="flex items-center justify-between">
-          <div className={`p-3 rounded-lg ${bgColor} shadow-lg group-hover:shadow-xl transition-shadow`}>
-            <Icon className={`h-6 w-6 ${color}`} />
+          <div className={`p-2 sm:p-3 rounded-lg ${bgColor} shadow-lg group-hover:shadow-xl transition-shadow`}>
+            <Icon className={`h-5 w-5 sm:h-6 sm:w-6 ${color}`} />
           </div>
-          <Badge className={`${currentStatus.color} flex items-center gap-1`}>
+          <Badge className={`${currentStatus.color} flex items-center gap-1 text-xs`}>
             <StatusIcon className="h-3 w-3" />
             {currentStatus.label}
           </Badge>
         </div>
-        <CardTitle className="text-lg font-semibold group-hover:text-blue-600 transition-colors">
+        <CardTitle className="text-base sm:text-lg font-semibold group-hover:text-blue-600 transition-colors">
           {title}
         </CardTitle>
       </CardHeader>
-      <CardContent>
-        <p className="text-gray-600 text-sm mb-4 line-clamp-2">{description}</p>
+      <CardContent className="p-4 sm:p-6 pt-0">
+        <p className="text-gray-600 text-sm mb-3 sm:mb-4 line-clamp-2">{description}</p>
         
         {metrics && (
-          <div className="mb-4 p-3 bg-gray-50 rounded-lg">
+          <div className="mb-3 sm:mb-4 p-2 sm:p-3 bg-gray-50 rounded-lg">
             <div className="flex items-center justify-between">
-              <span className="text-2xl font-bold text-gray-900">{metrics.primary}</span>
+              <span className="text-xl sm:text-2xl font-bold text-gray-900">{metrics.primary}</span>
               {metrics.secondary && (
-                <span className="text-sm text-gray-500">{metrics.secondary}</span>
+                <span className="text-xs sm:text-sm text-gray-500">{metrics.secondary}</span>
               )}
             </div>
           </div>
@@ -164,7 +164,7 @@ export default function AIOverviewDashboard({ onNavigate }: AIOverviewDashboardP
           </Button>
         </div>
         
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
           <FeatureCard
             title="Predição de Churn"
             description="Identifica clientes com alta probabilidade de cancelamento e sugere ações preventivas."
@@ -213,7 +213,7 @@ export default function AIOverviewDashboard({ onNavigate }: AIOverviewDashboardP
       <div>
         <h3 className="text-xl font-semibold text-gray-900 mb-6">Vendas e Marketing</h3>
         
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 sm:gap-6">
           <FeatureCard
             title="Recomendações IA"
             description="Sistema inteligente que sugere produtos personalizados para cada cliente."
@@ -253,10 +253,10 @@ export default function AIOverviewDashboard({ onNavigate }: AIOverviewDashboardP
           </CardTitle>
         </CardHeader>
         <CardContent>
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+          <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
             <Button 
               variant="outline" 
-              className="h-auto p-4 flex flex-col items-start gap-2"
+              className="h-auto p-3 sm:p-4 flex flex-col items-start gap-2 text-left"
               onClick={() => onNavigate('churn')}
             >
               <AlertTriangle className="h-5 w-5 text-red-500" />
@@ -315,12 +315,12 @@ export default function AIOverviewDashboard({ onNavigate }: AIOverviewDashboardP
             </CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-              <div className="flex items-center gap-3 p-3 bg-green-50 rounded-lg">
-                <CheckCircle className="h-6 w-6 text-green-600" />
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
+              <div className="flex items-center gap-2 sm:gap-3 p-2 sm:p-3 bg-green-50 rounded-lg">
+                <CheckCircle className="h-5 w-5 sm:h-6 sm:w-6 text-green-600" />
                 <div>
-                  <div className="font-medium text-green-900">Recomendações</div>
-                  <div className="text-sm text-green-700">{dashboardData.resumo.recomendacoes.status}</div>
+                  <div className="font-medium text-sm sm:text-base text-green-900">Recomendações</div>
+                  <div className="text-xs sm:text-sm text-green-700">{dashboardData.resumo.recomendacoes.status}</div>
                 </div>
               </div>
               

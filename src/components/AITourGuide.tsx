@@ -39,16 +39,16 @@ const tourSteps: TourStep[] = [
   },
   {
     id: 'navigation',
-    title: 'Navegação Inteligente',
-    content: 'Use a barra lateral para navegar entre as diferentes funcionalidades de IA. Cada seção é agrupada por categoria.',
-    target: 'sidebar',
-    position: 'right'
+    title: 'Navegação por Tabs',
+    content: 'Use as abas horizontais no topo para navegar entre as diferentes funcionalidades de IA. Cada tab representa uma categoria específica.',
+    target: 'churn-nav',
+    position: 'bottom'
   },
   {
     id: 'churn',
     title: 'Predição de Churn',
     content: 'Identifica automaticamente clientes com risco de cancelamento. Use isso para ações preventivas de retenção.',
-    target: 'churn',
+    target: 'churn-nav',
     position: 'bottom',
     highlight: true
   },
@@ -56,7 +56,7 @@ const tourSteps: TourStep[] = [
     id: 'recommendations',
     title: 'Sistema de Recomendações',
     content: 'IA que sugere produtos personalizados para cada cliente baseado no histórico de compras e comportamento.',
-    target: 'recommendations',
+    target: 'recommendations-nav',
     position: 'bottom',
     highlight: true
   },
@@ -64,28 +64,28 @@ const tourSteps: TourStep[] = [
     id: 'insights',
     title: 'Insights do Cliente',
     content: 'Análise detalhada do comportamento de cada cliente com segmentação automática e previsões.',
-    target: 'insights',
+    target: 'insights-nav',
     position: 'bottom'
   },
   {
     id: 'clustering',
     title: 'Segmentação Automática',
     content: 'Machine learning agrupa seus clientes automaticamente em segmentos com características similares.',
-    target: 'clustering',
+    target: 'clustering-nav',
     position: 'bottom'
   },
   {
     id: 'sales',
     title: 'Predição de Vendas',
     content: 'Previsões precisas de vendas futuras com intervalos de confiança para planejamento estratégico.',
-    target: 'sales',
+    target: 'sales-nav',
     position: 'bottom'
   },
   {
     id: 'training',
     title: 'Treinamento de Modelos',
     content: 'Mantenha os modelos de IA atualizados treinando-os regularmente com novos dados.',
-    target: 'training',
+    target: 'training-nav',
     position: 'bottom'
   }
 ];
@@ -96,44 +96,74 @@ const getPositionForTarget = (target: string): Position => {
     return { top: '50%', left: '50%', transform: 'translate(-50%, -50%)' };
   }
 
-  const element = document.getElementById(`${target}-nav`) || document.getElementById(target);
+  const element = document.getElementById(target);
   
   if (element) {
     const rect = element.getBoundingClientRect();
-    const cardWidth = 320; // largura do card
-    const margin = 20;
+    const viewportHeight = window.innerHeight;
     
-    // Calcular posição ideal
-    let left = rect.right + margin;
-    let top = rect.top + rect.height / 2;
-    
-    // Verificar se o card vai sair da tela
-    if (left + cardWidth > window.innerWidth) {
-      left = rect.left - cardWidth - margin;
+    // Para tabs horizontais (elementos com '-nav'), posicionar abaixo
+    if (target.includes('-nav')) {
+      return {
+        top: `${rect.bottom + 30}px`,
+        left: `${rect.left + rect.width / 2}px`,
+        transform: 'translateX(-50%)'
+      };
     }
     
-    // Garantir que não saia da parte superior/inferior
-    if (top - 150 < 0) top = 150;
-    if (top + 150 > window.innerHeight) top = window.innerHeight - 150;
+    // Para elementos dashboard/recommendations, posicionar no centro
+    if (target === 'dashboard' || target === 'recommendations') {
+      return {
+        top: '300px',
+        left: '50%',
+        transform: 'translateX(-50%)'
+      };
+    }
     
+    // Posicionamento padrão para outros elementos
     return {
-      left: `${left}px`,
-      top: `${top}px`,
-      transform: 'translateY(-50%)'
+      top: `${Math.min(rect.bottom + 20, viewportHeight - 250)}px`,
+      left: `${rect.left + rect.width / 2}px`,
+      transform: 'translateX(-50%)'
     };
   }
 
-  // Fallback positions
+  // Fallback positions melhoradas para tabs horizontais
   const fallbackPositions: Record<string, Position> = {
-    sidebar: {
-      left: '320px',
-      top: '50%',
-      transform: 'translateY(-50%)'
-    },
     dashboard: {
-      top: '50%',
+      top: '300px',
       left: '50%',
-      transform: 'translate(-50%, -50%)'
+      transform: 'translateX(-50%)'
+    },
+    recommendations: {
+      top: '300px',
+      left: '50%',
+      transform: 'translateX(-50%)'
+    },
+    'insights-nav': {
+      top: '200px',
+      left: '20%',
+      transform: 'translateX(-50%)'
+    },
+    'churn-nav': {
+      top: '200px',
+      left: '35%',
+      transform: 'translateX(-50%)'
+    },
+    'clustering-nav': {
+      top: '200px',
+      left: '50%',
+      transform: 'translateX(-50%)'
+    },
+    'sales-nav': {
+      top: '200px',
+      left: '65%',
+      transform: 'translateX(-50%)'
+    },
+    'training-nav': {
+      top: '200px',
+      left: '80%',
+      transform: 'translateX(-50%)'
     }
   };
 
@@ -146,9 +176,13 @@ const getPositionForTarget = (target: string): Position => {
 
 // Função para obter a seta baseada na posição
 const getArrowIcon = (target: string) => {
-  if (target === 'sidebar') return ChevronLeft;
-  if (target === 'dashboard') return null;
-  return ChevronLeft; // Para elementos da sidebar, seta aponta para a esquerda
+  // Para tabs horizontais, não mostrar seta (fica melhor visualmente)
+  if (target.includes('-nav')) return null;
+  
+  // Para dashboard e recommendations, mostrar seta para baixo
+  if (target === 'dashboard' || target === 'recommendations') return ChevronDown;
+  
+  return null; // Para outros elementos, sem seta
 };
 
 export default function AITourGuide({ isOpen, onClose, onNavigate }: AITourGuideProps) {
@@ -179,10 +213,11 @@ export default function AITourGuide({ isOpen, onClose, onNavigate }: AITourGuide
   const handleNext = () => {
     if (currentStep < tourSteps.length - 1) {
       setCurrentStep(currentStep + 1);
-      // Navegar para a seção relevante
+      // Navegar para a seção relevante (remover o '-nav' para obter a seção)
       const nextStep = tourSteps[currentStep + 1];
-      if (nextStep.target !== 'sidebar' && nextStep.target !== 'dashboard') {
-        onNavigate(nextStep.target);
+      if (nextStep.target.includes('-nav')) {
+        const section = nextStep.target.replace('-nav', '');
+        onNavigate(section);
       }
     } else {
       handleClose();
@@ -226,7 +261,8 @@ export default function AITourGuide({ isOpen, onClose, onNavigate }: AITourGuide
           );
         }
         
-        const element = document.getElementById(`${currentTourStep.target}-nav`) || document.getElementById(currentTourStep.target);
+        // Buscar pelo ID exato do target
+        const element = document.getElementById(currentTourStep.target);
         if (!element) {
           return (
             <div className={`fixed inset-0 backdrop-blur-sm z-40 transition-all duration-300 ${
@@ -343,50 +379,46 @@ export default function AITourGuide({ isOpen, onClose, onNavigate }: AITourGuide
         className={`fixed z-50 transition-all duration-500 ${
           isVisible ? 'scale-100 opacity-100' : 'scale-95 opacity-0'
         }`}
-        style={cardPosition}
+        style={{
+          ...cardPosition,
+          // Em mobile, sempre centralizar horizontalmente e posicionar no topo
+          ...(typeof window !== 'undefined' && window.innerWidth < 768 && {
+            top: '120px',
+            left: '50%',
+            transform: 'translateX(-50%)',
+            maxWidth: 'calc(100vw - 2rem)',
+            margin: '0 1rem'
+          })
+        }}
       >
-        <Card className="w-80 max-w-[calc(100vw-2rem)] shadow-2xl border-2 border-blue-200 bg-white relative">
-          {/* Triângulo indicativo para elementos da sidebar */}
-          {currentTourStep.target !== 'dashboard' && currentTourStep.target !== 'sidebar' && cardPosition.left && parseInt(cardPosition.left) > 300 && (
+        <Card className="w-80 sm:w-96 max-w-[calc(100vw-2rem)] mx-auto shadow-2xl border-2 border-blue-200 bg-white relative">
+          {/* Triângulo indicativo - apenas desktop para tabs horizontais */}
+          {currentTourStep.target.includes('-nav') && typeof window !== 'undefined' && window.innerWidth >= 768 && (
             <div 
-              className="absolute left-0 top-1/2 transform -translate-y-1/2 -translate-x-full"
+              className="absolute top-0 left-1/2 transform -translate-x-1/2 -translate-y-full"
               style={{ 
                 width: 0, 
                 height: 0, 
-                borderTop: '8px solid transparent',
-                borderBottom: '8px solid transparent',
-                borderRight: '8px solid white'
+                borderLeft: '8px solid transparent',
+                borderRight: '8px solid transparent',
+                borderBottom: '8px solid white'
               }}
             />
           )}
           
-          {/* Triângulo para o lado direito quando card está à esquerda */}
-          {currentTourStep.target !== 'dashboard' && currentTourStep.target !== 'sidebar' && cardPosition.left && parseInt(cardPosition.left) < 300 && (
-            <div 
-              className="absolute right-0 top-1/2 transform -translate-y-1/2 translate-x-full"
-              style={{ 
-                width: 0, 
-                height: 0, 
-                borderTop: '8px solid transparent',
-                borderBottom: '8px solid transparent',
-                borderLeft: '8px solid white'
-              }}
-            />
-          )}
-          
-          <CardContent className="p-6">
+          <CardContent className="p-4 sm:p-6">
             {/* Header */}
-            <div className="flex items-start justify-between mb-4">
-              <div className="flex items-center gap-3">
+            <div className="flex items-start justify-between mb-3 sm:mb-4">
+              <div className="flex items-center gap-2 sm:gap-3">
                 <div className="p-2 bg-blue-100 rounded-lg">
                   {currentTourStep.highlight ? (
-                    <Lightbulb className="h-5 w-5 text-blue-600" />
+                    <Lightbulb className="h-4 w-4 sm:h-5 sm:w-5 text-blue-600" />
                   ) : (
-                    <BookOpen className="h-5 w-5 text-blue-600" />
+                    <BookOpen className="h-4 w-4 sm:h-5 sm:w-5 text-blue-600" />
                   )}
                 </div>
                 <div>
-                  <h3 className="font-semibold text-gray-900">{currentTourStep.title}</h3>
+                  <h3 className="font-semibold text-sm sm:text-base text-gray-900">{currentTourStep.title}</h3>
                   <div className="flex items-center gap-2 mt-1">
                     <Badge variant="outline" className="text-xs">
                       {currentStep + 1} de {tourSteps.length}
@@ -405,7 +437,7 @@ export default function AITourGuide({ isOpen, onClose, onNavigate }: AITourGuide
             </div>
 
             {/* Progress Bar */}
-            <div className="w-full bg-gray-200 rounded-full h-2 mb-4">
+            <div className="w-full bg-gray-200 rounded-full h-2 mb-3 sm:mb-4">
               <div 
                 className="bg-blue-500 h-2 rounded-full transition-all duration-300"
                 style={{ width: `${((currentStep + 1) / tourSteps.length) * 100}%` }}
@@ -413,41 +445,42 @@ export default function AITourGuide({ isOpen, onClose, onNavigate }: AITourGuide
             </div>
 
             {/* Content */}
-            <div className="mb-6">
-              <p className="text-gray-700 leading-relaxed">
+            <div className="mb-4 sm:mb-6">
+              <p className="text-gray-700 leading-relaxed text-sm sm:text-base">
                 {currentTourStep.content}
               </p>
             </div>
 
             {/* Actions */}
-            <div className="flex items-center justify-between">
-              <div className="flex gap-2">
+            <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3 sm:gap-0">
+              <div className="flex gap-2 order-2 sm:order-1">
                 <Button
                   variant="ghost"
                   size="sm"
                   onClick={handleSkip}
-                  className="text-gray-500"
+                  className="text-gray-500 text-xs sm:text-sm flex-1 sm:flex-initial"
                 >
                   Pular Tour
                 </Button>
               </div>
 
-              <div className="flex gap-2">
+              <div className="flex gap-2 order-1 sm:order-2">
                 <Button
                   variant="outline"
                   size="sm"
                   onClick={handlePrev}
                   disabled={currentStep === 0}
-                  className="flex items-center gap-1"
+                  className="flex items-center gap-1 text-xs sm:text-sm flex-1 sm:flex-initial"
                 >
                   <ArrowLeft className="h-3 w-3" />
-                  Anterior
+                  <span className="hidden sm:inline">Anterior</span>
+                  <span className="sm:hidden">Ant</span>
                 </Button>
                 
                 <Button
                   size="sm"
                   onClick={handleNext}
-                  className="flex items-center gap-1"
+                  className="flex items-center gap-1 text-xs sm:text-sm flex-1 sm:flex-initial"
                 >
                   {currentStep === tourSteps.length - 1 ? (
                     <>
@@ -456,7 +489,8 @@ export default function AITourGuide({ isOpen, onClose, onNavigate }: AITourGuide
                     </>
                   ) : (
                     <>
-                      Próximo
+                      <span className="hidden sm:inline">Próximo</span>
+                      <span className="sm:hidden">Próx</span>
                       <ArrowRight className="h-3 w-3" />
                     </>
                   )}
