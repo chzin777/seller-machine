@@ -1,0 +1,4 @@
+Arquivo temporário criado para permitir push das mudanças no .env
+Data: " + new Date().toISOString() + "
+
+Este arquivo pode ser removido após o deploy.
