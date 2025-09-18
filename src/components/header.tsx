@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useState, useRef, useEffect } from "react";
+import GlobalNotificationBell from "./GlobalNotificationBell";
 
 
 type HeaderProps = {
@@ -44,6 +45,9 @@ export default function Header({ userName }: HeaderProps) {
       <div className="font-semibold text-lg ml-16 sm:ml-20">
       </div>
       <div className="flex items-center gap-4 relative">
+        {/* Sino de Notificações Globais */}
+        <GlobalNotificationBell />
+        
         {/* Botão só mostra avatar no mobile, nome/avatar no desktop */}
         <button
           className="flex items-center gap-2 focus:outline-none group hover:cursor-pointer"

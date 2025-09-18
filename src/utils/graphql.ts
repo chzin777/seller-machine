@@ -19,7 +19,7 @@ export interface GraphQLVariables {
   [key: string]: any
 }
 
-import { GRAPHQL_CONFIG, getAuthHeaders } from '../config/graphql'
+import { GRAPHQL_CONFIG, getHeaders } from '../config/graphql'
 
 // Configuração do cliente GraphQL
 const GRAPHQL_ENDPOINT = GRAPHQL_CONFIG.endpoint
@@ -48,7 +48,7 @@ export async function graphqlQuery<T = any>(
 
     const response = await fetch(GRAPHQL_ENDPOINT, {
       method: 'POST',
-      headers: getAuthHeaders(),
+      headers: getHeaders(),
       body: JSON.stringify({ 
         query, 
         variables 
@@ -125,12 +125,8 @@ export async function graphqlQueryWithRetry<T = any>(
         console.warn(`GraphQL attempt ${attempt}/${retryAttempts} failed:`, error)
       }
       
-      // Não fazer retry em erros de validação ou autenticação
-      if (error instanceof Error && (
-        error.message.includes('validation') ||
-        error.message.includes('authentication') ||
-        error.message.includes('authorization')
-      )) {
+      // Não fazer retry em erros de validação
+      if (error instanceof Error && error.message.includes('validation')) {
         throw error
       }
       

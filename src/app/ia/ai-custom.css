@@ -1,0 +1,121 @@
+/* Utility class para esconder scrollbar mas manter funcionalidade */
+.scrollbar-hide {
+  -ms-overflow-style: none;  /* IE and Edge */
+  scrollbar-width: none;  /* Firefox */
+}
+
+.scrollbar-hide::-webkit-scrollbar {
+  display: none;  /* Chrome, Safari and Opera */
+}
+
+/* Fix para remover riscos indesejados nos botões */
+.tour-button {
+  text-decoration: none !important;
+  outline: none !important;
+  border-style: solid !important;
+}
+
+.tour-button:focus {
+  text-decoration: none !important;
+  outline: none !important;
+}
+
+.tour-button:active {
+  text-decoration: none !important;
+  outline: none !important;
+}
+
+/* Fix para botões de navegação tabs */
+.nav-tab-button {
+  text-decoration: none !important;
+  outline: none !important;
+  border-style: solid !important;
+  text-underline-offset: none !important;
+}
+
+.nav-tab-button:focus {
+  text-decoration: none !important;
+  outline: none !important;
+}
+
+.nav-tab-button:active {
+  text-decoration: none !important;
+  outline: none !important;
+}
+
+.nav-tab-button:hover {
+  text-decoration: none !important;
+}
+
+/* Remove text-decoration de todos os elementos filhos */
+.nav-tab-button * {
+  text-decoration: none !important;
+}
+
+.nav-tab-button span {
+  text-decoration: none !important;
+  border: none !important;
+}
+
+/* Especificamente para mobile - remover qualquer linha/border indesejado */
+@media (max-width: 640px) {
+  .nav-tab-button {
+    text-decoration: none !important;
+    border-bottom: none !important;
+    text-decoration-line: none !important;
+  }
+  
+  .nav-tab-button span {
+    text-decoration: none !important;
+    border-bottom: none !important;
+    text-decoration-line: none !important;
+  }
+  
+  .nav-tab-button .text-xs {
+    text-decoration: none !important;
+    border-bottom: none !important;
+    text-decoration-line: none !important;
+  }
+}
+
+/* Smooth scroll para navegação de tabs */
+.tab-navigation {
+  scroll-behavior: smooth;
+}
+
+/* Transições suaves para elementos de IA */
+.ai-transition {
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* Gradiente sutil para indicar mais conteúdo nos tabs */
+.tab-fade-right::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  right: 0;
+  width: 20px;
+  height: 100%;
+  background: linear-gradient(to right, transparent, white);
+  pointer-events: none;
+}
+
+/* Hover effect para tabs */
+.tab-hover:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+}
+
+/* Loading state para cards */
+.ai-card-loading {
+  animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+}
+
+@keyframes pulse {
+  0%, 100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: .5;
+  }
+}

@@ -1,20 +1,16 @@
-import { NextResponse } from 'next/server';
+import { NextRequest, NextResponse } from 'next/server';
 
 // Simular dados de vendedores com vendas
 export async function GET() {
   try {
-    // Buscar dados das notas fiscais para calcular vendas por vendedor
-    const notasResponse = await fetch('https://api-dev-production-6bb5.up.railway.app/api/notas-fiscais');
-    
-    if (!notasResponse.ok) {
-      throw new Error('Erro ao buscar notas fiscais');
-    }
-    
-    const notas = await notasResponse.json();
-    
-    if (!Array.isArray(notas)) {
-      throw new Error('Dados de notas fiscais inválidos');
-    }
+    // Simular dados de notas fiscais para desenvolvimento local
+    const notas = [
+      { id: 1, valor: 15000, vendedorId: 1, data: '2024-01-15' },
+      { id: 2, valor: 8500, vendedorId: 2, data: '2024-01-16' },
+      { id: 3, valor: 12000, vendedorId: 1, data: '2024-01-17' },
+      { id: 4, valor: 6500, vendedorId: 3, data: '2024-01-18' },
+      { id: 5, valor: 9200, vendedorId: 2, data: '2024-01-19' }
+    ];
 
     // Simular vendedores baseado nos dados reais
     const vendedores = [
@@ -51,8 +47,8 @@ export async function GET() {
       }, 0);
       const notasVendedor = notas.slice(startIndex, startIndex + qtdNotas);
       
-      // Calcular métricas
-      const receita = notasVendedor.reduce((acc: number, nota: any) => acc + (parseFloat(nota.valorTotal) || 0), 0);
+      // Calcular métricas (converter de centavos para reais)
+      const receita = notasVendedor.reduce((acc: number, nota: any) => acc + ((parseFloat(nota.valorTotal) || 0) / 100), 0);
       const volume = notasVendedor.length;
       const ticketMedio = volume > 0 ? receita / volume : 0;
       const percentualMeta = vendedor.meta > 0 ? (receita / vendedor.meta) * 100 : 0;
@@ -88,5 +84,70 @@ export async function GET() {
   } catch (error) {
     console.error('Erro ao buscar dados de vendedores:', error);
     return NextResponse.json({ error: 'Erro interno do servidor' }, { status: 500 });
+  }
+}
+
+export async function POST(request: NextRequest) {
+  try {
+    const body = await request.json();
+    
+    // Validate required fields
+    if (!body.nome) {
+      return NextResponse.json(
+        { error: 'Nome é obrigatório' },
+        { status: 400 }
+      );
+    }
+    
+    if (!body.meta || body.meta <= 0) {
+      return NextResponse.json(
+        { error: 'Meta deve ser um valor positivo' },
+        { status: 400 }
+      );
+    }
+    
+    // Generate new vendedor ID (in real app, this would be handled by database)
+    const novoId = Math.floor(Math.random() * 10000) + 1000;
+    
+    // Create new vendedor
+    const novoVendedor = {
+      id: novoId,
+      nome: body.nome,
+      avatar: body.nome.split(' ').map((n: string) => n[0]).join('').toUpperCase().substring(0, 2),
+      meta: body.meta,
+      cor: body.cor || '#3B82F6',
+      receita: 0,
+      volume: 0,
+      ticketMedio: 0,
+      percentualMeta: 0,
+      crescimento: 0,
+      tendencia: 'up',
+      ultimaVenda: new Date().toISOString().split('T')[0],
+      posicao: 0,
+      filialId: body.filialId || null,
+      contato: {
+        email: body.email || `${body.nome.toLowerCase().replace(/\s+/g, '.')}@empresa.com`,
+        telefone: body.telefone || '',
+        whatsapp: body.whatsapp || ''
+      },
+      status: {
+        ativo: true,
+        dataAdmissao: new Date().toISOString().split('T')[0],
+        observacoes: body.observacoes || 'Vendedor recém-cadastrado'
+      },
+      dataCriacao: new Date().toISOString(),
+      ultimaAtualizacao: new Date().toISOString()
+    };
+    
+    return NextResponse.json({
+      message: 'Vendedor criado com sucesso',
+      vendedor: novoVendedor
+    }, { status: 201 });
+  } catch (error) {
+    console.error('Erro ao criar vendedor:', error);
+    return NextResponse.json(
+      { error: 'Erro interno do servidor' },
+      { status: 500 }
+    );
   }
 }

@@ -29,7 +29,7 @@ export async function GET() {
     if (!realAssociations || realAssociations.length === 0) {
       try {
         console.log('Gerando associações baseadas nas notas fiscais...');
-        const notasResponse = await fetch('https://api-dev-production-6bb5.up.railway.app/api/notas-fiscais');
+        const notasResponse = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/notas-fiscais`);
         
         if (notasResponse.ok) {
           const notas = await notasResponse.json();
@@ -109,135 +109,21 @@ export async function GET() {
       }
     }
     
-    // Se não há dados reais nem gerados, usar dados mock como fallback
-    const mockAssociations = [
-       {
-         product_a_id: 212,
-         product_b_id: 124,
-         support_count: 45,
-         confidence: 0.75,
-         lift: 1.8,
-         leverage: 0.05,
-         window_days: 30,
-         updated_at: new Date().toISOString()
-       },
-       {
-         product_a_id: 146,
-         product_b_id: 215,
-         support_count: 32,
-         confidence: 0.68,
-         lift: 2.1,
-         leverage: 0.03,
-         window_days: 30,
-         updated_at: new Date().toISOString()
-       },
-       {
-         product_a_id: 124,
-         product_b_id: 137,
-         support_count: 28,
-         confidence: 0.82,
-         lift: 1.5,
-         leverage: 0.07,
-         window_days: 30,
-         updated_at: new Date().toISOString()
-       },
-       {
-         product_a_id: 115,
-         product_b_id: 138,
-         support_count: 38,
-         confidence: 0.71,
-         lift: 1.9,
-         leverage: 0.04,
-         window_days: 30,
-         updated_at: new Date().toISOString()
-       },
-       {
-         product_a_id: 50,
-         product_b_id: 41,
-         support_count: 25,
-         confidence: 0.79,
-         lift: 2.3,
-         leverage: 0.06,
-         window_days: 30,
-         updated_at: new Date().toISOString()
-       },
-       {
-         product_a_id: 89,
-         product_b_id: 156,
-         support_count: 42,
-         confidence: 0.73,
-         lift: 1.6,
-         leverage: 0.08,
-         window_days: 30,
-         updated_at: new Date().toISOString()
-       },
-       {
-         product_a_id: 203,
-         product_b_id: 78,
-         support_count: 35,
-         confidence: 0.85,
-         lift: 2.0,
-         leverage: 0.05,
-         window_days: 30,
-         updated_at: new Date().toISOString()
-       },
-       {
-         product_a_id: 167,
-         product_b_id: 92,
-         support_count: 29,
-         confidence: 0.77,
-         lift: 1.7,
-         leverage: 0.04,
-         window_days: 30,
-         updated_at: new Date().toISOString()
-       },
-       {
-         product_a_id: 134,
-         product_b_id: 188,
-         support_count: 31,
-         confidence: 0.69,
-         lift: 1.9,
-         leverage: 0.06,
-         window_days: 30,
-         updated_at: new Date().toISOString()
-       },
-       {
-         product_a_id: 76,
-         product_b_id: 201,
-         support_count: 37,
-         confidence: 0.81,
-         lift: 1.4,
-         leverage: 0.07,
-         window_days: 30,
-         updated_at: new Date().toISOString()
-       },
-       {
-         product_a_id: 159,
-         product_b_id: 112,
-         support_count: 26,
-         confidence: 0.74,
-         lift: 2.2,
-         leverage: 0.03,
-         window_days: 30,
-         updated_at: new Date().toISOString()
-       }
-     ];
+
     
-    // Usar dados reais se disponíveis, senão usar gerados, senão usar mock
-     console.log(`Associações disponíveis - Reais: ${realAssociations?.length || 0}, Geradas: ${generatedAssociations.length}, Mock: ${mockAssociations.length}`);
+    // Usar dados reais se disponíveis, senão usar gerados
+     console.log(`Associações disponíveis - Reais: ${realAssociations?.length || 0}, Geradas: ${generatedAssociations.length}`);
      
      const associations = (realAssociations && realAssociations.length > 0) 
        ? realAssociations 
-       : (generatedAssociations.length > 0) 
-         ? generatedAssociations 
-         : mockAssociations;
+       : generatedAssociations;
          
-     console.log(`Usando ${associations.length} associações do tipo: ${(realAssociations?.length || 0) > 0 ? 'reais' : generatedAssociations.length > 0 ? 'geradas' : 'mock'}`);
+     console.log(`Usando ${associations.length} associações do tipo: ${(realAssociations?.length || 0) > 0 ? 'reais' : 'geradas'}`);
 
     // Buscar produtos da API externa
     let productMap = new Map();
     try {
-      const response = await fetch('https://api-dev-production-6bb5.up.railway.app/api/produtos');
+      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/produtos`);
       if (response.ok) {
         const produtos = await response.json();
         // Mapear produtos da API externa
@@ -249,24 +135,10 @@ export async function GET() {
          });
         console.log(`Carregados ${produtos.length} produtos da API externa`);
       } else {
-        console.warn('Não foi possível carregar produtos da API externa, usando dados mock');
-        // Fallback para dados mock se a API externa falhar
-        productMap = new Map([
-          [1, { name: 'Prato', type: 'Servico' }],
-          [2, { name: 'Faca', type: 'Maquina' }],
-          [3, { name: 'Copo', type: 'Peca' }],
-          [4, { name: 'Máquina de Lavar', type: 'Servico' }]
-        ]);
+        console.warn('Não foi possível carregar produtos da API externa');
       }
     } catch (error) {
       console.error('Erro ao buscar produtos da API externa:', error);
-      // Fallback para dados mock se a API externa falhar
-      productMap = new Map([
-        [1, { name: 'Prato', type: 'Servico' }],
-        [2, { name: 'Faca', type: 'Maquina' }],
-        [3, { name: 'Copo', type: 'Peca' }],
-        [4, { name: 'Máquina de Lavar', type: 'Servico' }]
-      ]);
     }
     
     // Buscar itens de pedidos para contar vendas
@@ -282,7 +154,7 @@ export async function GET() {
     const salesCount = new Map();
     
     try {
-      const itensResponse = await fetch('https://api-dev-production-6bb5.up.railway.app/api/notas-fiscais-itens');
+      const itensResponse = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/notas-fiscais-itens`);
       if (itensResponse.ok) {
         const itens = await itensResponse.json();
         if (Array.isArray(itens)) {
@@ -301,18 +173,6 @@ export async function GET() {
       }
     } catch (error) {
       console.error('Erro ao buscar dados de vendas reais:', error);
-      // Fallback para vendas simuladas apenas se necessário
-      const simulatedSales = {
-        212: 15, 124: 23, 146: 18, 215: 12, 137: 31, 115: 9, 138: 14, 50: 27, 41: 19,
-        89: 22, 156: 16, 203: 25, 78: 20, 167: 13, 92: 28, 134: 17, 188: 21, 76: 24, 201: 15, 159: 19, 112: 26
-      };
-      Object.entries(simulatedSales).forEach(([productId, salesTotal]) => {
-        const orders = new Set();
-        for (let i = 1; i <= salesTotal; i++) {
-          orders.add(`order_${productId}_${i}`);
-        }
-        salesCount.set(parseInt(productId), orders);
-      });
     }
     
     // Processar order_items reais se existirem
