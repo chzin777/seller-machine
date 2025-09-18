@@ -105,11 +105,11 @@ function DashboardContent() {
 
       <div className="max-w-7xl mx-auto flex flex-col gap-6 sm:gap-8 px-3 sm:px-6 overflow-x-hidden">
         {/* Cards de KPIs */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-4 sm:gap-5 w-full min-w-0">
+  <div className="kpi-grid grid grid-cols-2 xs:grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-5 gap-3 sm:gap-5 w-full min-w-0 auto-rows-fr">
           {/* Receita Total */}
-          <GenericTiltedCard className="col-span-1">
-            <Card className="shadow-lg border border-green-200/60 bg-white h-full kpi-container">
-              <CardHeader className="flex flex-row items-start pb-1 pt-4 px-3 flex-shrink-0 justify-center">
+          <GenericTiltedCard className="col-span-1 kpi-card-wrapper">
+            <Card className="shadow-lg border border-green-200/60 bg-white h-full kpi-container kpi-uniform">
+              <CardHeader className="kpi-header flex flex-row items-center pb-1 pt-4 px-3 flex-shrink-0 justify-center">
                 <CardTitle className="text-sm sm:text-base md:text-xl font-bold text-green-800 leading-tight w-full text-center">Receita Total</CardTitle>
               </CardHeader>
               <CardContent className="kpi-content px-3 pt-0 pb-4 flex flex-col items-center justify-center">
@@ -125,9 +125,9 @@ function DashboardContent() {
           </GenericTiltedCard>
 
           {/* Ticket Médio */}
-          <GenericTiltedCard className="col-span-1">
-            <Card className="shadow-lg border border-yellow-200/60 bg-white h-full kpi-container">
-              <CardHeader className="flex flex-row items-start pb-1 pt-4 px-3 flex-shrink-0 justify-center">
+          <GenericTiltedCard className="col-span-1 kpi-card-wrapper">
+            <Card className="shadow-lg border border-yellow-200/60 bg-white h-full kpi-container kpi-uniform">
+              <CardHeader className="kpi-header flex flex-row items-center pb-1 pt-4 px-3 flex-shrink-0 justify-center">
                 <CardTitle className="text-sm sm:text-base md:text-xl font-bold text-yellow-700 leading-tight w-full text-center">Ticket Médio</CardTitle>
               </CardHeader>
               <CardContent className="kpi-content px-3 pt-0 pb-4 flex flex-col items-center justify-center">
@@ -139,9 +139,9 @@ function DashboardContent() {
           </GenericTiltedCard>
 
           {/* Produtos Cadastrados */}
-          <GenericTiltedCard className="col-span-1">
-            <Card className="shadow-lg border border-indigo-200/60 bg-white h-full kpi-container">
-              <CardHeader className="flex flex-row items-start pb-1 pt-4 px-3 flex-shrink-0 justify-center">
+          <GenericTiltedCard className="col-span-1 kpi-card-wrapper">
+            <Card className="shadow-lg border border-indigo-200/60 bg-white h-full kpi-container kpi-uniform">
+              <CardHeader className="kpi-header flex flex-row items-center pb-1 pt-4 px-3 flex-shrink-0 justify-center">
                 <CardTitle className="text-sm sm:text-base md:text-xl font-bold text-indigo-800 leading-tight w-full text-center">Produtos</CardTitle>
               </CardHeader>
               <CardContent className="kpi-content px-3 pt-0 pb-4 flex flex-col items-center justify-center">
@@ -153,9 +153,9 @@ function DashboardContent() {
           </GenericTiltedCard>
 
           {/* Clientes Ativos */}
-          <GenericTiltedCard className="col-span-1">
-            <Card className="shadow-lg border border-blue-200/60 bg-white h-full kpi-container">
-              <CardHeader className="flex flex-row items-start pb-1 pt-4 px-3 flex-shrink-0 justify-center">
+          <GenericTiltedCard className="col-span-1 kpi-card-wrapper">
+            <Card className="shadow-lg border border-blue-200/60 bg-white h-full kpi-container kpi-uniform">
+              <CardHeader className="kpi-header flex flex-row items-center pb-1 pt-4 px-3 flex-shrink-0 justify-center">
                 <CardTitle className="text-sm sm:text-base md:text-xl font-bold text-blue-800 leading-tight w-full text-center">Clientes Ativos</CardTitle>
               </CardHeader>
               <CardContent className="kpi-content px-3 pt-0 pb-4 flex flex-col items-center justify-center">
@@ -167,9 +167,9 @@ function DashboardContent() {
           </GenericTiltedCard>
 
           {/* Clientes Inativos */}
-          <GenericTiltedCard className="col-span-1">
-            <Card className="shadow-lg border border-red-200/60 bg-white h-full kpi-container">
-              <CardHeader className="flex flex-row items-start pb-1 pt-4 px-3 flex-shrink-0 justify-center">
+          <GenericTiltedCard className="col-span-1 kpi-card-wrapper">
+            <Card className="shadow-lg border border-red-200/60 bg-white h-full kpi-container kpi-uniform">
+              <CardHeader className="kpi-header flex flex-row items-center pb-1 pt-4 px-3 flex-shrink-0 justify-center">
                 <CardTitle className="text-sm sm:text-base md:text-xl font-bold text-red-800 leading-tight w-full text-center">Clientes Inativos</CardTitle>
               </CardHeader>
               <CardContent className="kpi-content px-3 pt-0 pb-4 flex flex-col items-center justify-center">

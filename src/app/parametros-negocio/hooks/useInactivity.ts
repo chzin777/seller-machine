@@ -33,9 +33,14 @@ export function useInactivity() {
     tiposClienteExcluidos: null,
     ativo: true
   });
-  
+  const [diasInatividade, setDiasInatividade] = useState<number>(90);
   const [loadingFiltros, setLoadingFiltros] = useState(false);
   const [dirtyInatividade, setDirtyInatividade] = useState(false);
+
+  // Sincronizar diasInatividade com configuracao.diasSemCompra
+  useEffect(() => {
+    setDiasInatividade(configuracao.diasSemCompra);
+  }, [configuracao.diasSemCompra]);
 
   // Controlar dirty quando qualquer campo muda
   useEffect(() => {
@@ -59,9 +64,8 @@ export function useInactivity() {
     
     switch (field) {
       case 'diasSemCompra':
-        // Garantir que dias seja entre 1 e 365
-        const dias = value as number;
-        validatedValue = Math.max(1, Math.min(365, dias || 90)) as ConfiguracaoInatividade[K];
+        // Permitir digitação livre, validar só no submit
+        validatedValue = value;
         break;
         
       case 'valorMinimoCompra':
@@ -159,8 +163,8 @@ export function useInactivity() {
     const errors: string[] = [];
     
     // Validar dias de inatividade
-    if (configuracao.diasSemCompra < 1 || configuracao.diasSemCompra > 365) {
-      errors.push('Dias de inatividade deve estar entre 1 e 365');
+    if (configuracao.diasSemCompra < 1) {
+      errors.push('Dias de inatividade deve ser maior que zero');
     }
     
     // Validar valor mínimo
@@ -206,57 +210,52 @@ export function useInactivity() {
         return;
       }
 
-      console.log('💾 Salvando configuração completa de inatividade:', { empresaId, configuracao });
+      console.log('💾 Salvando configuração completa de inatividade via upsert:', { empresaId, configuracao });
 
-      const checkResponse = await fetch(`/api/proxy?url=/api/configuracao-inatividade/empresa/${empresaId}`);
-      
-      if (checkResponse.ok) {
-        const existingConfig = await checkResponse.json();
-        
-        const updateResponse = await fetch(`/api/proxy?url=/api/configuracao-inatividade/${existingConfig.id}`, {
-          method: 'PUT',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            diasSemCompra: configuracao.diasSemCompra,
-            valorMinimoCompra: configuracao.valorMinimoCompra,
-            considerarTipoCliente: configuracao.considerarTipoCliente,
-            tiposClienteExcluidos: configuracao.tiposClienteExcluidos,
-            ativo: configuracao.ativo
-          })
-        });
-        
-        if (!updateResponse.ok) {
-          throw new Error(`Erro ao atualizar configuração: ${updateResponse.status}`);
-        }
-      } else if (checkResponse.status === 404) {
-        console.log('➕ Criando nova configuração');
-        
-        const createPayload = {
-          empresaId: parseInt(empresaId),
-          diasSemCompra: configuracao.diasSemCompra,
-          valorMinimoCompra: configuracao.valorMinimoCompra,
-          considerarTipoCliente: configuracao.considerarTipoCliente,
-          tiposClienteExcluidos: configuracao.tiposClienteExcluidos,
-          ativo: configuracao.ativo
-        };
-        
-        const createResponse = await fetch('/api/proxy?url=/api/configuracao-inatividade', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify(createPayload)
-        });
-        
-        if (!createResponse.ok) {
-          const errorText = await createResponse.text();
-          throw new Error(`Erro ao criar configuração: ${createResponse.status} - ${errorText}`);
-        }
-      } else {
-        const errorText = await checkResponse.text();
-        console.error('❌ Erro na verificação:', errorText);
-        throw new Error(`Erro ao verificar configuração existente: ${checkResponse.status}`);
+      // Usar a nova API de upsert que garante que só haverá uma configuração por empresa
+      const upsertPayload = {
+        empresaId: parseInt(empresaId),
+        diasSemCompra: configuracao.diasSemCompra,
+        valorMinimoCompra: configuracao.valorMinimoCompra,
+        considerarTipoCliente: configuracao.considerarTipoCliente,
+        tiposClienteExcluidos: configuracao.tiposClienteExcluidos,
+        ativo: configuracao.ativo
+      };
+
+      const upsertResponse = await fetch('/api/configuracao-inatividade-upsert', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(upsertPayload)
+      });
+
+      if (!upsertResponse.ok) {
+        const errorData = await upsertResponse.json();
+        console.error('❌ Erro no upsert:', errorData);
+        throw new Error(errorData.error || `Erro ao salvar configuração: ${upsertResponse.status}`);
       }
 
+      const upsertResult = await upsertResponse.json();
+      console.log('✅ Configuração salva via upsert:', upsertResult);
+
       setDirtyInatividade(false);
+      const diasSolicitado = configuracao.diasSemCompra;
+      let diasPersistidoAPI: number | null = null;
+      try {
+        // Revalidar imediatamente o que a API está devolvendo
+        const verifyResp = await fetch(`/api/proxy?url=/api/configuracao-inatividade/empresa/${upsertPayload.empresaId}`);
+        if (verifyResp.ok) {
+          const verCfg = await verifyResp.json();
+          diasPersistidoAPI = verCfg.diasSemCompra;
+          console.log('🔍 Verificação pós-upsert -> API retornou diasSemCompra =', diasPersistidoAPI, ' (solicitado =', diasSolicitado, ')');
+          if (typeof diasPersistidoAPI === 'number' && diasPersistidoAPI !== diasSolicitado) {
+            showToast(`Aviso: backend retornou ${diasPersistidoAPI} em vez de ${diasSolicitado}. Mantendo valor local até correção.`, 'warning');
+          }
+        } else {
+          console.warn('⚠️ Não foi possível verificar persistência após upsert:', verifyResp.status);
+        }
+      } catch (e) {
+        console.warn('⚠️ Erro na verificação pós-upsert:', e);
+      }
       
       if (typeof window !== "undefined") {
         const user = localStorage.getItem("user") || sessionStorage.getItem("user");
@@ -267,7 +266,9 @@ export function useInactivity() {
           
           // Salvar configuração completa no localStorage
           localStorage.setItem(configKey, JSON.stringify({
-            diasInatividade: configuracao.diasSemCompra, // manter compatibilidade
+            diasInatividade: diasPersistidoAPI && diasPersistidoAPI !== diasSolicitado ? diasPersistidoAPI : configuracao.diasSemCompra, // se API divergir, ainda guardamos o que ela devolveu para rastrear
+            diasSolicitadoOriginal: diasSolicitado,
+            divergenciaAPI: diasPersistidoAPI !== null && diasPersistidoAPI !== diasSolicitado ? true : false,
             valorMinimoCompra: configuracao.valorMinimoCompra,
             considerarTipoCliente: configuracao.considerarTipoCliente,
             tiposClienteExcluidos: configuracao.tiposClienteExcluidos,
@@ -278,7 +279,7 @@ export function useInactivity() {
         
         // Notificar outras páginas sobre a mudança
         window.dispatchEvent(new CustomEvent('inactivityConfigChanged', { 
-          detail: { diasInatividade: configuracao.diasSemCompra, timestamp: Date.now() }
+          detail: { diasInatividade: diasSolicitado, timestamp: Date.now() }
         }));
       }
 
@@ -287,7 +288,7 @@ export function useInactivity() {
       console.error('❌ Erro principal:', error);
       
       try {
-        console.log('🔄 Tentando fallback para API local...');
+        console.log('🔄 Tentando fallback para localStorage...');
         
         if (typeof window !== "undefined") {
           const user = localStorage.getItem("user") || sessionStorage.getItem("user");
@@ -307,7 +308,7 @@ export function useInactivity() {
             }));
             
             console.log('💾 Configuração salva no localStorage como fallback');
-            showToast('Configuração salva localmente (API externa indisponível)', 'warning');
+            showToast('Configuração salva localmente (API indisponível)', 'warning');
             setDirtyInatividade(false);
             return;
           }
@@ -337,29 +338,31 @@ export function useInactivity() {
         }
       }
 
-      const checkResponse = await fetch(`/api/proxy?url=/api/configuracao-inatividade/empresa/${empresaId}`);
-      console.log('🔍 Status da verificação para reset:', checkResponse.status);
-      
-      if (checkResponse.ok) {
-        const existingConfig = await checkResponse.json();
-        console.log('🔄 Resetando configuração existente:', existingConfig.id);
-        
+      // Resetar usando a nova API de upsert com valores padrão
+      if (empresaId) {
         const defaultConfig = {
+          empresaId: parseInt(empresaId),
           diasSemCompra: 90,
           valorMinimoCompra: 0,
           considerarTipoCliente: false,
           tiposClienteExcluidos: null,
           ativo: true
         };
-        
-        const updateResponse = await fetch(`/api/proxy?url=/api/configuracao-inatividade/${existingConfig.id}`, {
-          method: 'PUT',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify(defaultConfig)
-        });
-        
-        if (updateResponse.ok) {
-          showToast('Configuração resetada para valores padrão', 'success');
+
+        try {
+          const resetResponse = await fetch('/api/configuracao-inatividade-upsert', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(defaultConfig)
+          });
+
+          if (resetResponse.ok) {
+            showToast('Configuração resetada para valores padrão', 'success');
+          } else {
+            console.warn('⚠️ Erro ao resetar via API, resetando apenas localmente');
+          }
+        } catch (error) {
+          console.warn('⚠️ Erro ao conectar com API para reset, resetando apenas localmente');
         }
       }
 

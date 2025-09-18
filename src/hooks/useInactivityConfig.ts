@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 
 /**
  * Hook global para gerenciar configuração de inatividade
@@ -34,20 +34,39 @@ export function useInactivityConfig() {
           
           if (response.ok) {
             const config = await response.json();
-            const dias = config.diasSemCompra || 90;
-            setDiasInatividade(dias);
-            setLastUpdated(config.updatedAt || new Date().toISOString());
-            
-            // Sincronizar com localStorage
+            const apiDias = config.diasSemCompra || 90;
+            const apiUpdatedAt = config.updatedAt ? new Date(config.updatedAt).getTime() : Date.now();
+
+            // Ver se existe config local e comparar timestamps
             if (userId) {
               const configKey = `filtros_config_${userId}`;
+              const localConfigRaw = localStorage.getItem(configKey);
+              if (localConfigRaw) {
+                try {
+                  const localConfig = JSON.parse(localConfigRaw);
+                  const localDias = localConfig.diasInatividade;
+                  const localUpdated = localConfig.dataUltimaAtualizacao ? new Date(localConfig.dataUltimaAtualizacao).getTime() : 0;
+
+                  // Sempre prioriza o valor do banco após salvar ou reload
+                  if (typeof apiDias === 'number') {
+                    setDiasInatividade(apiDias);
+                    setLastUpdated(config.updatedAt || new Date().toISOString());
+                    return apiDias;
+                  }
+                } catch (e) {
+                  console.warn('Falha ao parsear config local para comparar com API:', e);
+                }
+              }
+              // Atualizar/alinhar storage com valor da API
               localStorage.setItem(configKey, JSON.stringify({
-                diasInatividade: dias,
+                diasInatividade: apiDias,
                 dataUltimaAtualizacao: new Date().toISOString()
               }));
             }
-            
-            return dias;
+
+            setDiasInatividade(apiDias);
+            setLastUpdated(config.updatedAt || new Date().toISOString());
+            return apiDias;
           }
         } catch (error) {
           console.warn('Erro ao carregar da API externa via proxy, usando localStorage:', error);
@@ -61,10 +80,11 @@ export function useInactivityConfig() {
         
         if (localConfig) {
           const config = JSON.parse(localConfig);
-          const dias = config.diasInatividade || 90;
-          setDiasInatividade(dias);
-          setLastUpdated(config.dataUltimaAtualizacao);
-          return dias;
+      const dias = config.diasInatividade || 90;
+      console.log('📦 Carregando configuração de inatividade do localStorage (fallback). Dias:', dias);
+      setDiasInatividade(dias);
+      setLastUpdated(config.dataUltimaAtualizacao);
+      return dias;
         }
       }
 
@@ -82,16 +102,25 @@ export function useInactivityConfig() {
   }, []);
 
   // Função para atualizar configuração e notificar outras páginas
+  const loadConfigurationRef = useRef(loadConfiguration);
+  useEffect(() => { loadConfigurationRef.current = loadConfiguration }, [loadConfiguration]);
+
   const updateConfiguration = useCallback((newDias: number) => {
     setDiasInatividade(newDias);
     setLastUpdated(new Date().toISOString());
-    
     // Disparar evento personalizado para notificar outras páginas
     if (typeof window !== "undefined") {
       window.dispatchEvent(new CustomEvent('inactivityConfigChanged', { 
         detail: { diasInatividade: newDias, timestamp: Date.now() }
       }));
     }
+    // Forçar recarregamento do valor atualizado do banco
+    setTimeout(() => {
+      if (typeof window !== "undefined" && loadConfigurationRef.current) {
+        console.log('🔄 Forçando reload da configuração após salvar...');
+        loadConfigurationRef.current();
+      }
+    }, 500);
   }, []);
 
   // Listener para mudanças vindas de outras páginas/abas

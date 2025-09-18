@@ -98,10 +98,15 @@ export default function InactivityTab({
                     <Input
                       type="number"
                       min={1}
-                      max={365}
-                      value={Number(configuracao.diasSemCompra) || 0}
+                      value={configuracao.diasSemCompra}
                       disabled={loadingFiltros}
-                      onChange={(e) => updateField('diasSemCompra', parseInt(e.target.value) || 90)}
+                      onChange={(e) => {
+                        const val = e.target.value;
+                        // Permitir digitação livre, só restringir no submit
+                        if (/^\d*$/.test(val)) {
+                          updateField('diasSemCompra', val === '' ? 0 : Number(val));
+                        }
+                      }}
                       className="text-center text-lg font-semibold pr-12"
                     />
                     <span className="absolute right-3 top-1/2 -translate-y-1/2 text-sm text-gray-500">

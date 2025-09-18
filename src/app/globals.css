@@ -241,10 +241,48 @@
 
     /* KPI Cards mobile responsiveness */
     .kpi-container {
-      min-height: 140px;
+        min-height: 140px;
       display: flex;
       flex-direction: column;
     }
+
+    /* Uniform height adjustments */
+    .kpi-uniform {
+      min-height: 150px;
+    }
+
+    .kpi-grid {
+      grid-auto-rows: 1fr;
+      align-items: stretch;
+    }
+
+    @media (max-width: 520px) {
+      .kpi-grid {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+      }
+      .kpi-uniform {
+        min-height: 130px;
+      }
+    }
+
+    @media (max-width: 390px) {
+      .kpi-uniform { min-height: 120px; }
+      .kpi-number-responsive { font-size: clamp(0.95rem, 4vw, 1.3rem) !important; }
+    }
+
+    /* Laptop comum 1366x768: garantir padronização sem exagero de altura */
+    @media (min-width: 1024px) and (max-width: 1400px) {
+      .kpi-grid { gap: 0.9rem !important; }
+      .kpi-uniform { min-height: 155px; }
+      .kpi-number-responsive { font-size: clamp(1.2rem, 1.15vw + 0.6rem, 1.9rem) !important; }
+      .kpi-container .card-header h3,
+      .kpi-container h3,
+      .kpi-container [class*="CardTitle"] { font-size: 0.8rem !important; }
+    }
+
+    /* Uniform header height for KPI cards (all breakpoints) */
+    .kpi-header { min-height: 54px; display:flex; align-items:center; }
+    @media (max-width: 520px) { .kpi-header { min-height: 46px; } }
     
     .kpi-content {
       display: flex;

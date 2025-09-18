@@ -1,7 +1,8 @@
 "use client";
 
-import { createContext, useContext, ReactNode } from 'react';
+import { createContext, useContext, ReactNode, useEffect, useState } from 'react';
 import { useDashboardData } from '../hooks/useDashboardData';
+import { useInactivityConfig } from '../hooks/useInactivityConfig';
 
 // Tipos compatíveis com o DataProvider atual
 type ReceitaMensal = {
@@ -29,10 +30,47 @@ interface GraphQLDataContextType {
 const GraphQLDataContext = createContext<GraphQLDataContextType | undefined>(undefined);
 
 // Função para transformar dados GraphQL no formato esperado pelo dashboard
-function transformGraphQLData(dashboardData: any): GraphQLDataContextType {
+
+// Novo: Hook para buscar clientes inativos do endpoint REST usando dias do banco
+function useClientesInativosREST() {
+  const { diasInatividade, loading: loadingDias, loadConfiguration } = useInactivityConfig();
+  const [clientesInativos, setClientesInativos] = useState<number | null>(null);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    let isMounted = true;
+    setLoading(true);
+    setError(null);
+    // Primeiro busca o valor atualizado da configuração
+    loadConfiguration().then((dias) => {
+      if (isMounted && dias && dias > 0) {
+        console.log('🔎 Buscando clientes inativos com dias =', dias);
+        fetch(`/api/indicadores/clientes-inativos?dias=${dias}`)
+          .then(async (res) => {
+            if (!res.ok) throw new Error('Erro ao buscar clientes inativos');
+            const data = await res.json();
+            let total = data?.total_clientes_inativos ?? data?.clientes_inativos ?? data?.length ?? 0;
+            setClientesInativos(typeof total === 'number' ? total : 0);
+          })
+          .catch((err) => {
+            setError(err.message);
+            setClientesInativos(null);
+          })
+          .finally(() => setLoading(false));
+      } else {
+        setLoading(false);
+      }
+    });
+    return () => { isMounted = false; };
+  }, [diasInatividade]);
+
+  return { clientesInativos, loading: loading || loadingDias, error };
+}
+
+function transformGraphQLData(dashboardData: any, clientesInativosREST: { clientesInativos: number | null, loading: boolean, error: string | null }): GraphQLDataContextType {
   const { stats, vendasPorMes, topProdutos, clientes } = dashboardData;
-  
-  // Transformar vendas por mês no formato esperado
+  // ...existing code...
   const receitaMensal: ReceitaMensal | null = vendasPorMes.data ? {
     ano: new Date().getFullYear(),
     receitaPorMes: vendasPorMes.data.reduce((acc: Record<string, number>, item: any) => {
@@ -40,19 +78,14 @@ function transformGraphQLData(dashboardData: any): GraphQLDataContextType {
       return acc;
     }, {})
   } : null;
-
-  // Transformar top produtos em receita por tipo
   const receitaPorTipo: ReceitaPorTipo = topProdutos.data ? 
     topProdutos.data.map((item: any) => ({
       tipo: item.produto.categoria,
       receita: item.receita_total
     })) : [];
-
-  // Mock para vendas por filial (pode ser implementado depois)
   const vendasPorFilial: VendaPorFilial = [
     { filial: { nome: 'Filial Principal' }, receitaTotal: stats.data?.total_vendas || 0, quantidadeNotas: 100 }
   ];
-
   return {
     receitaTotal: stats.data?.total_vendas || null,
     ticketMedio: stats.data?.total_vendas && stats.data?.total_clientes ? 
@@ -62,17 +95,17 @@ function transformGraphQLData(dashboardData: any): GraphQLDataContextType {
     receitaPorTipo,
     vendasPorFilial,
     clientesAtivos: stats.data?.total_clientes || null,
-    clientesInativos: 0, // Pode ser calculado depois
-    loading: stats.loading || vendasPorMes.loading || topProdutos.loading || clientes.loading,
-    error: stats.error || vendasPorMes.error || topProdutos.error || clientes.error,
+    clientesInativos: clientesInativosREST.clientesInativos,
+    loading: stats.loading || vendasPorMes.loading || topProdutos.loading || clientes.loading || clientesInativosREST.loading,
+    error: stats.error || vendasPorMes.error || topProdutos.error || clientes.error || clientesInativosREST.error,
     refetch: dashboardData.refetchAll
   };
 }
 
 export function GraphQLDataProvider({ children }: { children: ReactNode }) {
   const dashboardData = useDashboardData();
-  const transformedData = transformGraphQLData(dashboardData);
-
+  const clientesInativosREST = useClientesInativosREST();
+  const transformedData = transformGraphQLData(dashboardData, clientesInativosREST);
   return (
     <GraphQLDataContext.Provider value={transformedData}>
       {children}
