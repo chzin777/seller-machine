@@ -8,11 +8,29 @@ export async function GET(req: NextRequest) {
     return NextResponse.json({ error: 'Missing url param' }, { status: 400 });
   }
   try {
-    const res = await fetch(`${API_BASE}${url.startsWith('/') ? url : '/' + url}`);
+    console.log(`[PROXY] Fetching: ${API_BASE}${url}`);
+    const res = await fetch(`${API_BASE}${url}`);
+    
+    if (!res.ok) {
+      console.error(`[PROXY] API Error: ${res.status} - ${res.statusText}`);
+      const errorText = await res.text();
+      console.error(`[PROXY] Error body: ${errorText}`);
+      return NextResponse.json({ error: `API Error: ${res.status} - ${errorText}` }, { status: res.status });
+    }
+    
+    const contentType = res.headers.get('content-type');
+    if (!contentType || !contentType.includes('application/json')) {
+      const textResponse = await res.text();
+      console.error(`[PROXY] Non-JSON response: ${textResponse.substring(0, 200)}...`);
+      return NextResponse.json({ error: 'API returned non-JSON response', response: textResponse.substring(0, 500) }, { status: 502 });
+    }
+    
     const data = await res.json();
+    console.log(`[PROXY] Success: ${Object.keys(data).length} keys in response`);
     return NextResponse.json(data);
-  } catch {
-    return NextResponse.json({ error: 'Erro ao buscar dados da API' }, { status: 500 });
+  } catch (error) {
+    console.error(`[PROXY] Exception:`, error);
+    return NextResponse.json({ error: `Erro ao buscar dados da API: ${error instanceof Error ? error.message : 'Unknown error'}` }, { status: 500 });
   }
 }
 

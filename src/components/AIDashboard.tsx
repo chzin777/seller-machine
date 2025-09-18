@@ -216,7 +216,7 @@ export default function AIDashboard() {
         </CardHeader>
         <CardContent>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            {data.proximasFeatures.map((feature, index) => (
+            {data.proximasFeatures.map((feature: string, index: number) => (
               <div key={index} className="flex items-center gap-3 p-3 bg-gray-50 rounded-lg">
                 <div className="w-2 h-2 bg-purple-500 rounded-full"></div>
                 <span className="text-gray-700">{feature}</span>

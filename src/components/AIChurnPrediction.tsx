@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from './ui/card';
 import { Input } from './ui/input';
 import { Button } from './ui/button';
@@ -20,7 +20,7 @@ import {
   Mail,
   Phone
 } from 'lucide-react';
-import { useChurnPrediction } from '../hooks/useAI';
+import { useChurnPrediction, useClientePorDocumento, useClienteHistorico, FilialOption } from '../hooks/useAI';
 import LoadingSpinner from './LoadingSpinner';
 
 // Componente para card de cliente em risco
@@ -171,14 +171,98 @@ function ChurnClientCard({
   );
 }
 
+// Interface para filiais
+
+
+// Modal para detalhes do cliente
+function ClienteDetailsModal({ 
+  clienteId, 
+  isOpen, 
+  onClose 
+}: { 
+  clienteId: number | null; 
+  isOpen: boolean; 
+  onClose: () => void; 
+}) {
+  const { data: historico, loading: loadingHistorico } = useClienteHistorico(clienteId);
+
+  if (!isOpen || !clienteId) return null;
+
+  return (
+    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+      <div className="bg-white rounded-lg p-6 max-w-4xl w-full mx-4 max-h-[80vh] overflow-y-auto">
+        <div className="flex justify-between items-center mb-4">
+          <h2 className="text-2xl font-bold">Detalhes do Cliente #{clienteId}</h2>
+          <Button variant="outline" onClick={onClose}>
+            ✕
+          </Button>
+        </div>
+        
+        <div className="space-y-4">
+          <h3 className="text-lg font-semibold">Histórico de Compras</h3>
+          {loadingHistorico ? (
+            <LoadingSpinner />
+          ) : (
+            <div className="grid gap-2">
+              {Array.isArray(historico) && historico.length > 0 ? (
+                historico.slice(0, 10).map((nota: any, index: number) => (
+                  <div key={index} className="border p-3 rounded">
+                    <div className="flex justify-between">
+                      <span>Nota #{nota.numeroNota || nota.id}</span>
+                      <span>R$ {(nota.valorTotal || 0).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</span>
+                    </div>
+                    <div className="text-sm text-gray-600">
+                      Data: {new Date(nota.dataEmissao || nota.data).toLocaleDateString('pt-BR')}
+                    </div>
+                  </div>
+                ))
+              ) : (
+                <p className="text-gray-500">Nenhum histórico de compras encontrado.</p>
+              )}
+            </div>
+          )}
+        </div>
+      </div>
+    </div>
+  );
+}
+
 // Componente principal de predição de churn
 export default function AIChurnPrediction() {
   const [filialId, setFilialId] = useState<number | undefined>(undefined);
   const [limit, setLimit] = useState(50);
   const [searchTerm, setSearchTerm] = useState('');
   const [riskFilter, setRiskFilter] = useState<string>('all');
+  const [filiais, setFiliais] = useState<FilialOption[]>([]);
+  const [cpfCnpjSearch, setCpfCnpjSearch] = useState('');
+  const [selectedClienteId, setSelectedClienteId] = useState<number | null>(null);
+  const [isModalOpen, setIsModalOpen] = useState(false);
   
   const { data, loading, error, refetch } = useChurnPrediction(filialId, limit);
+  const { data: clientePorDoc, loading: loadingDoc } = useClientePorDocumento(cpfCnpjSearch);
+
+  // Carregar filiais disponíveis
+  useEffect(() => {
+    const loadFiliais = async () => {
+      try {
+        const response = await fetch('/api/proxy?url=/api/filiais');
+        if (!response.ok) {
+          throw new Error('Erro ao carregar filiais');
+        }
+        const data = await response.json();
+        setFiliais(data);
+      } catch (error) {
+        console.error('Erro ao carregar filiais:', error);
+        // Fallback com dados mock
+        setFiliais([
+          { id: 1, nome: 'Matriz', cidade: 'Rio Verde', estado: 'GO' },
+          { id: 2, nome: 'Filial 1', cidade: 'Jataí', estado: 'GO' },
+          { id: 3, nome: 'Filial 2', cidade: 'Cristalina', estado: 'GO' }
+        ]);
+      }
+    };
+    loadFiliais();
+  }, []);
 
   // Filtrar dados baseado na busca e filtro de risco
   const filteredData = useMemo(() => {
@@ -202,7 +286,17 @@ export default function AIChurnPrediction() {
   // Estatísticas dos dados
   const stats = useMemo(() => {
     if (!Array.isArray(data)) {
-      return { total: 0, alto: 0, medio: 0, baixo: 0, avgProbability: 0 };
+      return { 
+        total: 0, 
+        alto: 0, 
+        medio: 0, 
+        baixo: 0, 
+        avgProbability: 0,
+        totalValor: 0,
+        avgValor: 0,
+        totalFrequencia: 0,
+        avgFrequencia: 0
+      };
     }
     
     const total = data.length;
@@ -212,13 +306,34 @@ export default function AIChurnPrediction() {
     const avgProbability = data.length > 0 
       ? data.reduce((acc, c) => acc + c.churnProbability, 0) / data.length 
       : 0;
+    
+    const totalValor = data.reduce((acc, c) => acc + (c.valorTotal || 0), 0);
+    const avgValor = data.length > 0 ? totalValor / data.length : 0;
+    
+    const totalFrequencia = data.reduce((acc, c) => acc + (c.frequenciaCompras || 0), 0);
+    const avgFrequencia = data.length > 0 ? totalFrequencia / data.length : 0;
 
-    return { total, alto, medio, baixo, avgProbability };
+    return { 
+      total, 
+      alto, 
+      medio, 
+      baixo, 
+      avgProbability,
+      totalValor,
+      avgValor,
+      totalFrequencia,
+      avgFrequencia
+    };
   }, [data]);
 
   const handleViewDetails = (clienteId: number) => {
-    // Implementar navegação para detalhes do cliente
-    console.log('Ver detalhes do cliente:', clienteId);
+    setSelectedClienteId(clienteId);
+    setIsModalOpen(true);
+  };
+
+  const handleCloseModal = () => {
+    setIsModalOpen(false);
+    setSelectedClienteId(null);
   };
 
   const handleExport = () => {
@@ -247,7 +362,7 @@ export default function AIChurnPrediction() {
       </div>
 
       {/* Estatísticas */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4">
+      <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-7 gap-4">
         <Card className="border-blue-200 bg-blue-50">
           <CardContent className="p-4 text-center">
             <Users className="h-8 w-8 text-blue-600 mx-auto mb-2" />
@@ -283,6 +398,20 @@ export default function AIChurnPrediction() {
             <p className="text-sm text-purple-700">Prob. Média</p>
           </CardContent>
         </Card>
+        <Card className="border-blue-200 bg-blue-50">
+          <CardContent className="p-4 text-center">
+            <DollarSign className="h-8 w-8 text-blue-600 mx-auto mb-2" />
+            <p className="text-2xl font-bold text-blue-900">R$ {stats.totalValor.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</p>
+            <p className="text-sm text-blue-700">Valor Total</p>
+          </CardContent>
+        </Card>
+        <Card className="border-indigo-200 bg-indigo-50">
+          <CardContent className="p-4 text-center">
+            <ShoppingCart className="h-8 w-8 text-indigo-600 mx-auto mb-2" />
+            <p className="text-2xl font-bold text-indigo-900">{stats.avgFrequencia.toFixed(1)}</p>
+            <p className="text-sm text-indigo-700">Freq. Média</p>
+          </CardContent>
+        </Card>
       </div>
 
       {/* Filtros */}
@@ -294,7 +423,28 @@ export default function AIChurnPrediction() {
           </CardTitle>
         </CardHeader>
         <CardContent>
-          <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+          <div className="grid grid-cols-1 md:grid-cols-5 gap-4">
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                Filial
+              </label>
+              <Select 
+                value={filialId ? filialId.toString() : 'all'} 
+                onValueChange={(value) => setFilialId(value === 'all' ? undefined : parseInt(value))}
+              >
+                <SelectTrigger>
+                  <SelectValue placeholder="Todas as filiais" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">🌐 Todas as Filiais</SelectItem>
+                  {filiais.map((filial) => (
+                    <SelectItem key={filial.id} value={filial.id.toString()}>
+                      {filial.nome} - {filial.cidade}/{filial.estado}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-2">
                 Buscar Cliente
@@ -327,14 +477,34 @@ export default function AIChurnPrediction() {
             </div>
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-2">
-                Filial
+                Buscar por CPF/CNPJ
               </label>
-              <Input
-                type="number"
-                placeholder="ID da filial (opcional)"
-                value={filialId || ''}
-                onChange={(e) => setFilialId(e.target.value ? parseInt(e.target.value) : undefined)}
-              />
+              <div className="relative">
+                <Input
+                  placeholder="Digite CPF ou CNPJ..."
+                  value={cpfCnpjSearch}
+                  onChange={(e) => setCpfCnpjSearch(e.target.value)}
+                  className={loadingDoc ? 'pr-10' : ''}
+                />
+                {loadingDoc && (
+                  <div className="absolute right-3 top-1/2 transform -translate-y-1/2">
+                    <RefreshCw className="h-4 w-4 animate-spin text-gray-400" />
+                  </div>
+                )}
+              </div>
+              {clientePorDoc && (
+                <div className="mt-2 p-2 bg-green-50 border border-green-200 rounded text-sm">
+                  <strong>{clientePorDoc.nome}</strong> - ID: {clientePorDoc.id}
+                  <Button 
+                    size="sm" 
+                    variant="outline" 
+                    className="ml-2 h-6 text-xs"
+                    onClick={() => handleViewDetails(clientePorDoc.id)}
+                  >
+                    Ver Detalhes
+                  </Button>
+                </div>
+              )}
             </div>
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-2">
@@ -405,6 +575,13 @@ export default function AIChurnPrediction() {
           )}
         </CardContent>
       </Card>
+
+      {/* Modal de detalhes do cliente */}
+      <ClienteDetailsModal 
+        clienteId={selectedClienteId}
+        isOpen={isModalOpen}
+        onClose={handleCloseModal}
+      />
     </div>
   );
 }

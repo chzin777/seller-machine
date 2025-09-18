@@ -52,24 +52,8 @@ function calcularSazonalidade(receitaMensal: any) {
 export default function GraficoSazonalidade() {
   const data = useData();
   
-  // Dados mock para teste se não houver dados reais
-  const dadosMock = {
-    ano: 2025,
-    receitaPorMes: {
-      'Janeiro': 120000,
-      'Fevereiro': 135000,
-      'Março': 148000,
-      'Abril': 142000,
-      'Maio': 156000,
-      'Junho': 163000,
-      'Julho': 158000,
-      'Agosto': 171000,
-      'Setembro': 145000
-    }
-  };
-
-  // Usar dados reais ou mock
-  const receitaMensal = data.receitaMensal || dadosMock;
+  // Usar apenas dados reais
+  const receitaMensal = data.receitaMensal;
   const dadosSazonalidade = calcularSazonalidade(receitaMensal);
 
   // Calcular estatísticas da sazonalidade

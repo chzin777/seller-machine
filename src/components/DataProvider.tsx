@@ -214,37 +214,98 @@ class DataManager {
 
       // Fazer todas as requisições em paralelo
       console.log('📡 Fazendo requisições paralelas...');
-      const responses = await Promise.allSettled([
-        fetch("/api/proxy?url=/api/indicadores/receita-total"),
-        fetch("/api/proxy?url=/api/notas-fiscais"),
-        fetch("/api/proxy?url=/api/indicadores/receita-mensal"),
-        fetch("/api/proxy?url=/api/indicadores/receita-por-tipo-produto"),
-        fetch("/api/proxy?url=/api/indicadores/vendas-por-filial"),
-        fetch(`/api/proxy?url=/api/indicadores/clientes-inativos?dias=${diasInatividade}`),
-        fetch("/api/proxy?url=/api/clientes")
-      ]);
+      const requestUrls = [
+        "/api/proxy?url=/api/indicadores/receita-total",
+        "/api/proxy?url=/api/notas-fiscais",
+        "/api/proxy?url=/api/indicadores/receita-mensal",
+        "/api/proxy?url=/api/indicadores/receita-por-tipo-produto",
+        "/api/proxy?url=/api/indicadores/vendas-por-filial",
+        `/api/proxy?url=/api/indicadores/clientes-inativos?dias=${diasInatividade}`,
+        "/api/proxy?url=/api/clientes"
+      ];
+      
+      const responses = await Promise.allSettled(
+        requestUrls.map((url, index) => {
+          console.log(`📡 Iniciando requisição ${index + 1}/7: ${url}`);
+          return fetch(url, { 
+            signal: AbortSignal.timeout(120000) // 120 segundos timeout
+          });
+        })
+      );
 
       // Verificar se todas as requisições foram bem-sucedidas
       const failedRequests = responses.filter(r => r.status === 'rejected');
-      if (failedRequests.length > 0) {
-        console.error('Requisições falharam:', failedRequests);
-        throw new Error(`${failedRequests.length} requisições falharam`);
+      const successResponses = responses.filter(r => r.status === 'fulfilled') as PromiseFulfilledResult<Response>[];
+      
+      // Verificar status HTTP das respostas bem-sucedidas
+      const httpErrors = successResponses.filter(r => !r.value.ok);
+      
+      if (failedRequests.length > 0 || httpErrors.length > 0) {
+        const rejectedDetails = failedRequests.map((r, index) => {
+          const originalIndex = responses.findIndex(resp => resp === r);
+          return {
+            index: originalIndex,
+            url: requestUrls[originalIndex],
+            reason: r.reason
+          };
+        });
+        
+        const httpErrorDetails = httpErrors.map(r => {
+          const originalIndex = responses.findIndex(resp => resp === r);
+          return {
+            index: originalIndex,
+            url: requestUrls[originalIndex],
+            status: r.value.status,
+            statusText: r.value.statusText
+          };
+        });
+        
+        console.warn('⚠️ Algumas requisições falharam (continuando com dados parciais):', {
+          rejected: rejectedDetails,
+          httpErrors: httpErrorDetails
+        });
+        
+        // Continue with partial data instead of throwing error
+        // Only throw if ALL requests failed
+        if (successResponses.filter(r => r.value.ok).length === 0) {
+          throw new Error('Todas as requisições falharam');
+        }
       }
 
-      // Converter todas as respostas para JSON
-      const successResponses = responses.filter(r => r.status === 'fulfilled') as PromiseFulfilledResult<Response>[];
-      const jsonPromises = successResponses.map(r => r.value.json());
-      const jsonData = await Promise.all(jsonPromises);
+      // Converter apenas as respostas bem-sucedidas para JSON
+      const validResponses = successResponses.filter(r => r.value.ok);
+      const jsonPromises = validResponses.map(async (r, index) => {
+        try {
+          const originalIndex = responses.findIndex(resp => resp === r);
+          return {
+            data: await r.value.json(),
+            originalIndex
+          };
+        } catch (error) {
+          console.error(`Erro ao fazer parse JSON da requisição ${index}:`, error);
+          return {
+            data: null,
+            originalIndex: responses.findIndex(resp => resp === r)
+          };
+        }
+      });
+      const jsonResults = await Promise.all(jsonPromises);
 
-      const [
-        receitaTotalData,
-        notasData,
-        receitaMensalData,
-        receitaTipoData,
-        vendasFilialData,
-        inativosData,
-        clientesData
-      ] = jsonData;
+      // Mapear dados baseado no índice original das requisições
+      const dataMap = new Map();
+      jsonResults.forEach(result => {
+        if (result.data) {
+          dataMap.set(result.originalIndex, result.data);
+        }
+      });
+
+      const receitaTotalData = dataMap.get(0) || null;
+      const notasData = dataMap.get(1) || null;
+      const receitaMensalData = dataMap.get(2) || null;
+      const receitaTipoData = dataMap.get(3) || null;
+      const vendasFilialData = dataMap.get(4) || null;
+      const inativosData = dataMap.get(5) || null;
+      const clientesData = dataMap.get(6) || null;
 
       console.log('📊 Processando dados...');
 
