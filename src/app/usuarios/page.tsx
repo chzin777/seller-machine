@@ -231,7 +231,7 @@ export default function UsuariosPage() {
   const [loading, setLoading] = useState(true);
   const [modalOpen, setModalOpen] = useState(false);
   const [search, setSearch] = useState("");
-  const [authChecked, setAuthChecked] = useState(false);
+
   const [isClient, setIsClient] = useState(false);
   const router = useRouter();
 
@@ -241,22 +241,6 @@ export default function UsuariosPage() {
 
   useEffect(() => {
     if (!isClient) return;
-    let user = localStorage.getItem("user");
-    if (!user) {
-      user = sessionStorage.getItem("user");
-    }
-    if (user) {
-      try {
-        const parsed = JSON.parse(user);
-        if (parsed.conta !== "Admin") {
-          router.replace("/");
-          return;
-        }
-      } catch {}
-    } else {
-      router.replace("/login");
-      return;
-    }
     async function fetchUsuarios() {
       setLoading(true);
       try {
@@ -271,8 +255,7 @@ export default function UsuariosPage() {
       }
     }
     fetchUsuarios();
-    setAuthChecked(true);
-  }, [router, isClient]);
+  }, [isClient]);
 
   // Filtro de pesquisa
   const usuariosFiltrados = usuarios.filter(u => {
@@ -284,9 +267,7 @@ export default function UsuariosPage() {
     );
   });
 
-  if (!authChecked) {
-    return <LoadingSpinner size="full" text="Carregando página..." />;
-  }
+
 
   return (
     <>

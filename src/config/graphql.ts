@@ -62,23 +62,9 @@ export async function checkGraphQLHealth(): Promise<boolean> {
   }
 }
 
-// Função para obter token de autenticação
-export function getAuthToken(): string | null {
-  if (typeof window === 'undefined') return null;
-  
-  return localStorage.getItem('token') || sessionStorage.getItem('token');
-}
-
-// Função para obter headers com autenticação
-export function getAuthHeaders(): Record<string, string> {
-  const token = getAuthToken();
-  const headers: Record<string, string> = { ...GRAPHQL_CONFIG.defaultHeaders };
-  
-  if (token) {
-    headers['Authorization'] = `Bearer ${token}`;
-  }
-  
-  return headers;
+// Função para obter headers sem autenticação
+export function getHeaders(): Record<string, string> {
+  return { ...GRAPHQL_CONFIG.defaultHeaders };
 }
 
 // Tipos para configuração

@@ -3,18 +3,14 @@ import { NextRequest, NextResponse } from 'next/server';
 // Simular dados de vendedores com vendas
 export async function GET() {
   try {
-    // Buscar dados das notas fiscais para calcular vendas por vendedor
-    const notasResponse = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/notas-fiscais`);
-    
-    if (!notasResponse.ok) {
-      throw new Error('Erro ao buscar notas fiscais');
-    }
-    
-    const notas = await notasResponse.json();
-    
-    if (!Array.isArray(notas)) {
-      throw new Error('Dados de notas fiscais inválidos');
-    }
+    // Simular dados de notas fiscais para desenvolvimento local
+    const notas = [
+      { id: 1, valor: 15000, vendedorId: 1, data: '2024-01-15' },
+      { id: 2, valor: 8500, vendedorId: 2, data: '2024-01-16' },
+      { id: 3, valor: 12000, vendedorId: 1, data: '2024-01-17' },
+      { id: 4, valor: 6500, vendedorId: 3, data: '2024-01-18' },
+      { id: 5, valor: 9200, vendedorId: 2, data: '2024-01-19' }
+    ];
 
     // Simular vendedores baseado nos dados reais
     const vendedores = [

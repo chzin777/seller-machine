@@ -22,7 +22,6 @@ import { Badge } from '@/components/ui/badge';
 
 export default function IAPage() {
   const {
-    isAuthenticated,
     loading,
     activeTab,
     setActiveTab,
@@ -103,9 +102,7 @@ export default function IAPage() {
     );
   }
 
-  if (!isAuthenticated) {
-    return null;
-  }
+
 
   return (
     <div className="min-h-screen bg-gray-50">

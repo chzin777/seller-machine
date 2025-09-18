@@ -5,8 +5,7 @@ import { useRouter } from 'next/navigation';
 
 export function useAIPage() {
   const router = useRouter();
-  const [isAuthenticated, setIsAuthenticated] = useState(false);
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState(false);
   const [activeTab, setActiveTab] = useState('dashboard');
   const [showTour, setShowTour] = useState(false);
   const [favorites, setFavorites] = useState<string[]>([]);
@@ -33,25 +32,9 @@ export function useAIPage() {
     }
   };
 
-  // Verificar autenticação
-  useEffect(() => {
-    const checkAuth = () => {
-      if (typeof window !== "undefined") {
-        const user = localStorage.getItem("user") || sessionStorage.getItem("user");
-        if (!user) {
-          router.push("/login");
-          return;
-        }
-        setIsAuthenticated(true);
-        setLoading(false);
-      }
-    };
 
-    checkAuth();
-  }, [router]);
 
   return {
-    isAuthenticated,
     loading,
     activeTab,
     setActiveTab,

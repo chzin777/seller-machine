@@ -3,7 +3,7 @@ import { NextResponse } from 'next/server';
 export async function GET() {
   try {
     // Fetch vendedores data from the main endpoint
-    const vendedoresResponse = await fetch(`${process.env.NEXT_PUBLIC_BASE_URL || 'http://localhost:3000'}/api/vendedores`);
+    const vendedoresResponse = await fetch(`http://localhost:3000/api/vendedores`);
     
     if (!vendedoresResponse.ok) {
       throw new Error('Erro ao buscar dados de vendedores');
