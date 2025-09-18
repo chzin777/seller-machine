@@ -7,18 +7,8 @@ export async function GET(request: NextRequest) {
 
     // Buscar dados de clientes e pedidos das APIs existentes
     const [clientesResponse, pedidosResponse] = await Promise.all([
-      fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/clientes`, {
-        headers: {
-          'Authorization': `Bearer ${process.env.API_TOKEN}`,
-          'Content-Type': 'application/json'
-        }
-      }),
-      fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/pedidos`, {
-        headers: {
-          'Authorization': `Bearer ${process.env.API_TOKEN}`,
-          'Content-Type': 'application/json'
-        }
-      })
+      fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/clientes`),
+      fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/pedidos`)
     ]);
 
     if (!clientesResponse.ok || !pedidosResponse.ok) {

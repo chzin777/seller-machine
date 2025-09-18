@@ -27,18 +27,8 @@ export async function GET() {
     // Tentar buscar dados das APIs externas primeiro
     try {
       const [clientesResponse, vendasResponse] = await Promise.all([
-        fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/clientes`, {
-          headers: {
-            'Authorization': `Bearer ${process.env.API_TOKEN}`,
-            'Content-Type': 'application/json'
-          }
-        }),
-        fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/vendas/resumo`, {
-          headers: {
-            'Authorization': `Bearer ${process.env.API_TOKEN}`,
-            'Content-Type': 'application/json'
-          }
-        })
+        fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/clientes`),
+        fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/vendas/resumo`)
       ]);
 
       if (clientesResponse.ok && vendasResponse.ok) {
