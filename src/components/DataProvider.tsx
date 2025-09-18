@@ -368,22 +368,35 @@ export function DataProvider({ children }: { children: ReactNode }) {
 
   useEffect(() => {
     const manager = DataManager.getInstance();
-    
     const unsubscribe = manager.subscribe((newData) => {
       setData(newData);
     });
 
     // Carregar dados quando componente monta ou diasInatividade muda
     if (diasInatividade) {
-      // Se a configuração mudou, limpar cache e recarregar
       manager.clearCache();
       manager.loadData(diasInatividade);
     }
 
+    // Listener para evento global de mudança de configuração de inatividade
+    function handleInactivityConfigChanged(event: CustomEvent) {
+      const { diasInatividade: newDias } = event.detail || {};
+      // Limpar cache e recarregar dados com novo filtro
+      manager.clearCache();
+      manager.loadData(newDias || diasInatividade);
+    }
+
+    if (typeof window !== 'undefined') {
+      window.addEventListener('inactivityConfigChanged', handleInactivityConfigChanged as EventListener);
+    }
+
     return () => {
       unsubscribe();
+      if (typeof window !== 'undefined') {
+        window.removeEventListener('inactivityConfigChanged', handleInactivityConfigChanged as EventListener);
+      }
     };
-  }, [diasInatividade]); // Re-executar quando diasInatividade mudar
+  }, [diasInatividade]);
 
   const contextValue: DataContextType = {
     ...data,
