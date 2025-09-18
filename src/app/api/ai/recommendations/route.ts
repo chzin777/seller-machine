@@ -16,7 +16,7 @@ export async function GET(request: NextRequest) {
     // Buscar histórico de compras do cliente para gerar recomendações
     let clienteHistorico = [];
     try {
-      const historicoResponse = await fetch(`https://api-dev-production-6bb5.up.railway.app/api/pedidos?clienteId=${clienteId}`);
+      const historicoResponse = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/pedidos?clienteId=${clienteId}`);
       if (historicoResponse.ok) {
         clienteHistorico = await historicoResponse.json();
       }
@@ -27,7 +27,7 @@ export async function GET(request: NextRequest) {
     // Buscar produtos disponíveis
     let produtos = [];
     try {
-      const produtosResponse = await fetch('https://api-dev-production-6bb5.up.railway.app/api/produtos');
+      const produtosResponse = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/produtos`);
       if (produtosResponse.ok) {
         produtos = await produtosResponse.json();
       }

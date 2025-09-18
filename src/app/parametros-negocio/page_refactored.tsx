@@ -98,7 +98,7 @@ export default function ParametrosNegocio() {
   const verificarStatusAPI = async () => {
     try {
       console.log('🔍 Verificando status da API externa...');
-      const response = await fetch('https://api-dev-production-6bb5.up.railway.app/api/configuracao-inatividade', {
+      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/configuracao-inatividade`, {
         method: 'HEAD',
       });
       
@@ -130,7 +130,7 @@ export default function ParametrosNegocio() {
       }
 
       if (empresaId) {
-        const response = await fetch(`https://api-dev-production-6bb5.up.railway.app/api/configuracao-inatividade/empresa/${empresaId}`);
+        const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/configuracao-inatividade/empresa/${empresaId}`);
         console.log('📥 Status do carregamento:', response.status);
         
         if (response.ok) {
@@ -225,14 +225,14 @@ export default function ParametrosNegocio() {
 
       console.log('💾 Salvando configuração de inatividade:', { empresaId, diasInatividade });
 
-      const checkResponse = await fetch(`https://api-dev-production-6bb5.up.railway.app/api/configuracao-inatividade/empresa/${empresaId}`);
+      const checkResponse = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/configuracao-inatividade/empresa/${empresaId}`);
       console.log('🔍 Status da verificação:', checkResponse.status);
       
       if (checkResponse.ok) {
         const existingConfig = await checkResponse.json();
         console.log('📝 Atualizando configuração existente:', existingConfig.id);
         
-        const updateResponse = await fetch(`https://api-dev-production-6bb5.up.railway.app/api/configuracao-inatividade/${existingConfig.id}`, {
+        const updateResponse = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/configuracao-inatividade/${existingConfig.id}`, {
           method: 'PUT',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
@@ -260,7 +260,7 @@ export default function ParametrosNegocio() {
         };
         console.log('📦 Payload da criação:', createPayload);
         
-        const createResponse = await fetch('https://api-dev-production-6bb5.up.railway.app/api/configuracao-inatividade', {
+        const createResponse = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/configuracao-inatividade`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify(createPayload)
@@ -353,14 +353,14 @@ export default function ParametrosNegocio() {
         }
       }
 
-      const checkResponse = await fetch(`https://api-dev-production-6bb5.up.railway.app/api/configuracao-inatividade/empresa/${empresaId}`);
+      const checkResponse = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/configuracao-inatividade/empresa/${empresaId}`);
       console.log('🔍 Status da verificação para reset:', checkResponse.status);
       
       if (checkResponse.ok) {
         const existingConfig = await checkResponse.json();
         console.log('🔄 Resetando configuração existente:', existingConfig.id);
         
-        const updateResponse = await fetch(`https://api-dev-production-6bb5.up.railway.app/api/configuracao-inatividade/${existingConfig.id}`, {
+        const updateResponse = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/configuracao-inatividade/${existingConfig.id}`, {
           method: 'PUT',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({

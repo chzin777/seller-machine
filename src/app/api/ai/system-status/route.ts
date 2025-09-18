@@ -3,7 +3,7 @@ import { NextResponse } from 'next/server';
 export async function GET() {
   try {
     // Buscar dados de clientes para calcular métricas de IA
-    const clientesResponse = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/clientes`, {
+    const clientesResponse = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/clientes`, {
       headers: {
         'Authorization': `Bearer ${process.env.API_TOKEN}`,
         'Content-Type': 'application/json'

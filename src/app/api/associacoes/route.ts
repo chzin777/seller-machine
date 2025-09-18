@@ -29,7 +29,7 @@ export async function GET() {
     if (!realAssociations || realAssociations.length === 0) {
       try {
         console.log('Gerando associações baseadas nas notas fiscais...');
-        const notasResponse = await fetch('https://api-dev-production-6bb5.up.railway.app/api/notas-fiscais');
+        const notasResponse = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/notas-fiscais`);
         
         if (notasResponse.ok) {
           const notas = await notasResponse.json();
@@ -123,7 +123,7 @@ export async function GET() {
     // Buscar produtos da API externa
     let productMap = new Map();
     try {
-      const response = await fetch('https://api-dev-production-6bb5.up.railway.app/api/produtos');
+      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/produtos`);
       if (response.ok) {
         const produtos = await response.json();
         // Mapear produtos da API externa
@@ -154,7 +154,7 @@ export async function GET() {
     const salesCount = new Map();
     
     try {
-      const itensResponse = await fetch('https://api-dev-production-6bb5.up.railway.app/api/notas-fiscais-itens');
+      const itensResponse = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/notas-fiscais-itens`);
       if (itensResponse.ok) {
         const itens = await itensResponse.json();
         if (Array.isArray(itens)) {

@@ -15,7 +15,7 @@ export async function GET(request: NextRequest) {
     // Buscar dados do cliente
     let cliente = null;
     try {
-      const clienteResponse = await fetch(`https://api-dev-production-6bb5.up.railway.app/api/clientes/${clienteId}`);
+      const clienteResponse = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/clientes/${clienteId}`);
       if (clienteResponse.ok) {
         cliente = await clienteResponse.json();
       }
@@ -26,7 +26,7 @@ export async function GET(request: NextRequest) {
     // Buscar histórico de pedidos do cliente
     let pedidos = [];
     try {
-      const pedidosResponse = await fetch(`https://api-dev-production-6bb5.up.railway.app/api/pedidos?clienteId=${clienteId}`);
+      const pedidosResponse = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/pedidos?clienteId=${clienteId}`);
       if (pedidosResponse.ok) {
         pedidos = await pedidosResponse.json();
       }

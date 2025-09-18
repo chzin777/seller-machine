@@ -27,13 +27,13 @@ export async function GET() {
     // Tentar buscar dados das APIs externas primeiro
     try {
       const [clientesResponse, vendasResponse] = await Promise.all([
-        fetch(`${process.env.NEXT_PUBLIC_API_URL}/clientes`, {
+        fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/clientes`, {
           headers: {
             'Authorization': `Bearer ${process.env.API_TOKEN}`,
             'Content-Type': 'application/json'
           }
         }),
-        fetch(`${process.env.NEXT_PUBLIC_API_URL}/vendas/resumo`, {
+        fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/vendas/resumo`, {
           headers: {
             'Authorization': `Bearer ${process.env.API_TOKEN}`,
             'Content-Type': 'application/json'
@@ -52,7 +52,7 @@ export async function GET() {
       
       // Buscar dados reais das notas fiscais
       try {
-        const notasResponse = await fetch('https://api-dev-production-6bb5.up.railway.app/api/notas-fiscais');
+        const notasResponse = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/notas-fiscais`);
         
         if (notasResponse.ok) {
           const notas = await notasResponse.json();
