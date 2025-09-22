@@ -2,7 +2,7 @@
 
 ## 🌐 Configuração Base
 
-**URL Base de Produção:** `https://api-seller-machine-production.up.railway.app`  
+**URL Base de Produção:** `https://api-dev-production-6bb5.up.railway.app`  
 **URL Base de Desenvolvimento:** `http://localhost:3001`  
 **Porta da API:** `3001`
 

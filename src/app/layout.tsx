@@ -11,7 +11,7 @@ import ProgressBar from "../components/ui/progress-bar";
 import { GlobalNotificationProvider } from "../providers/GlobalNotificationProvider";
 import GlobalToastContainer from "../components/GlobalToastContainer";
 import GlobalNotificationBell from "../components/GlobalNotificationBell";
-import { LayoutDashboard, Link2, Users, Menu, UserCog, X, Map, Settings, Brain } from "lucide-react";
+import { LayoutDashboard, Link2, Users, Menu, UserCog, X, Map, Settings, Brain, Briefcase } from "lucide-react";
 import { useState, useRef, useEffect } from "react";
 import "./globals.css";
 import { useRouter, usePathname } from "next/navigation";
@@ -22,6 +22,7 @@ function getNavLinks(userConta?: string) {
 		{ type: "toggle", label: "Menu", icon: Menu },
 		{ href: "/", label: "Dashboard", icon: LayoutDashboard },
 		{ href: "/mapa-vendas", label: "Mapa de Vendas", icon: Map },
+		{ href: "/carteira-vendedor", label: "Carteira de Vendedor", icon: Briefcase },
 		{ href: "/associacoes", label: "Associações", icon: Link2 },
 		{ href: "/clientes", label: "Clientes", icon: Users },
 		{ href: "/ia", label: "Inteligência Artificial", icon: Brain },

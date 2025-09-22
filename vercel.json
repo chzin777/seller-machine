@@ -1,12 +1,38 @@
 {
   "env": {
     "NEXT_PUBLIC_ENABLE_GRAPHQL": "true",
-    "NEXT_PUBLIC_GRAPHQL_URL": "https://api-dev-production-6bb5.up.railway.app/graphql"
+    "NEXT_PUBLIC_GRAPHQL_URL": "https://api-dev-production-6bb5.up.railway.app/graphql",
+    "API_BASE_URL": "https://api-dev-production-6bb5.up.railway.app",
+    "NEXT_PUBLIC_API_URL": "https://api-dev-production-6bb5.up.railway.app",
+    "NEXT_PUBLIC_BASE_URL": "https://api-dev-production-6bb5.up.railway.app",
+    "NEXT_PUBLIC_SUPABASE_URL": "https://tipihttufyixsrblegwm.supabase.co",
+    "NEXT_PUBLIC_SUPABASE_ANON_KEY": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InRpcGlodHR1ZnlpeHNyYmxlZ3dtIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTUwODU0ODYsImV4cCI6MjA3MDY2MTQ4Nn0.VQxkOcWJQOvhYNJhd_CZhJhKQZGQZGQZGQZGQZGQZGQ",
+    "SUPABASE_SERVICE_ROLE_KEY": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InRpcGlodHR1ZnlpeHNyYmxlZ3dtIiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc1NTA4NTQ4NiwiZXhwIjoyMDcwNjYxNDg2fQ.GkkBUwKLXL7q2yLagOu-EmHVp0d1BS_PxSGH1XPqIjw",
+    "DATABASE_URL": "mysql://alvocr17_agromaq:0903406%40%40%40@162.241.60.225:3306/alvocr17_agromaq",
+    "MYSQL_HOST": "162.241.60.225",
+    "MYSQL_PORT": "3306",
+    "MYSQL_USER": "alvocr17_agromaq",
+    "MYSQL_PASSWORD": "0903406@@@",
+    "MYSQL_DATABASE": "alvocr17_agromaq",
+    "RFV_DATABASE_TYPE": "mysql"
   },
   "build": {
     "env": {
       "NEXT_PUBLIC_ENABLE_GRAPHQL": "true",
-      "NEXT_PUBLIC_GRAPHQL_URL": "https://api-dev-production-6bb5.up.railway.app/graphql"
+      "NEXT_PUBLIC_GRAPHQL_URL": "https://api-dev-production-6bb5.up.railway.app/graphql",
+      "API_BASE_URL": "https://api-dev-production-6bb5.up.railway.app",
+      "NEXT_PUBLIC_API_URL": "https://api-dev-production-6bb5.up.railway.app",
+      "NEXT_PUBLIC_BASE_URL": "https://api-dev-production-6bb5.up.railway.app",
+      "NEXT_PUBLIC_SUPABASE_URL": "https://tipihttufyixsrblegwm.supabase.co",
+      "NEXT_PUBLIC_SUPABASE_ANON_KEY": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InRpcGlodHR1ZnlpeHNyYmxlZ3dtIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTUwODU0ODYsImV4cCI6MjA3MDY2MTQ4Nn0.VQxkOcWJQOvhYNJhd_CZhJhKQZGQZGQZGQZGQZGQZGQ",
+      "SUPABASE_SERVICE_ROLE_KEY": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InRpcGlodHR1ZnlpeHNyYmxlZ3dtIiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc1NTA4NTQ4NiwiZXhwIjoyMDcwNjYxNDg2fQ.GkkBUwKLXL7q2yLagOu-EmHVp0d1BS_PxSGH1XPqIjw",
+      "DATABASE_URL": "mysql://alvocr17_agromaq:0903406%40%40%40@162.241.60.225:3306/alvocr17_agromaq",
+      "MYSQL_HOST": "162.241.60.225",
+      "MYSQL_PORT": "3306",
+      "MYSQL_USER": "alvocr17_agromaq",
+      "MYSQL_PASSWORD": "0903406@@@",
+      "MYSQL_DATABASE": "alvocr17_agromaq",
+      "RFV_DATABASE_TYPE": "mysql"
     }
   },
   "functions": {
