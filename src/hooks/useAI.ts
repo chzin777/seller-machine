@@ -572,10 +572,12 @@ export function useCombinedDashboard() {
     setError(null);
     
     try {
-      // Buscar dados reais das APIs
+      // Buscar dados diretamente da API externa
+      const apiBaseUrl = process.env.NEXT_PUBLIC_API_URL || 'https://api-dev-production-6bb5.up.railway.app';
+      
       const [statsResponse, resumoResponse] = await Promise.all([
-        fetch('/api/vendedores/stats'),
-        fetch('/api/vendedores/resumo')
+        fetch(`${apiBaseUrl}/api/vendedores/stats`),
+        fetch(`${apiBaseUrl}/api/vendedores/resumo`)
       ]);
 
       if (!statsResponse.ok || !resumoResponse.ok) {
@@ -651,49 +653,43 @@ export function useAIDashboard() {
     setError(null);
     
     try {
-      // Buscar dados reais das APIs de IA
-      const [aiStatsResponse, aiStatusResponse] = await Promise.all([
-        fetch('/api/ai/dashboard-stats'),
-        fetch('/api/ai/system-status')
-      ]);
-
-      if (!aiStatsResponse.ok || !aiStatusResponse.ok) {
-        throw new Error('Erro ao buscar dados das APIs de IA');
-      }
-
-      const aiStats = await aiStatsResponse.json();
-      const aiStatus = await aiStatusResponse.json();
-
-      // Montar dados do dashboard de IA
-      const dashboardData: DashboardSummary = {
+      // Usar dados mockados já que os endpoints de IA não existem na API externa
+      const mockDashboardData: DashboardSummary = {
         timestamp: new Date().toISOString(),
-        totalClientes: aiStats.totalClientes || 0,
-        clientesAtivos: aiStats.clientesAtivos || 0,
-        clientesInativos: aiStats.clientesInativos || 0,
-        ticketMedio: aiStats.ticketMedio || 0,
-        vendas30Dias: aiStats.vendas30Dias || 0,
-        crescimentoMensal: aiStats.crescimentoMensal || 0,
-        topProdutos: aiStats.topProdutos || [],
-        alertas: aiStatus.alertas || [],
+        totalClientes: 1250,
+        clientesAtivos: 980,
+        clientesInativos: 270,
+        ticketMedio: 450.75,
+        vendas30Dias: 125000,
+        crescimentoMensal: 12.5,
+        topProdutos: [
+          { nome: 'Produto A', vendas: 150 },
+          { nome: 'Produto B', vendas: 120 },
+          { nome: 'Produto C', vendas: 95 }
+        ],
+        alertas: [
+          { tipo: 'warning', mensagem: 'Sistema de IA em desenvolvimento' },
+          { tipo: 'info', mensagem: 'Dados simulados para demonstração' }
+        ],
         resumo: {
           recomendacoes: {
-            status: aiStatus.recomendacoes?.status || 'Sistema inativo',
-            descricao: aiStatus.recomendacoes?.descricao || 'Sistema de recomendações em desenvolvimento'
+            status: 'Sistema inativo',
+            descricao: 'Sistema de recomendações em desenvolvimento'
           },
           churnPrediction: {
-            status: aiStatus.churnPrediction?.status || 'Modelo não disponível',
-            descricao: aiStatus.churnPrediction?.descricao || 'Análise de churn em treinamento'
+            status: 'Modelo não disponível',
+            descricao: 'Análise de churn em treinamento'
           },
           salesPrediction: {
-            status: aiStatus.salesPrediction?.status || 'Previsão não disponível',
-            descricao: aiStatus.salesPrediction?.descricao || 'Modelo de previsão sendo calibrado'
+            status: 'Previsão não disponível',
+            descricao: 'Modelo de previsão sendo calibrado'
           },
           rfvOptimization: {
-            status: aiStatus.rfvOptimization?.status || 'Segmentação inativa',
-            descricao: aiStatus.rfvOptimization?.descricao || 'Otimização RFV em implementação'
+            status: 'Segmentação inativa',
+            descricao: 'Otimização RFV em implementação'
           }
         },
-        proximasFeatures: aiStatus.proximasFeatures || [
+        proximasFeatures: [
           'Análise de Sentimento de Clientes',
           'Previsão de Demanda por Produto',
           'Otimização de Preços Dinâmica',
@@ -701,7 +697,7 @@ export function useAIDashboard() {
         ]
       };
       
-      setData(dashboardData);
+      setData(mockDashboardData);
     } catch (err) {
       console.error('Erro ao buscar dados do dashboard de IA:', err);
       setError(err instanceof Error ? err.message : 'Erro ao carregar dashboard de IA');
