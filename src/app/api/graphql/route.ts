@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 
-const GRAPHQL_ENDPOINT = `${process.env.NEXT_PUBLIC_API_URL}/api/graphql`;
+const GRAPHQL_ENDPOINT = `${process.env.NEXT_PUBLIC_API_URL}/graphql`;
 
 export async function POST(req: NextRequest) {
   try {
