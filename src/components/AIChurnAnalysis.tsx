@@ -311,7 +311,10 @@ export default function AIChurnAnalysis() {
     const medio = data.filter(c => c.riskLevel === 'Médio').length;
     const baixo = data.filter(c => c.riskLevel === 'Baixo').length;
     
-    const totalProbability = data.reduce((acc, c) => acc + c.churnProbability, 0);
+    const totalProbability = data.reduce((acc, c) => {
+      const prob = c.churnProbability;
+      return acc + (isNaN(prob) || prob === null || prob === undefined ? 0 : prob);
+    }, 0);
     const avgProbability = total > 0 ? totalProbability / total : 0;
     
     const totalValor = data.reduce((acc, c) => acc + (c.valorTotal || 0), 0);
