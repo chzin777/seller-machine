@@ -1,7 +1,7 @@
 import { NextResponse } from 'next/server';
-import { createServerClient } from '../../../../lib/supabase/server';
+import { prisma } from '../../../../lib/prisma';
 
-// Mapeamento de categoria para tipo
+// Mapeamento de categorias para tipos
 const categoryToType: Record<string, string> = {
   'Descartáveis': 'Peca',
   'Limpeza': 'Servico', 
@@ -10,97 +10,118 @@ const categoryToType: Record<string, string> = {
 
 export async function GET() {
   try {
-    const supabase = createServerClient();
-    
-    // Primeiro, tentar buscar dados reais da tabela product_associations
-    const { data: realAssociations, error: associationsError } = await supabase
-      .from('product_associations')
-      .select('*')
-      .order('confidence', { ascending: false })
-      .limit(50);
-    
-    console.log('Associações encontradas no banco:', realAssociations?.length || 0);
-    if (associationsError) {
-      console.error('Erro ao buscar associações:', associationsError);
+    // Buscar associações reais do banco de dados
+    let realAssociations: any[] = [];
+    try {
+      realAssociations = await prisma.associacaoProduto.findMany({
+        select: {
+          produto_a_id: true,
+          produto_b_id: true,
+          suporte: true,
+          confianca: true,
+          lift: true,
+          a_nome: true,
+          b_nome: true,
+          a_tipo: true,
+          b_tipo: true,
+          vendas_produto_a: true,
+          vendas_produto_b: true,
+          atualizado_em: true
+        }
+      });
+
+      // Mapear para o formato esperado
+      realAssociations = realAssociations.map((item: any) => ({
+        product_a_id: item.produto_a_id,
+        product_b_id: item.produto_b_id,
+        support_count: item.suporte,
+        confidence: item.confianca,
+        lift: item.lift,
+        leverage: 0, // Campo não existe no schema atual
+        window_days: 0, // Campo não existe no schema atual
+        updated_at: item.atualizado_em
+      }));
+    } catch (error) {
+      console.error('Erro ao buscar associações reais:', error);
     }
-    
-    // Se não há dados reais, tentar gerar associações baseadas nos dados das notas fiscais
+
+    // Gerar associações baseadas nas notas fiscais se não houver dados reais
     let generatedAssociations: any[] = [];
+    
     if (!realAssociations || realAssociations.length === 0) {
       try {
-        console.log('Gerando associações baseadas nas notas fiscais...');
-        const notasResponse = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/notas-fiscais`);
-        
-        if (notasResponse.ok) {
-          const notas = await notasResponse.json();
-          
-          console.log(`Carregadas ${notas?.length || 0} notas fiscais`);
-          
-          if (Array.isArray(notas) && notas.length > 0) {
-            // Simular associações baseadas nos produtos das notas fiscais
-            // Como a API de itens está com problema, vamos criar associações com base nos IDs das notas
-            const productPairs = new Map();
-            const productCounts = new Map();
-            
-            // Simular produtos baseados nos IDs das notas (assumindo que cada nota tem 2-4 produtos)
-            notas.slice(0, 1000).forEach((nota: any, index: number) => {
-              if (nota.id) {
-                // Simular produtos para esta nota baseado no ID
-                const numProdutos = 2 + (nota.id % 3); // 2 a 4 produtos por nota
-                const produtos = [];
-                
-                for (let i = 0; i < numProdutos; i++) {
-                  const produtoId = 1 + ((nota.id + i) % 50); // Produtos de 1 a 50
-                  produtos.push(produtoId);
-                  productCounts.set(produtoId, (productCounts.get(produtoId) || 0) + 1);
-                }
-                
-                // Criar pares de produtos
-                for (let i = 0; i < produtos.length; i++) {
-                  for (let j = i + 1; j < produtos.length; j++) {
-                    const a = Math.min(produtos[i], produtos[j]);
-                    const b = Math.max(produtos[i], produtos[j]);
-                    const key = `${a}-${b}`;
-                    productPairs.set(key, (productPairs.get(key) || 0) + 1);
-                  }
-                }
+        const notas = await prisma.notasFiscalCabecalho.findMany({
+          take: 1000,
+          include: {
+            itens: {
+              include: {
+                produto: true
               }
-            });
-            
-            console.log(`Processadas ${Math.min(1000, notas.length)} notas fiscais, encontrados ${productPairs.size} pares de produtos`);
-            
-            // Gerar associações
-            const totalNotas = Math.min(1000, notas.length);
-            productPairs.forEach((abCount, key) => {
-              const [a, b] = key.split('-').map(Number);
-              const aCount = productCounts.get(a) || 0;
-              const bCount = productCounts.get(b) || 0;
-              
-              if (abCount >= 5 && aCount > 0 && bCount > 0) {
-                const support = abCount / totalNotas;
-                const confidence = abCount / aCount;
-                const lift = confidence / (bCount / totalNotas);
-                const leverage = support - (aCount / totalNotas) * (bCount / totalNotas);
-                
-                generatedAssociations.push({
-                  product_a_id: a,
-                  product_b_id: b,
-                  support_count: abCount,
-                  confidence: Math.round(confidence * 100) / 100,
-                  lift: Math.round(lift * 100) / 100,
-                  leverage: Math.round(leverage * 10000) / 10000,
-                  window_days: 0,
-                  updated_at: new Date().toISOString()
-                });
-              }
-            });
-            
-            // Ordenar por confiança e pegar as melhores
-            generatedAssociations.sort((a, b) => b.confidence - a.confidence);
-            generatedAssociations = generatedAssociations.slice(0, 20);
-            
-            console.log(`Geradas ${generatedAssociations.length} associações baseadas em ${totalNotas} notas fiscais`);
+            }
           }
+        });
+        
+        console.log(`Carregadas ${notas?.length || 0} notas fiscais`);
+        
+        if (Array.isArray(notas) && notas.length > 0) {
+          // Processar associações baseadas nos produtos das notas fiscais
+          const productPairs = new Map();
+          const productCounts = new Map();
+          
+          notas.forEach((nota: any) => {
+            if (nota.itens && nota.itens.length > 1) {
+              const produtos = nota.itens.map((item: any) => item.produto?.id).filter(Boolean);
+              
+              // Contar produtos
+              produtos.forEach((produtoId: number) => {
+                productCounts.set(produtoId, (productCounts.get(produtoId) || 0) + 1);
+              });
+              
+              // Criar pares de produtos
+              for (let i = 0; i < produtos.length; i++) {
+                for (let j = i + 1; j < produtos.length; j++) {
+                  const a = Math.min(produtos[i], produtos[j]);
+                  const b = Math.max(produtos[i], produtos[j]);
+                  const key = `${a}-${b}`;
+                  productPairs.set(key, (productPairs.get(key) || 0) + 1);
+                }
+              }
+            }
+          });
+          
+          console.log(`Processadas ${Math.min(1000, notas.length)} notas fiscais, encontrados ${productPairs.size} pares de produtos`);
+          
+          // Gerar associações
+          const totalNotas = Math.min(1000, notas.length);
+          productPairs.forEach((abCount, key) => {
+            const [a, b] = key.split('-').map(Number);
+            const aCount = productCounts.get(a) || 0;
+            const bCount = productCounts.get(b) || 0;
+            
+            if (abCount >= 5 && aCount > 0 && bCount > 0) {
+              const support = abCount / totalNotas;
+              const confidence = abCount / aCount;
+              const lift = confidence / (bCount / totalNotas);
+              const leverage = support - (aCount / totalNotas) * (bCount / totalNotas);
+              
+              generatedAssociations.push({
+                product_a_id: a,
+                product_b_id: b,
+                support_count: abCount,
+                confidence: Math.round(confidence * 100) / 100,
+                lift: Math.round(lift * 100) / 100,
+                leverage: Math.round(leverage * 10000) / 10000,
+                window_days: 0,
+                updated_at: new Date().toISOString()
+              });
+            }
+          });
+          
+          // Ordenar por confiança e pegar as melhores
+          generatedAssociations.sort((a, b) => b.confidence - a.confidence);
+          generatedAssociations = generatedAssociations.slice(0, 20);
+          
+          console.log(`Geradas ${generatedAssociations.length} associações baseadas em ${totalNotas} notas fiscais`);
         } else {
           console.warn('Não foi possível carregar notas fiscais da API externa');
         }
@@ -108,17 +129,15 @@ export async function GET() {
         console.error('Erro ao gerar associações das notas fiscais:', error);
       }
     }
-    
 
-    
     // Usar dados reais se disponíveis, senão usar gerados
-     console.log(`Associações disponíveis - Reais: ${realAssociations?.length || 0}, Geradas: ${generatedAssociations.length}`);
-     
-     const associations = (realAssociations && realAssociations.length > 0) 
-       ? realAssociations 
-       : generatedAssociations;
-         
-     console.log(`Usando ${associations.length} associações do tipo: ${(realAssociations?.length || 0) > 0 ? 'reais' : 'geradas'}`);
+    console.log(`Associações disponíveis - Reais: ${realAssociations?.length || 0}, Geradas: ${generatedAssociations.length}`);
+    
+    const associations = (realAssociations && realAssociations.length > 0) 
+      ? realAssociations 
+      : generatedAssociations;
+        
+    console.log(`Usando ${associations.length} associações do tipo: ${(realAssociations?.length || 0) > 0 ? 'reais' : 'geradas'}`);
 
     // Buscar produtos da API externa
     let productMap = new Map();
@@ -128,77 +147,50 @@ export async function GET() {
         const produtos = await response.json();
         // Mapear produtos da API externa
         produtos.forEach((produto: any) => {
-           productMap.set(produto.id, {
-             name: produto.descricao || produto.name || `Produto ${produto.id}`,
-             type: categoryToType[produto.categoria] || produto.tipo || produto.type || 'Outros'
-           });
-         });
-        console.log(`Carregados ${produtos.length} produtos da API externa`);
-      } else {
-        console.warn('Não foi possível carregar produtos da API externa');
+          productMap.set(produto.id, {
+            name: produto.nome || produto.name,
+            type: categoryToType[produto.categoria] || 'Outros'
+          });
+        });
       }
     } catch (error) {
       console.error('Erro ao buscar produtos da API externa:', error);
     }
     
-    // Buscar itens de pedidos para contar vendas
-    const { data: orderItems, error: orderItemsError } = await supabase
-      .from('order_items')
-      .select('product_id, order_id');
-    
-    if (orderItemsError) {
-      console.error('Erro ao buscar itens de pedidos:', orderItemsError);
-    }
-    
-    // Contar vendas reais por produto usando dados das notas fiscais
+    // Buscar itens de notas fiscais para contar vendas
     const salesCount = new Map();
     
     try {
-      const itensResponse = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/notas-fiscais-itens`);
-      if (itensResponse.ok) {
-        const itens = await itensResponse.json();
-        if (Array.isArray(itens)) {
-          // Contar quantas vezes cada produto aparece nas notas fiscais
-           itens.forEach((item: any) => {
-             if (item.produtoId) {
-               if (!salesCount.has(item.produtoId)) {
-                 salesCount.set(item.produtoId, new Set());
-               }
-               // Usar uma combinação única de nota fiscal e item para contar vendas
-               salesCount.get(item.produtoId).add(`${item.notaFiscalId}_${item.id || Math.random()}`);
-             }
-           });
-          console.log(`Contabilizadas vendas reais para ${salesCount.size} produtos`);
+      const itens = await prisma.notaFiscalItem.findMany({
+        select: {
+          produtoId: true,
+          notaFiscalId: true
         }
-      }
+      });
+      
+      itens.forEach((item: any) => {
+        if (item.produtoId) {
+          salesCount.set(item.produtoId, (salesCount.get(item.produtoId) || 0) + 1);
+        }
+      });
     } catch (error) {
-      console.error('Erro ao buscar dados de vendas reais:', error);
+      console.error('Erro ao buscar itens de notas fiscais:', error);
     }
-    
-    // Processar order_items reais se existirem
-    (orderItems || []).forEach((item: any) => {
-      if (!salesCount.has(item.product_id)) {
-        salesCount.set(item.product_id, new Set());
-      }
-      salesCount.get(item.product_id).add(item.order_id);
-    });
 
     // Mapear os dados para o formato esperado pelo frontend
     const formattedData = (associations || []).map((item: any) => {
       const productA = productMap.get(item.product_a_id);
       const productB = productMap.get(item.product_b_id);
-      const salesA = salesCount.get(item.product_a_id)?.size || 0;
-      const salesB = salesCount.get(item.product_b_id)?.size || 0;
-      
-      console.log(`Produto ${item.product_a_id}: ${salesA} vendas, Produto ${item.product_b_id}: ${salesB} vendas`);
-      
+      const salesA = salesCount.get(item.product_a_id) || 0;
+      const salesB = salesCount.get(item.product_b_id) || 0;
+
       return {
-        produto_a_id: item.product_a_id,
-        produto_b_id: item.product_b_id,
-        suporte: item.support_count,
-        confianca: parseFloat(item.confidence),
-        lift: parseFloat(item.lift),
-        leverage: parseFloat(item.leverage),
+        product_a_id: item.product_a_id,
+        product_b_id: item.product_b_id,
+        support_count: item.support_count,
+        confidence: item.confidence,
+        lift: item.lift,
+        leverage: item.leverage,
         window_days: item.window_days,
         updated_at: item.updated_at,
         a_nome: productA?.name || `Produto ${item.product_a_id}`,

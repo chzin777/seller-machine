@@ -1,67 +1,66 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { createServerClient } from '../../../../../lib/supabase/server';
+import { prisma } from '../../../../../lib/prisma';
 
 // GET /api/rfv/analysis - Executar análise RFV dos clientes
 export async function GET(req: NextRequest) {
-  const supabase = createServerClient();
   const { searchParams } = new URL(req.url);
   const filialId = searchParams.get('filialId');
   const parameterSetId = searchParams.get('parameterSetId');
 
   try {
     // Buscar parâmetros RFV ativos
-    let paramQuery = supabase
-      .from('rfv_parameters_sets')
-      .select(`
-        *,
-        rfv_segments (*)
-      `)
-      .is('effectiveTo', null)
-      .order('createdAt', { ascending: false });
+    let whereClause: any = {
+      effectiveTo: null
+    };
 
     if (parameterSetId) {
-      paramQuery = paramQuery.eq('id', parseInt(parameterSetId));
+      whereClause.id = parseInt(parameterSetId);
     } else if (filialId) {
-      paramQuery = paramQuery.eq('filialId', parseInt(filialId));
+      whereClause.filialId = parseInt(filialId);
     }
 
-    const { data: parameters, error: paramError } = await paramQuery.limit(1).single();
+    const parameters = await prisma.rfvParameterSet.findFirst({
+      where: whereClause,
+      include: {
+        segments: true
+      },
+      orderBy: {
+        createdAt: 'desc'
+      }
+    });
 
-    if (paramError || !parameters) {
+    if (!parameters) {
       return NextResponse.json({ 
         error: 'Nenhum parâmetro RFV ativo encontrado' 
       }, { status: 404 });
     }
 
     // Buscar dados dos clientes para análise
-    const { data: customers, error: customersError } = await supabase
-      .from('customers')
-      .select(`
-        id,
-        customer_code,
-        name,
-        created_at,
-        customer_stats (
-          last_order_at,
-          last_order_value,
-          lifetime_value,
-          orders_count
-        )
-      `);
-
-    if (customersError) {
-      console.error('Erro ao buscar clientes:', customersError);
-      return NextResponse.json({ error: customersError.message }, { status: 500 });
-    }
+    const customers = await prisma.cliente.findMany({
+      select: {
+        id: true,
+        cpfCnpj: true,
+        nome: true,
+        notasFiscais: {
+          select: {
+            dataEmissao: true,
+            valorTotal: true
+          },
+          orderBy: {
+            dataEmissao: 'desc'
+          }
+        }
+      }
+    });
 
     // Calcular scores RFV para cada cliente
     const rfvAnalysis = customers.map(customer => {
-      const stats = customer.customer_stats?.[0];
-      if (!stats) {
+      const notasFiscais = customer.notasFiscais || [];
+      if (notasFiscais.length === 0) {
         return {
           customer_id: customer.id,
-          customer_code: customer.customer_code,
-          customer_name: customer.name,
+          customer_code: customer.cpfCnpj,
+          customer_name: customer.nome,
           recency_score: 1,
           frequency_score: 1,
           value_score: 1,
@@ -71,20 +70,20 @@ export async function GET(req: NextRequest) {
       }
 
       // Calcular Recência (dias desde última compra)
-      const lastOrderDate = stats.last_order_at ? new Date(stats.last_order_at) : null;
+      const lastOrderDate = notasFiscais[0]?.dataEmissao ? new Date(notasFiscais[0].dataEmissao) : null;
       const daysSinceLastOrder = lastOrderDate ? 
         Math.floor((new Date().getTime() - lastOrderDate.getTime()) / (1000 * 60 * 60 * 24)) : 999;
 
       // Calcular score de Recência
       let recencyScore = 1;
-      for (const range of parameters.ruleRecency) {
-        if (range.min !== undefined && range.max !== undefined) {
-          if (daysSinceLastOrder >= range.min && daysSinceLastOrder < range.max) {
+      for (const range of (parameters.ruleRecency as any).bins || []) {
+        if (range.min !== undefined && range.max_dias !== undefined) {
+          if (daysSinceLastOrder >= range.min && daysSinceLastOrder < range.max_dias) {
             recencyScore = range.score;
             break;
           }
-        } else if (range.max !== undefined) {
-          if (daysSinceLastOrder < range.max) {
+        } else if (range.max_dias !== undefined) {
+          if (daysSinceLastOrder < range.max_dias) {
             recencyScore = range.score;
             break;
           }
@@ -97,11 +96,11 @@ export async function GET(req: NextRequest) {
       }
 
       // Calcular score de Frequência
-      const ordersCount = stats.orders_count || 0;
+      const ordersCount = notasFiscais.length;
       let frequencyScore = 1;
-      for (const range of parameters.ruleFrequency) {
-        if (range.min !== undefined && range.max !== undefined) {
-          if (ordersCount >= range.min && ordersCount <= range.max) {
+      for (const range of (parameters.ruleFrequency as any).bins || []) {
+        if (range.min_compras !== undefined && range.max !== undefined) {
+          if (ordersCount >= range.min_compras && ordersCount <= range.max) {
             frequencyScore = range.score;
             break;
           }
@@ -110,8 +109,8 @@ export async function GET(req: NextRequest) {
             frequencyScore = range.score;
             break;
           }
-        } else if (range.min !== undefined) {
-          if (ordersCount >= range.min) {
+        } else if (range.min_compras !== undefined) {
+          if (ordersCount >= range.min_compras) {
             frequencyScore = range.score;
             break;
           }
@@ -119,11 +118,11 @@ export async function GET(req: NextRequest) {
       }
 
       // Calcular score de Valor
-      const lifetimeValue = parseFloat(stats.lifetime_value || '0');
+      const lifetimeValue = notasFiscais.reduce((total, nf) => total + (parseFloat(nf.valorTotal?.toString() || '0')), 0);
       let valueScore = 1;
-      for (const range of parameters.ruleValue) {
-        if (range.min !== undefined && range.max !== undefined) {
-          if (lifetimeValue >= range.min && lifetimeValue <= range.max) {
+      for (const range of (parameters.ruleValue as any).bins || []) {
+        if (range.min_valor !== undefined && range.max !== undefined) {
+          if (lifetimeValue >= range.min_valor && lifetimeValue <= range.max) {
             valueScore = range.score;
             break;
           }
@@ -132,8 +131,8 @@ export async function GET(req: NextRequest) {
             valueScore = range.score;
             break;
           }
-        } else if (range.min !== undefined) {
-          if (lifetimeValue >= range.min) {
+        } else if (range.min_valor !== undefined) {
+          if (lifetimeValue >= range.min_valor) {
             valueScore = range.score;
             break;
           }
@@ -145,28 +144,30 @@ export async function GET(req: NextRequest) {
       // Determinar segmento
       let segment = 'Não classificado';
       
-      if (parameters.calculation_strategy === 'automatic' && parameters.class_ranges) {
-        if (totalScore >= parameters.class_ranges.ouro.min && totalScore <= parameters.class_ranges.ouro.max) {
+      if (parameters.calculationStrategy === 'automatic' && parameters.classRanges) {
+        const classRanges = parameters.classRanges as any;
+        if (totalScore >= classRanges.ouro?.min && totalScore <= classRanges.ouro?.max) {
           segment = 'Ouro';
-        } else if (totalScore >= parameters.class_ranges.prata.min && totalScore <= parameters.class_ranges.prata.max) {
+        } else if (totalScore >= classRanges.prata?.min && totalScore <= classRanges.prata?.max) {
           segment = 'Prata';
-        } else if (totalScore >= parameters.class_ranges.bronze.min && totalScore <= parameters.class_ranges.bronze.max) {
+        } else if (totalScore >= classRanges.bronze?.min && totalScore <= classRanges.bronze?.max) {
           segment = 'Bronze';
         }
-      } else if (parameters.calculation_strategy === 'manual' && parameters.rfv_segments) {
+      } else if (parameters.calculationStrategy === 'manual' && parameters.segments) {
         // Avaliar segmentos em ordem de prioridade
-        const sortedSegments = [...parameters.rfv_segments].sort((a, b) => (a.priority || 0) - (b.priority || 0));
+        const sortedSegments = [...parameters.segments].sort((a, b) => (a.priority || 0) - (b.priority || 0));
         
         for (const seg of sortedSegments) {
           if (seg.rules) {
             let matches = true;
+            const rules = seg.rules as any;
             
-            if (seg.rules.R && !evaluateRule(seg.rules.R, recencyScore)) matches = false;
-            if (seg.rules.F && !evaluateRule(seg.rules.F, frequencyScore)) matches = false;
-            if (seg.rules.V && !evaluateRule(seg.rules.V, valueScore)) matches = false;
+            if (rules.R && !evaluateRule(rules.R, recencyScore)) matches = false;
+            if (rules.F && !evaluateRule(rules.F, frequencyScore)) matches = false;
+            if (rules.V && !evaluateRule(rules.V, valueScore)) matches = false;
             
             if (matches) {
-              segment = seg.segment_name;
+              segment = seg.name;
               break;
             }
           }
@@ -175,8 +176,8 @@ export async function GET(req: NextRequest) {
 
       return {
         customer_id: customer.id,
-        customer_code: customer.customer_code,
-        customer_name: customer.name,
+        customer_code: customer.cpfCnpj,
+        customer_name: customer.nome,
         recency_score: recencyScore,
         frequency_score: frequencyScore,
         value_score: valueScore,

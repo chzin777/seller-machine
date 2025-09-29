@@ -111,40 +111,150 @@ function EditarUsuarioModal({ open, onClose, onSuccess, usuario }: { open: boole
 // Modal profissional para cadastro de usuário
 import { useRef } from "react";
 function NovoUsuarioModal({ open, onClose, onSuccess }: { open: boolean; onClose: () => void; onSuccess: () => void }) {
-  const [nome, setNome] = useState("");
-  const [sobrenome, setSobrenome] = useState("");
+  const [name, setName] = useState("");
   const [email, setEmail] = useState("");
-  const [conta, setConta] = useState("Vendedor");
-  const [senha, setSenha] = useState("");
+  const [password, setPassword] = useState("");
+  const [role, setRole] = useState("VENDEDOR");
+  const [empresaId, setEmpresaId] = useState<number | null>(null);
+  const [diretoriaId, setDiretoriaId] = useState<number | null>(null);
+  const [regionalId, setRegionalId] = useState<number | null>(null);
+  const [filialId, setFilialId] = useState<number | null>(null);
+  const [area, setArea] = useState("");
   const [loading, setLoading] = useState(false);
   const [erro, setErro] = useState("");
   const [success, setSuccess] = useState(false);
+  
+  // Estados para dados hierárquicos
+  const [empresas, setEmpresas] = useState<any[]>([]);
+  const [diretorias, setDiretorias] = useState<any[]>([]);
+  const [regionais, setRegionais] = useState<any[]>([]);
+  const [filiais, setFiliais] = useState<any[]>([]);
+  
   const nomeRef = useRef<HTMLInputElement>(null);
 
+  // Carregar empresas ao abrir o modal
   useEffect(() => {
-    if (open && nomeRef.current) {
-      nomeRef.current.focus();
+    if (open) {
+      fetchEmpresas();
+      if (nomeRef.current) {
+        nomeRef.current.focus();
+      }
     }
     if (!open) {
-      setNome(""); setSobrenome(""); setEmail(""); setConta("Vendedor"); setSenha(""); setErro(""); setSuccess(false);
+      // Reset form
+      setName(""); setEmail(""); setPassword(""); setRole("VENDEDOR"); 
+      setEmpresaId(null); setDiretoriaId(null); setRegionalId(null); setFilialId(null); setArea("");
+      setErro(""); setSuccess(false);
+      setEmpresas([]); setDiretorias([]); setRegionais([]); setFiliais([]);
     }
   }, [open]);
+
+  // Carregar diretorias quando empresa é selecionada
+  useEffect(() => {
+    if (empresaId) {
+      fetchDiretorias(empresaId);
+      setDiretoriaId(null); setRegionalId(null); setFilialId(null);
+    } else {
+      setDiretorias([]); setRegionais([]); setFiliais([]);
+    }
+  }, [empresaId]);
+
+  // Carregar regionais quando diretoria é selecionada
+  useEffect(() => {
+    if (diretoriaId) {
+      fetchRegionais(diretoriaId);
+      setRegionalId(null); setFilialId(null);
+    } else {
+      setRegionais([]); setFiliais([]);
+    }
+  }, [diretoriaId]);
+
+  // Carregar filiais quando regional é selecionada
+  useEffect(() => {
+    if (regionalId) {
+      fetchFiliais(regionalId);
+      setFilialId(null);
+    } else {
+      setFiliais([]);
+    }
+  }, [regionalId]);
+
+  const fetchEmpresas = async () => {
+    try {
+      const res = await fetch('/api/hierarchy/empresas');
+      if (res.ok) {
+        const data = await res.json();
+        setEmpresas(data);
+      }
+    } catch (error) {
+      console.error('Erro ao carregar empresas:', error);
+    }
+  };
+
+  const fetchDiretorias = async (empresaId: number) => {
+    try {
+      const res = await fetch(`/api/hierarchy/diretorias?empresaId=${empresaId}`);
+      if (res.ok) {
+        const data = await res.json();
+        setDiretorias(data);
+      }
+    } catch (error) {
+      console.error('Erro ao carregar diretorias:', error);
+    }
+  };
+
+  const fetchRegionais = async (diretoriaId: number) => {
+    try {
+      const res = await fetch(`/api/hierarchy/regionais?diretoriaId=${diretoriaId}`);
+      if (res.ok) {
+        const data = await res.json();
+        setRegionais(data);
+      }
+    } catch (error) {
+      console.error('Erro ao carregar regionais:', error);
+    }
+  };
+
+  const fetchFiliais = async (regionalId: number) => {
+    try {
+      const res = await fetch(`/api/filiais?regionalId=${regionalId}`);
+      if (res.ok) {
+        const data = await res.json();
+        setFiliais(data);
+      }
+    } catch (error) {
+      console.error('Erro ao carregar filiais:', error);
+    }
+  };
 
   const handleSubmit = async () => {
     setLoading(true);
     setErro("");
     setSuccess(false);
-    if (!nome.trim() || !sobrenome.trim() || !email.trim() || !senha.trim()) {
-      setErro("Preencha todos os campos obrigatórios.");
+    
+    if (!name.trim() || !email.trim() || !password.trim() || !role) {
+      setErro("Nome, email, senha e perfil são obrigatórios.");
       setLoading(false);
       return;
     }
+    
     try {
       const res = await fetch("/api/users", { 
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ nome, sobrenome, email, conta, senha }),
+        body: JSON.stringify({ 
+          name, 
+          email, 
+          password, 
+          role,
+          empresaId,
+          diretoriaId,
+          regionalId,
+          filialId,
+          area: area.trim() || null
+        }),
       });
+      
       if (!res.ok) {
         let data;
         try {
@@ -153,7 +263,6 @@ function NovoUsuarioModal({ open, onClose, onSuccess }: { open: boolean; onClose
           data = { error: res.statusText };
         }
         setErro((data && data.error) || "Erro ao criar usuário");
-        // Log detalhado para debug
         console.error("Erro ao criar usuário:", data, res.status, res.statusText);
       } else {
         setSuccess(true);
@@ -171,44 +280,182 @@ function NovoUsuarioModal({ open, onClose, onSuccess }: { open: boolean; onClose
   };
 
   if (!open) return null;
+  
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40">
-      <form onSubmit={e => { e.preventDefault(); handleSubmit(); }} className="bg-white rounded-xl shadow-2xl p-8 min-w-[340px] w-full max-w-md flex flex-col gap-4 animate-fade-in">
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4">
+      <form onSubmit={e => { e.preventDefault(); handleSubmit(); }} className="bg-white rounded-xl shadow-2xl p-6 w-full max-w-2xl max-h-[90vh] overflow-y-auto flex flex-col gap-4 animate-fade-in">
         <h2 className="text-2xl font-bold mb-2 text-blue-900 text-center">Novo Usuário</h2>
-        <div className="flex flex-col gap-2">
-          <label className="text-sm font-medium text-blue-900" htmlFor="nome">Nome</label>
-          <input ref={nomeRef} id="nome" className="border border-blue-300 rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-400 transition bg-white text-blue-900" placeholder="Nome" value={nome} onChange={e => setNome(e.target.value)} required autoComplete="off" />
+        
+        {/* Informações Básicas */}
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div className="flex flex-col gap-2">
+            <label className="text-sm font-medium text-blue-900" htmlFor="name">Nome Completo *</label>
+            <input 
+              ref={nomeRef} 
+              id="name" 
+              className="border border-blue-300 rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-400 transition bg-white text-blue-900" 
+              placeholder="Nome completo" 
+              value={name} 
+              onChange={e => setName(e.target.value)} 
+              required 
+              autoComplete="off" 
+            />
+          </div>
+          
+          <div className="flex flex-col gap-2">
+            <label className="text-sm font-medium text-blue-900" htmlFor="email">Email *</label>
+            <input 
+              id="email" 
+              type="email" 
+              className="border border-blue-300 rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-400 transition bg-white text-blue-900" 
+              placeholder="Email" 
+              value={email} 
+              onChange={e => setEmail(e.target.value)} 
+              required 
+              autoComplete="off" 
+            />
+          </div>
         </div>
-        <div className="flex flex-col gap-2">
-          <label className="text-sm font-medium text-blue-900" htmlFor="sobrenome">Sobrenome</label>
-          <input id="sobrenome" className="border border-blue-300 rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-400 transition bg-white text-blue-900" placeholder="Sobrenome" value={sobrenome} onChange={e => setSobrenome(e.target.value)} required autoComplete="off" />
+
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div className="flex flex-col gap-2">
+            <label className="text-sm font-medium text-blue-900" htmlFor="password">Senha *</label>
+            <input 
+              id="password" 
+              type="password" 
+              className="border border-blue-300 rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-400 transition bg-white text-blue-900" 
+              placeholder="Senha (mín. 6 caracteres)" 
+              value={password} 
+              onChange={e => setPassword(e.target.value)} 
+              required 
+              autoComplete="new-password" 
+              minLength={6}
+            />
+          </div>
+          
+          <div className="flex flex-col gap-2">
+            <label className="text-sm font-medium text-blue-900" htmlFor="role">Perfil *</label>
+            <select
+              id="role"
+              className="border border-blue-300 rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-400 transition bg-white text-blue-900 hover:cursor-pointer"
+              value={role}
+              onChange={e => setRole(e.target.value)}
+              required
+            >
+              <option value="VENDEDOR">Vendedor</option>
+              <option value="GESTOR_I">Gestor I (Filial)</option>
+              <option value="GESTOR_II">Gestor II (Regional)</option>
+              <option value="GESTOR_III">Gestor III (Diretor)</option>
+              <option value="GESTOR_MASTER">Gestor Master (Admin)</option>
+            </select>
+          </div>
         </div>
-        <div className="flex flex-col gap-2">
-          <label className="text-sm font-medium text-blue-900" htmlFor="email">Email</label>
-          <input id="email" type="email" className="border border-blue-300 rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-400 transition bg-white text-blue-900" placeholder="Email" value={email} onChange={e => setEmail(e.target.value)} required autoComplete="off" />
+
+        {/* Hierarquia Organizacional */}
+        <div className="border-t pt-4">
+          <h3 className="text-lg font-semibold text-blue-900 mb-3">Hierarquia Organizacional</h3>
+          
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div className="flex flex-col gap-2">
+              <label className="text-sm font-medium text-blue-900" htmlFor="empresa">Empresa</label>
+              <select
+                id="empresa"
+                className="border border-blue-300 rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-400 transition bg-white text-blue-900 hover:cursor-pointer"
+                value={empresaId || ""}
+                onChange={e => setEmpresaId(e.target.value ? parseInt(e.target.value) : null)}
+              >
+                <option value="">Selecione uma empresa</option>
+                {empresas.map(empresa => (
+                  <option key={empresa.id} value={empresa.id}>{empresa.razaoSocial}</option>
+                ))}
+              </select>
+            </div>
+            
+            <div className="flex flex-col gap-2">
+              <label className="text-sm font-medium text-blue-900" htmlFor="diretoria">Diretoria</label>
+              <select
+                id="diretoria"
+                className="border border-blue-300 rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-400 transition bg-white text-blue-900 hover:cursor-pointer"
+                value={diretoriaId || ""}
+                onChange={e => setDiretoriaId(e.target.value ? parseInt(e.target.value) : null)}
+                disabled={!empresaId}
+              >
+                <option value="">Selecione uma diretoria</option>
+                {diretorias.map(diretoria => (
+                  <option key={diretoria.id} value={diretoria.id}>{diretoria.nome}</option>
+                ))}
+              </select>
+            </div>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4">
+            <div className="flex flex-col gap-2">
+              <label className="text-sm font-medium text-blue-900" htmlFor="regional">Regional</label>
+              <select
+                id="regional"
+                className="border border-blue-300 rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-400 transition bg-white text-blue-900 hover:cursor-pointer"
+                value={regionalId || ""}
+                onChange={e => setRegionalId(e.target.value ? parseInt(e.target.value) : null)}
+                disabled={!diretoriaId}
+              >
+                <option value="">Selecione uma regional</option>
+                {regionais.map(regional => (
+                  <option key={regional.id} value={regional.id}>{regional.nome}</option>
+                ))}
+              </select>
+            </div>
+            
+            <div className="flex flex-col gap-2">
+              <label className="text-sm font-medium text-blue-900" htmlFor="filial">Filial</label>
+              <select
+                id="filial"
+                className="border border-blue-300 rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-400 transition bg-white text-blue-900 hover:cursor-pointer"
+                value={filialId || ""}
+                onChange={e => setFilialId(e.target.value ? parseInt(e.target.value) : null)}
+                disabled={!regionalId}
+              >
+                <option value="">Selecione uma filial</option>
+                {filiais.map(filial => (
+                  <option key={filial.id} value={filial.id}>{filial.nome}</option>
+                ))}
+              </select>
+            </div>
+          </div>
+
+          <div className="mt-4">
+            <div className="flex flex-col gap-2">
+              <label className="text-sm font-medium text-blue-900" htmlFor="area">Área</label>
+              <input 
+                id="area" 
+                className="border border-blue-300 rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-400 transition bg-white text-blue-900" 
+                placeholder="Área de atuação (opcional)" 
+                value={area} 
+                onChange={e => setArea(e.target.value)} 
+                autoComplete="off" 
+              />
+            </div>
+          </div>
         </div>
-        <div className="flex flex-col gap-2">
-          <label className="text-sm font-medium text-blue-900" htmlFor="conta">Tipo de Conta</label>
-          <select
-            id="conta"
-            className="border border-blue-300 rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-400 transition bg-white text-blue-900 hover:cursor-pointer"
-            value={conta}
-            onChange={e => setConta(e.target.value)}
-            required
+
+        {erro && <div className="text-red-600 text-sm text-center mt-1 bg-red-50 p-2 rounded">{erro}</div>}
+        {success && <div className="text-green-600 text-sm text-center mt-1 bg-green-50 p-2 rounded">Usuário criado com sucesso!</div>}
+        
+        <div className="flex gap-2 mt-4 pt-4 border-t">
+          <button 
+            type="button" 
+            className="flex-1 py-2 rounded bg-gray-200 hover:bg-gray-300 transition hover:scale-105 hover:cursor-pointer" 
+            onClick={onClose} 
+            disabled={loading}
           >
-            <option className="bg-white text-blue-900" value="Admin">Admin</option>
-            <option className="bg-white text-blue-900" value="Vendedor">Vendedor</option>
-          </select>
-        </div>
-        <div className="flex flex-col gap-2">
-          <label className="text-sm font-medium text-blue-900" htmlFor="senha">Senha</label>
-          <input id="senha" type="password" className="border border-blue-300 rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-400 transition bg-white text-blue-900" placeholder="Senha" value={senha} onChange={e => setSenha(e.target.value)} required autoComplete="new-password" />
-        </div>
-        {erro && <div className="text-red-600 text-sm text-center mt-1">{erro}</div>}
-        {success && <div className="text-green-600 text-sm text-center mt-1">Usuário criado com sucesso!</div>}
-        <div className="flex gap-2 mt-2">
-          <button type="button" className="flex-1 py-2 rounded bg-gray-200 hover:bg-gray-300 transition hover:scale-105 hover:cursor-pointer" onClick={onClose} disabled={loading}>Cancelar</button>
-          <button type="submit" className="flex-1 py-2 rounded bg-blue-700 text-white hover:bg-blue-800 transition font-semibold disabled:opacity-60 hover:scale-105 hover:cursor-pointer" disabled={loading}>{loading ? "Salvando..." : "Salvar"}</button>
+            Cancelar
+          </button>
+          <button 
+            type="submit" 
+            className="flex-1 py-2 rounded bg-blue-700 text-white hover:bg-blue-800 transition font-semibold disabled:opacity-60 hover:scale-105 hover:cursor-pointer" 
+            disabled={loading}
+          >
+            {loading ? "Salvando..." : "Salvar"}
+          </button>
         </div>
       </form>
     </div>

@@ -1,0 +1,290 @@
+{
+  "rfv_parameters_sets": [
+    {
+      "id": "1",
+      "filialId": null,
+      "name": "RFV Padrão",
+      "strategy": "threshold",
+      "windowDays": 180,
+      "weights": {
+        "f": 1,
+        "r": 1,
+        "v": 1
+      },
+      "ruleRecency": {
+        "bins": [
+          {
+            "score": 5,
+            "max_dias": 30
+          },
+          {
+            "score": 4,
+            "max_dias": 60
+          },
+          {
+            "score": 3,
+            "max_dias": 90
+          },
+          {
+            "score": 2,
+            "max_dias": 180
+          },
+          {
+            "score": 1,
+            "max_dias": 365
+          }
+        ]
+      },
+      "ruleFrequency": {
+        "bins": [
+          {
+            "score": 5,
+            "min_compras": 10
+          },
+          {
+            "score": 4,
+            "min_compras": 5
+          },
+          {
+            "score": 3,
+            "min_compras": 3
+          },
+          {
+            "score": 2,
+            "min_compras": 2
+          },
+          {
+            "score": 1,
+            "min_compras": 1
+          }
+        ]
+      },
+      "ruleValue": {
+        "bins": [
+          {
+            "score": 5,
+            "min_valor": 5000
+          },
+          {
+            "score": 4,
+            "min_valor": 2000
+          },
+          {
+            "score": 3,
+            "min_valor": 1000
+          },
+          {
+            "score": 2,
+            "min_valor": 500
+          },
+          {
+            "score": 1,
+            "min_valor": 100
+          }
+        ]
+      },
+      "effectiveFrom": "2025-09-15T00:00:00.000Z",
+      "effectiveTo": "2025-09-15T00:00:00.000Z",
+      "calculationStrategy": "automatic",
+      "classRanges": {
+        "ouro": {
+          "max": 15,
+          "min": 12
+        },
+        "prata": {
+          "max": 11,
+          "min": 8
+        },
+        "bronze": {
+          "max": 7,
+          "min": 3
+        }
+      },
+      "conditionalRules": null,
+      "createdAt": "2025-09-15T19:07:32.000Z",
+      "updatedAt": "2025-09-15T19:24:12.000Z"
+    },
+    {
+      "id": "2",
+      "filialId": null,
+      "name": "Test Parameter Set",
+      "strategy": "rfv",
+      "windowDays": 365,
+      "weights": {
+        "f": 1,
+        "r": 1,
+        "v": 1
+      },
+      "ruleRecency": {
+        "max": 365,
+        "min": 1
+      },
+      "ruleFrequency": {
+        "max": 10,
+        "min": 1
+      },
+      "ruleValue": {
+        "max": 1000,
+        "min": 0
+      },
+      "effectiveFrom": "2024-01-01T00:00:00.000Z",
+      "effectiveTo": "2024-12-31T00:00:00.000Z",
+      "calculationStrategy": "automatic",
+      "classRanges": null,
+      "conditionalRules": null,
+      "createdAt": "2025-09-15T22:28:57.000Z",
+      "updatedAt": "2025-09-15T19:28:57.000Z"
+    },
+    {
+      "id": "3",
+      "filialId": null,
+      "name": "MySQL Test Set",
+      "strategy": "rfv",
+      "windowDays": 180,
+      "weights": {
+        "f": 1,
+        "r": 1,
+        "v": 1
+      },
+      "ruleRecency": {
+        "max": 180,
+        "min": 1
+      },
+      "ruleFrequency": {
+        "max": 5,
+        "min": 1
+      },
+      "ruleValue": {
+        "max": 500,
+        "min": 0
+      },
+      "effectiveFrom": "2024-01-01T00:00:00.000Z",
+      "effectiveTo": null,
+      "calculationStrategy": "automatic",
+      "classRanges": null,
+      "conditionalRules": null,
+      "createdAt": "2025-09-15T22:33:55.000Z",
+      "updatedAt": "2025-09-15T19:33:54.000Z"
+    }
+  ],
+  "segments": [
+    {
+      "id": "1",
+      "parameterId": "1",
+      "name": "Champions",
+      "priority": 1,
+      "rules": {
+        "F": ">=4",
+        "R": ">=4",
+        "V": ">=4"
+      },
+      "createdAt": "2025-09-15T19:07:32.000Z",
+      "updatedAt": "2025-09-15T19:07:32.000Z"
+    },
+    {
+      "id": "2",
+      "parameterId": "1",
+      "name": "Loyal Customers",
+      "priority": 2,
+      "rules": {
+        "F": ">=4",
+        "R": ">=3",
+        "V": ">=3"
+      },
+      "createdAt": "2025-09-15T19:07:32.000Z",
+      "updatedAt": "2025-09-15T19:07:32.000Z"
+    },
+    {
+      "id": "3",
+      "parameterId": "1",
+      "name": "Potential Loyalists",
+      "priority": 3,
+      "rules": {
+        "F": ">=2",
+        "R": ">=4",
+        "V": ">=2"
+      },
+      "createdAt": "2025-09-15T19:07:32.000Z",
+      "updatedAt": "2025-09-15T19:07:32.000Z"
+    },
+    {
+      "id": "4",
+      "parameterId": "1",
+      "name": "New Customers",
+      "priority": 4,
+      "rules": {
+        "F": "=1",
+        "R": ">=4",
+        "V": ">=1"
+      },
+      "createdAt": "2025-09-15T19:07:32.000Z",
+      "updatedAt": "2025-09-15T19:07:32.000Z"
+    },
+    {
+      "id": "5",
+      "parameterId": "1",
+      "name": "Promising",
+      "priority": 5,
+      "rules": {
+        "F": "=1",
+        "R": ">=3",
+        "V": ">=2"
+      },
+      "createdAt": "2025-09-15T19:07:32.000Z",
+      "updatedAt": "2025-09-15T19:07:32.000Z"
+    },
+    {
+      "id": "6",
+      "parameterId": "1",
+      "name": "About to Sleep",
+      "priority": 7,
+      "rules": {
+        "F": ">=2",
+        "R": ">=2",
+        "V": ">=3"
+      },
+      "createdAt": "2025-09-15T19:07:32.000Z",
+      "updatedAt": "2025-09-15T19:07:32.000Z"
+    },
+    {
+      "id": "7",
+      "parameterId": "1",
+      "name": "At Risk",
+      "priority": 8,
+      "rules": {
+        "F": ">=3",
+        "R": ">=2",
+        "V": ">=4"
+      },
+      "createdAt": "2025-09-15T19:07:32.000Z",
+      "updatedAt": "2025-09-15T19:07:32.000Z"
+    },
+    {
+      "id": "8",
+      "parameterId": "1",
+      "name": "Cannot Lose Them",
+      "priority": 9,
+      "rules": {
+        "F": ">=4",
+        "R": "=1",
+        "V": ">=4"
+      },
+      "createdAt": "2025-09-15T19:07:32.000Z",
+      "updatedAt": "2025-09-15T19:07:32.000Z"
+    },
+    {
+      "id": "9",
+      "parameterId": "1",
+      "name": "Hibernating",
+      "priority": 10,
+      "rules": {
+        "F": "=1",
+        "R": "=1",
+        "V": ">=1"
+      },
+      "createdAt": "2025-09-15T19:07:32.000Z",
+      "updatedAt": "2025-09-15T19:07:32.000Z"
+    }
+  ],
+  "timestamp": "2025-09-29T15:53:02.940Z"
+}

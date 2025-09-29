@@ -1,43 +1,44 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { createServerClient } from '../../../../../lib/supabase/server';
+import { prisma } from '../../../../../lib/prisma';
 
 // GET /api/rfv/parameters - Buscar parâmetros RFV
 export async function GET(req: NextRequest) {
-  const supabase = createServerClient();
   const { searchParams } = new URL(req.url);
   const active = searchParams.get('active');
   const filialId = searchParams.get('filialId');
 
   try {
-    let query = supabase
-      .from('rfv_parameters_sets')
-      .select(`
-        *,
-        segments (*)
-      `);
+    let whereClause: any = {};
 
     // Filtrar por ativo se especificado
     if (active === 'true') {
-      query = query.is('effectiveTo', null);
+      whereClause.effectiveTo = null;
     }
 
     // Filtrar por filial se especificado
     if (filialId) {
       if (filialId === 'all') {
-        query = query.is('filialId', null);
+        whereClause.filialId = null;
       } else {
-        query = query.eq('filialId', parseInt(filialId));
+        whereClause.filialId = parseInt(filialId);
       }
     }
 
-    query = query.order('createdAt', { ascending: false });
-
-    const { data, error } = await query;
-
-    if (error) {
-      console.error('Erro ao buscar parâmetros RFV:', error);
-      return NextResponse.json({ error: error.message }, { status: 500 });
-    }
+    const data = await prisma.rfvParameterSet.findMany({
+      where: whereClause,
+      include: {
+        segments: true,
+        filial: {
+          select: {
+            id: true,
+            nome: true
+          }
+        }
+      },
+      orderBy: {
+        createdAt: 'desc'
+      }
+    });
 
     return NextResponse.json(data || []);
   } catch (error) {
@@ -48,8 +49,6 @@ export async function GET(req: NextRequest) {
 
 // POST /api/rfv/parameters - Criar novos parâmetros RFV
 export async function POST(req: NextRequest) {
-  const supabase = createServerClient();
-  
   try {
     const body = await req.json();
     const {
@@ -75,11 +74,12 @@ export async function POST(req: NextRequest) {
     // Verificar duplicatas
     if (finalFilialId === null) {
       // Verificar se já existe configuração global ativa
-      const { data: existingGlobal } = await supabase
-        .from('rfv_parameters_sets')
-        .select('id')
-        .is('filialId', null)
-        .is('effectiveTo', null);
+      const existingGlobal = await prisma.rfvParameterSet.findMany({
+        where: {
+          filialId: null,
+          effectiveTo: null
+        }
+      });
 
       if (existingGlobal && existingGlobal.length > 0) {
         return NextResponse.json({ 
@@ -88,11 +88,12 @@ export async function POST(req: NextRequest) {
       }
     } else {
       // Verificar se já existe configuração para esta filial
-      const { data: existingFilial } = await supabase
-        .from('rfv_parameters_sets')
-        .select('id')
-        .eq('filialId', finalFilialId)
-        .is('effectiveTo', null);
+      const existingFilial = await prisma.rfvParameterSet.findMany({
+        where: {
+          filialId: finalFilialId,
+          effectiveTo: null
+        }
+      });
 
       if (existingFilial && existingFilial.length > 0) {
         return NextResponse.json({ 
@@ -101,11 +102,12 @@ export async function POST(req: NextRequest) {
       }
 
       // Verificar se existe configuração global que conflitaria
-      const { data: existingGlobal } = await supabase
-        .from('rfv_parameters_sets')
-        .select('id')
-        .is('filialId', null)
-        .is('effectiveTo', null);
+      const existingGlobal = await prisma.rfvParameterSet.findMany({
+        where: {
+          filialId: null,
+          effectiveTo: null
+        }
+      });
 
       if (existingGlobal && existingGlobal.length > 0) {
         return NextResponse.json({ 
@@ -136,71 +138,55 @@ export async function POST(req: NextRequest) {
       }))
     };
 
-    // Criar o parameter set
-    const { data: parameterSet, error: parameterError } = await supabase
-      .from('rfv_parameters_sets')
-      .insert({
-        filialId: finalFilialId,
-        name,
-        strategy: 'threshold',
-        windowDays: 365,
-        weights: { R: 1, F: 1, V: 1 },
-        ruleRecency,
-        ruleFrequency,
-        ruleValue,
-        effectiveFrom,
-        effectiveTo: null,
-        calculation_strategy: segmentationMethod,
-        class_ranges: automaticRanges || null,
-        conditional_rules: null
-      })
-      .select()
-      .single();
+    // Usar transação para criar parameter set e segmentos
+    const result = await prisma.$transaction(async (tx) => {
+      // Criar o parameter set
+      const parameterSet = await tx.rfvParameterSet.create({
+        data: {
+          filialId: finalFilialId,
+          name,
+          strategy: 'threshold',
+          windowDays: 365,
+          weights: { R: 1, F: 1, V: 1 },
+          ruleRecency,
+          ruleFrequency,
+          ruleValue,
+          effectiveFrom: new Date(effectiveFrom),
+          effectiveTo: null,
+          calculationStrategy: segmentationMethod,
+          classRanges: automaticRanges || undefined,
+          conditionalRules: undefined
+        }
+      });
 
-    if (parameterError) {
-      console.error('Erro ao criar parameter set:', parameterError);
-      return NextResponse.json({ error: parameterError.message }, { status: 500 });
-    }
+      // Criar os segmentos se existirem
+      if (segments.length > 0) {
+        const segmentsData = segments.map((segment: any, index: number) => ({
+          parameterSetId: parameterSet.id,
+          name: segment.segment_name,
+          rules: segment.rules,
+          priority: segment.priority || index
+        }));
 
-    // Criar os segmentos se existirem
-    if (segments.length > 0) {
-      const segmentsData = segments.map((segment: any, index: number) => ({
-        parameterSetId: parameterSet.id,
-        segment_name: segment.segment_name,
-        rules: segment.rules,
-        priority: segment.priority || index
-      }));
-
-      const { error: segmentsError } = await supabase
-        .from('segments')
-        .insert(segmentsData);
-
-      if (segmentsError) {
-        console.error('Erro ao criar segmentos:', segmentsError);
-        // Rollback: remove o parameter set criado
-        await supabase
-          .from('rfv_parameters_sets')
-          .delete()
-          .eq('id', parameterSet.id);
-        
-        return NextResponse.json({ error: 'Erro ao criar segmentos: ' + segmentsError.message }, { status: 500 });
+        await tx.rfvSegment.createMany({
+          data: segmentsData
+        });
       }
-    }
 
-    // Buscar o resultado completo
-    const { data: result, error: fetchError } = await supabase
-      .from('rfv_parameters_sets')
-      .select(`
-        *,
-        segments (*)
-      `)
-      .eq('id', parameterSet.id)
-      .single();
-
-    if (fetchError) {
-      console.error('Erro ao buscar resultado:', fetchError);
-      return NextResponse.json({ error: fetchError.message }, { status: 500 });
-    }
+      // Buscar o resultado completo
+      return await tx.rfvParameterSet.findUnique({
+        where: { id: parameterSet.id },
+        include: {
+          segments: true,
+          filial: {
+            select: {
+              id: true,
+              nome: true
+            }
+          }
+        }
+      });
+    });
 
     return NextResponse.json(result);
   } catch (error) {
@@ -211,8 +197,6 @@ export async function POST(req: NextRequest) {
 
 // PUT /api/rfv/parameters - Atualizar parâmetros RFV existentes
 export async function PUT(req: NextRequest) {
-  const supabase = createServerClient();
-  
   try {
     const body = await req.json();
     const { id, segments, ...updateData } = body;
@@ -221,61 +205,50 @@ export async function PUT(req: NextRequest) {
       return NextResponse.json({ error: 'ID é obrigatório para atualização' }, { status: 400 });
     }
 
-    // Atualiza o parameter set
-    const { data: parameterSet, error: parameterError } = await supabase
-      .from('rfv_parameters_sets')
-      .update(updateData)
-      .eq('id', id)
-      .select()
-      .single();
+    // Usar transação para atualizar parameter set e segmentos
+    const result = await prisma.$transaction(async (tx) => {
+      // Atualiza o parameter set
+      const parameterSet = await tx.rfvParameterSet.update({
+        where: { id: parseInt(id) },
+        data: updateData
+      });
 
-    if (parameterError) {
-      console.error('Erro ao atualizar parameter set:', parameterError);
-      return NextResponse.json({ error: parameterError.message }, { status: 500 });
-    }
+      // Atualiza segmentos se fornecidos
+      if (segments && Array.isArray(segments)) {
+        // Remove segmentos existentes
+        await tx.rfvSegment.deleteMany({
+          where: { parameterSetId: parseInt(id) }
+        });
 
-    // Atualiza segmentos se fornecidos
-    if (segments && Array.isArray(segments)) {
-      // Remove segmentos existentes
-      await supabase
-        .from('segments')
-        .delete()
-        .eq('parameterSetId', id);
+        // Cria novos segmentos
+        if (segments.length > 0) {
+          const segmentsData = segments.map((segment: any, index: number) => ({
+            parameterSetId: parseInt(id),
+            name: segment.segment_name,
+            rules: segment.rules,
+            priority: segment.priority || index
+          }));
 
-      // Cria novos segmentos
-      if (segments.length > 0) {
-        const segmentsData = segments.map((segment: any, index: number) => ({
-          parameterSetId: id,
-          segment_name: segment.segment_name,
-          rules: segment.rules,
-          priority: segment.priority || index
-        }));
-
-        const { error: segmentsError } = await supabase
-          .from('segments')
-          .insert(segmentsData);
-
-        if (segmentsError) {
-          console.error('Erro ao criar segmentos:', segmentsError);
-          return NextResponse.json({ error: 'Erro ao atualizar segmentos: ' + segmentsError.message }, { status: 500 });
+          await tx.rfvSegment.createMany({
+            data: segmentsData
+          });
         }
       }
-    }
 
-    // Buscar o resultado completo
-    const { data: result, error: fetchError } = await supabase
-      .from('rfv_parameters_sets')
-      .select(`
-        *,
-        segments (*)
-      `)
-      .eq('id', id)
-      .single();
-
-    if (fetchError) {
-      console.error('Erro ao buscar resultado:', fetchError);
-      return NextResponse.json({ error: fetchError.message }, { status: 500 });
-    }
+      // Buscar o resultado completo
+      return await tx.rfvParameterSet.findUnique({
+        where: { id: parseInt(id) },
+        include: {
+          segments: true,
+          filial: {
+            select: {
+              id: true,
+              nome: true
+            }
+          }
+        }
+      });
+    });
 
     return NextResponse.json(result);
   } catch (error) {
@@ -286,7 +259,6 @@ export async function PUT(req: NextRequest) {
 
 // DELETE /api/rfv/parameters - Remover parâmetros RFV
 export async function DELETE(req: NextRequest) {
-  const supabase = createServerClient();
   const { searchParams } = new URL(req.url);
   const id = searchParams.get('id');
 
@@ -295,22 +267,18 @@ export async function DELETE(req: NextRequest) {
   }
 
   try {
-    // Remove segmentos primeiro (foreign key)
-    await supabase
-      .from('segments')
-      .delete()
-      .eq('parameterSetId', parseInt(id));
+    // Usar transação para remover segmentos e parameter set
+    await prisma.$transaction(async (tx) => {
+      // Remove segmentos primeiro (foreign key)
+      await tx.rfvSegment.deleteMany({
+        where: { parameterSetId: parseInt(id) }
+      });
 
-    // Remove o parameter set
-    const { error } = await supabase
-      .from('rfv_parameters_sets')
-      .delete()
-      .eq('id', parseInt(id));
-
-    if (error) {
-      console.error('Erro ao deletar parameter set:', error);
-      return NextResponse.json({ error: error.message }, { status: 500 });
-    }
+      // Remove o parameter set
+      await tx.rfvParameterSet.delete({
+        where: { id: parseInt(id) }
+      });
+    });
 
     return NextResponse.json({ message: 'Parâmetros RFV removidos com sucesso' });
   } catch (error) {
