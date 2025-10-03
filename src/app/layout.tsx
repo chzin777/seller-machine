@@ -23,10 +23,9 @@ function getNavLinks(userConta?: string) {
 		{ href: "/", label: "Dashboard", icon: LayoutDashboard },
 		{ href: "/mapa-vendas", label: "Mapa de Vendas", icon: Map },
 		{ href: "/carteira-vendedor", label: "Carteira de Vendedor", icon: Briefcase },
-		{ href: "/associacoes", label: "Associações", icon: Link2 },
 		{ href: "/clientes", label: "Clientes", icon: Users },
+		{ href: "/associacoes", label: "Associações", icon: Link2 },
 		{ href: "/ia", label: "Inteligência Artificial", icon: Brain },
-		{ href: "/parametros-negocio", label: "Parâmetros de Negócio", icon: Settings },
 	];
 	if (userConta === "Admin") {
 		baseLinks.push({ href: "/usuarios", label: "Usuários", icon: UserCog });

@@ -145,9 +145,16 @@ export default function CarteiraVendedorCard({
 
   return (
     <Card 
-      className="hover:shadow-lg transition-all duration-200 cursor-pointer border-l-4 border-l-blue-500"
+      className="hover:shadow-lg hover:scale-105 transition-all duration-200 cursor-pointer border-l-4 border-l-blue-500 relative group"
       onClick={onClick}
     >
+      {/* Indicador visual de clicável */}
+      <div className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity duration-200">
+        <div className="w-6 h-6 rounded-full bg-blue-500 flex items-center justify-center">
+          <Users className="w-3 h-3 text-white" />
+        </div>
+      </div>
+
       <CardHeader className="pb-3">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-3">
@@ -155,7 +162,7 @@ export default function CarteiraVendedorCard({
               <User className="w-5 h-5 text-white" />
             </div>
             <div>
-              <CardTitle className="text-lg font-bold text-gray-900">
+              <CardTitle className="text-lg font-bold text-gray-900 group-hover:text-blue-600 transition-colors">
                 {vendedor.nome}
               </CardTitle>
               <p className="text-sm text-gray-500">
@@ -275,15 +282,23 @@ export default function CarteiraVendedorCard({
         )}
         
         {/* Data da última atualização */}
-        <div className="flex items-center gap-2 pt-2 border-t border-gray-200">
-          <Calendar className="w-3 h-3 text-gray-400" />
-          <span className="text-xs text-gray-500">
-            Última atualização: {new Date(ultimaAtualizacao).toLocaleDateString('pt-BR', {
-              day: '2-digit',
-              month: '2-digit',
-              year: 'numeric'
-            })}
-          </span>
+        <div className="flex items-center justify-between pt-2 border-t border-gray-200">
+          <div className="flex items-center gap-2">
+            <Calendar className="w-3 h-3 text-gray-400" />
+            <span className="text-xs text-gray-500">
+              Última atualização: {new Date(ultimaAtualizacao).toLocaleDateString('pt-BR', {
+                day: '2-digit',
+                month: '2-digit',
+                year: 'numeric'
+              })}
+            </span>
+          </div>
+          
+          {/* Indicador de ação */}
+          <div className="text-xs text-blue-500 font-medium opacity-0 group-hover:opacity-100 transition-opacity duration-200 flex items-center gap-1">
+            <Users className="w-3 h-3" />
+            Ver Clientes
+          </div>
         </div>
       </CardContent>
     </Card>

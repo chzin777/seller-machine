@@ -1,7 +1,7 @@
 "use client";
 
 import React, { createContext, useContext, useEffect, useState, useCallback, ReactNode } from "react";
-import { useInactivityConfig } from "../hooks/useInactivityConfig";
+// import { useInactivityConfig } from "../hooks/useInactivityConfig"; // Removido
 
 type ReceitaMensal = {
   ano: number;
@@ -404,7 +404,7 @@ class DataManager {
 }
 
 export function DataProvider({ children }: { children: ReactNode }) {
-  const { diasInatividade } = useInactivityConfig(); // Usar hook global
+  const diasInatividade = 90; // Valor padrão fixo após remoção dos parâmetros de negócio
   
   const [data, setData] = useState<Omit<DataContextType, 'refetch'>>({
     receitaTotal: null,

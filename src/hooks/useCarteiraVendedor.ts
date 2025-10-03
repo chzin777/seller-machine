@@ -243,6 +243,81 @@ export function useFiliais() {
   };
 }
 
+// Tipos para o hook de carteira
+interface CarteiraVendedorResponse {
+  vendedor: {
+    id: number;
+    nome: string;
+    cpf: string;
+    filial?: {
+      id: number;
+      nome: string;
+      cidade: string;
+      estado: string;
+    };
+  };
+  clientes: Array<any>;
+  resumo: {
+    totalClientes: number;
+    receitaTotal: number;
+    ticketMedioGeral: number;
+    clientesAtivos: number;
+    clientesInativos: number;
+  };
+  metadata: {
+    periodoMeses: number;
+    dataLimite: string;
+    dataConsulta: string;
+  };
+}
+
+// Hook para buscar carteira de vendedores com clientes
+export function useCarteiraVendedorClientes(vendedorId?: number, periodoMeses: number = 6) {
+  const [data, setData] = useState<CarteiraVendedorResponse | null>(null);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
+  const fetchCarteira = useCallback(async () => {
+    // Só buscar dados se houver um vendedorId
+    if (!vendedorId) {
+      setData(null);
+      setError(null);
+      setLoading(false);
+      return;
+    }
+
+    try {
+      setLoading(true);
+      setError(null);
+      
+      const endpoint = `/api/carteira-vendedor/${vendedorId}?periodoMeses=${periodoMeses}`;
+      
+      const response = await fetch(endpoint);
+      if (!response.ok) {
+        throw new Error(`Erro na API: ${response.status} - ${response.statusText}`);
+      }
+      
+      const result = await response.json();
+      setData(result);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Erro desconhecido');
+    } finally {
+      setLoading(false);
+    }
+  }, [vendedorId, periodoMeses]);
+
+  useEffect(() => {
+    fetchCarteira();
+  }, [fetchCarteira]);
+
+  return {
+    data,
+    loading,
+    error,
+    refetch: fetchCarteira
+  };
+}
+
 // Hook específico para métricas consolidadas
 export function useMetricasCarteira(filialId?: number) {
   const [metricas, setMetricas] = useState({

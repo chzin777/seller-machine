@@ -10,7 +10,6 @@ const PROTECTED_ROUTES = {
   
   // Rotas de gestão - GESTOR_III e acima
   '/dashboard-graphql': ['GESTOR_III', 'GESTOR_MASTER'],
-  '/parametros-negocio': ['GESTOR_III', 'GESTOR_MASTER'],
   '/configurar-rfv': ['GESTOR_III', 'GESTOR_MASTER'],
   
   // Rotas regionais - GESTOR_II e acima

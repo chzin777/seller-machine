@@ -2,7 +2,7 @@
 
 import { createContext, useContext, ReactNode, useEffect, useState } from 'react';
 import { useDashboardData } from '../hooks/useDashboardData';
-import { useInactivityConfig } from '../hooks/useInactivityConfig';
+// import { useInactivityConfig } from '../hooks/useInactivityConfig'; // Removido
 
 // Tipos compatíveis com o DataProvider atual
 type ReceitaMensal = {
@@ -31,9 +31,9 @@ const GraphQLDataContext = createContext<GraphQLDataContextType | undefined>(und
 
 // Função para transformar dados GraphQL no formato esperado pelo dashboard
 
-// Novo: Hook para buscar clientes inativos do endpoint REST usando dias do banco
+// Hook para buscar clientes inativos do endpoint REST usando valor padrão fixo
 function useClientesInativosREST() {
-  const { diasInatividade, loading: loadingDias, loadConfiguration } = useInactivityConfig();
+  const diasInatividade = 90; // Valor padrão fixo após remoção dos parâmetros de negócio
   const [clientesInativos, setClientesInativos] = useState<number | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -42,30 +42,27 @@ function useClientesInativosREST() {
     let isMounted = true;
     setLoading(true);
     setError(null);
-    // Primeiro busca o valor atualizado da configuração
-    loadConfiguration().then((dias) => {
-      if (isMounted && dias && dias > 0) {
-        console.log('🔎 Buscando clientes inativos com dias =', dias);
-        fetch(`/api/indicadores/clientes-inativos?dias=${dias}`)
-          .then(async (res) => {
-            if (!res.ok) throw new Error('Erro ao buscar clientes inativos');
-            const data = await res.json();
-            let total = data?.total_clientes_inativos ?? data?.clientes_inativos ?? data?.length ?? 0;
-            setClientesInativos(typeof total === 'number' ? total : 0);
-          })
-          .catch((err) => {
-            setError(err.message);
-            setClientesInativos(null);
-          })
-          .finally(() => setLoading(false));
-      } else {
-        setLoading(false);
-      }
-    });
+    
+    console.log('🔎 Buscando clientes inativos com dias =', diasInatividade);
+    fetch(`/api/indicadores/clientes-inativos?dias=${diasInatividade}`)
+      .then(async (res) => {
+        if (!res.ok) throw new Error('Erro ao buscar clientes inativos');
+        const data = await res.json();
+        let total = data?.total_clientes_inativos ?? data?.clientes_inativos ?? data?.length ?? 0;
+        setClientesInativos(typeof total === 'number' ? total : 0);
+      })
+      .catch((err) => {
+        setError(err.message);
+        setClientesInativos(null);
+      })
+      .finally(() => {
+        if (isMounted) setLoading(false);
+      });
+    
     return () => { isMounted = false; };
-  }, [diasInatividade]);
+  }, []);
 
-  return { clientesInativos, loading: loading || loadingDias, error };
+  return { clientesInativos, loading, error };
 }
 
 function transformGraphQLData(dashboardData: any, clientesInativosREST: { clientesInativos: number | null, loading: boolean, error: string | null }): GraphQLDataContextType {
