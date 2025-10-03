@@ -5,10 +5,11 @@ const prisma = new PrismaClient();
 
 export async function GET(
   request: NextRequest,
-  { params }: { params: { vendedorId: string } }
+  { params }: { params: Promise<{ vendedorId: string }> }
 ) {
   try {
-    const vendedorId = parseInt(params.vendedorId);
+    const { vendedorId: vendedorIdString } = await params;
+    const vendedorId = parseInt(vendedorIdString);
     const { searchParams } = new URL(request.url);
     const periodoMeses = parseInt(searchParams.get('periodoMeses') || '6');
     

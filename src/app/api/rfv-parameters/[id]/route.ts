@@ -2,8 +2,8 @@ import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '../../../../../lib/prisma';
 
 // GET /api/rfv-parameters/[id] - Busca um parameter set específico
-export async function GET(req: NextRequest, { params }: { params: { id: string } }) {
-  const { id } = params;
+export async function GET(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
+  const { id } = await params;
 
   try {
     const parameterSet = await prisma.rfvParameterSet.findUnique({
@@ -31,8 +31,8 @@ export async function GET(req: NextRequest, { params }: { params: { id: string }
 }
 
 // PUT /api/rfv-parameters/[id] - Atualiza um parameter set específico
-export async function PUT(req: NextRequest, { params }: { params: { id: string } }) {
-  const { id } = params;
+export async function PUT(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
+  const { id } = await params;
 
   try {
     const body = await req.json();
@@ -98,8 +98,8 @@ export async function PUT(req: NextRequest, { params }: { params: { id: string }
 }
 
 // DELETE /api/rfv-parameters/[id] - Remove um parameter set específico
-export async function DELETE(req: NextRequest, { params }: { params: { id: string } }) {
-  const { id } = params;
+export async function DELETE(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
+  const { id } = await params;
 
   if (!id) {
     return NextResponse.json({ error: 'ID é obrigatório' }, { status: 400 });
