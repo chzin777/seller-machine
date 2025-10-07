@@ -1,0 +1,171 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Debug - API de Usuários</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 20px; }
+        .container { max-width: 800px; margin: 0 auto; }
+        .section { margin: 20px 0; padding: 15px; border: 1px solid #ddd; border-radius: 5px; }
+        .success { background-color: #d4edda; border-color: #c3e6cb; }
+        .error { background-color: #f8d7da; border-color: #f5c6cb; }
+        .info { background-color: #d1ecf1; border-color: #bee5eb; }
+        button { padding: 10px 15px; margin: 5px; cursor: pointer; }
+        pre { background: #f8f9fa; padding: 10px; border-radius: 3px; overflow-x: auto; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🔍 Debug - API de Usuários</h1>
+        
+        <div class="section info">
+            <h3>📋 Informações de Autenticação</h3>
+            <button onclick="checkAuth()">Verificar Autenticação</button>
+            <div id="authInfo"></div>
+        </div>
+
+        <div class="section">
+            <h3>🔗 Testar API de Usuários</h3>
+            <button onclick="testUsersAPI()">Testar /api/users</button>
+            <div id="apiResult"></div>
+        </div>
+
+        <div class="section">
+            <h3>🍪 Cookies</h3>
+            <button onclick="showCookies()">Mostrar Cookies</button>
+            <div id="cookiesInfo"></div>
+        </div>
+
+        <div class="section">
+            <h3>💾 LocalStorage</h3>
+            <button onclick="showLocalStorage()">Mostrar LocalStorage</button>
+            <div id="localStorageInfo"></div>
+        </div>
+    </div>
+
+    <script>
+        function checkAuth() {
+            const authInfo = document.getElementById('authInfo');
+            
+            // Verificar localStorage
+            const userData = localStorage.getItem('userData') || sessionStorage.getItem('userData');
+            
+            let html = '<h4>Dados do usuário:</h4>';
+            if (userData) {
+                try {
+                    const parsed = JSON.parse(userData);
+                    html += `<pre>${JSON.stringify(parsed, null, 2)}</pre>`;
+                } catch (e) {
+                    html += `<p class="error">Erro ao parsear userData: ${e.message}</p>`;
+                }
+            } else {
+                html += '<p class="error">Nenhum userData encontrado no localStorage/sessionStorage</p>';
+            }
+            
+            authInfo.innerHTML = html;
+        }
+
+        async function testUsersAPI() {
+            const apiResult = document.getElementById('apiResult');
+            apiResult.innerHTML = '<p>🔄 Testando API...</p>';
+            
+            try {
+                const response = await fetch('/api/users', {
+                    method: 'GET',
+                    credentials: 'include', // Incluir cookies
+                    headers: {
+                        'Content-Type': 'application/json'
+                    }
+                });
+                
+                const responseText = await response.text();
+                let responseData;
+                
+                try {
+                    responseData = JSON.parse(responseText);
+                } catch (e) {
+                    responseData = responseText;
+                }
+                
+                let html = `<h4>Resposta da API (Status: ${response.status}):</h4>`;
+                
+                if (response.ok) {
+                    html += `<div class="success">`;
+                    html += `<p>✅ Sucesso! ${Array.isArray(responseData) ? responseData.length : 0} usuários encontrados</p>`;
+                    html += `<pre>${JSON.stringify(responseData, null, 2)}</pre>`;
+                    html += `</div>`;
+                } else {
+                    html += `<div class="error">`;
+                    html += `<p>❌ Erro ${response.status}: ${response.statusText}</p>`;
+                    html += `<pre>${JSON.stringify(responseData, null, 2)}</pre>`;
+                    html += `</div>`;
+                }
+                
+                apiResult.innerHTML = html;
+                
+            } catch (error) {
+                apiResult.innerHTML = `<div class="error"><p>❌ Erro na requisição: ${error.message}</p></div>`;
+            }
+        }
+
+        function showCookies() {
+            const cookiesInfo = document.getElementById('cookiesInfo');
+            const cookies = document.cookie.split(';').map(c => c.trim()).filter(c => c);
+            
+            let html = '<h4>Cookies disponíveis:</h4>';
+            if (cookies.length > 0) {
+                html += '<ul>';
+                cookies.forEach(cookie => {
+                    const [name, value] = cookie.split('=');
+                    html += `<li><strong>${name}:</strong> ${value}</li>`;
+                });
+                html += '</ul>';
+            } else {
+                html += '<p class="error">Nenhum cookie encontrado</p>';
+            }
+            
+            cookiesInfo.innerHTML = html;
+        }
+
+        function showLocalStorage() {
+            const localStorageInfo = document.getElementById('localStorageInfo');
+            
+            let html = '<h4>LocalStorage:</h4>';
+            if (localStorage.length > 0) {
+                html += '<ul>';
+                for (let i = 0; i < localStorage.length; i++) {
+                    const key = localStorage.key(i);
+                    const value = localStorage.getItem(key);
+                    html += `<li><strong>${key}:</strong> ${value}</li>`;
+                }
+                html += '</ul>';
+            } else {
+                html += '<p>LocalStorage vazio</p>';
+            }
+            
+            html += '<h4>SessionStorage:</h4>';
+            if (sessionStorage.length > 0) {
+                html += '<ul>';
+                for (let i = 0; i < sessionStorage.length; i++) {
+                    const key = sessionStorage.key(i);
+                    const value = sessionStorage.getItem(key);
+                    html += `<li><strong>${key}:</strong> ${value}</li>`;
+                }
+                html += '</ul>';
+            } else {
+                html += '<p>SessionStorage vazio</p>';
+            }
+            
+            localStorageInfo.innerHTML = html;
+        }
+
+        // Executar verificações automaticamente ao carregar
+        window.onload = function() {
+            checkAuth();
+            showCookies();
+            showLocalStorage();
+        };
+    </script>
+</body>
+</html>

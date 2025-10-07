@@ -729,6 +729,7 @@ model users {
   email            String      @unique @db.VarChar(255)
   password         String      @db.VarChar(255)
   name             String?     @db.VarChar(255)
+  telefone         String?     @db.VarChar(20)
   role             users_role  @default(VENDEDOR)
   active           Boolean     @default(true)
   lastLogin        DateTime?

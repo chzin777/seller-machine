@@ -12,6 +12,7 @@ import AIModelTraining from './AIModelTraining';
 import GlobalNotificationDemo from './GlobalNotificationDemo';
 import AIDashboard from './AIDashboard';
 import AITourGuide from './AITourGuide';
+import UserManagement from './UserManagement';
 
 interface AIContentProps {
   activeTab: string;
@@ -37,6 +38,8 @@ export default function AIContent({ activeTab, onNavigate }: AIContentProps) {
         return <AIModelTraining />;
       case 'ai-dashboard':
         return <AIDashboard />;
+      case 'users':
+        return <UserManagement />;
       case 'tour':
         return <AITourGuide isOpen={true} onClose={() => onNavigate('overview')} onNavigate={onNavigate} />;
       case 'diagnostics':

@@ -147,9 +147,17 @@ export function useCarteiraVendedor(): UseCarteiraVendedorReturn {
         apiCall<ReceitaVendedor[]>('/api/receita-vendedor')
       ]);
 
+      // Converter percentualCobertura de string para number se necessário
+      const coberturaProcessada = cobertura.map(item => ({
+        ...item,
+        percentualCobertura: typeof item.percentualCobertura === 'string' 
+          ? parseFloat(item.percentualCobertura) 
+          : item.percentualCobertura
+      }));
+
       setData({
         vendedores,
-        cobertura,
+        cobertura: coberturaProcessada,
         ranking,
         mix,
         notasFiscais: [],
@@ -168,7 +176,16 @@ export function useCarteiraVendedor(): UseCarteiraVendedorReturn {
 
   const getCoberturaByVendedor = useCallback(async (vendedorId: number): Promise<CoberturaCarteira[]> => {
     const allCobertura = await apiCall<CoberturaCarteira[]>('/api/cobertura-carteira');
-    return allCobertura.filter(c => c.vendedorId === vendedorId);
+    
+    // Converter percentualCobertura de string para number se necessário
+    const coberturaProcessada = allCobertura.map(item => ({
+      ...item,
+      percentualCobertura: typeof item.percentualCobertura === 'string' 
+        ? parseFloat(item.percentualCobertura) 
+        : item.percentualCobertura
+    }));
+    
+    return coberturaProcessada.filter(c => c.vendedorId === vendedorId);
   }, [apiCall]);
 
   const getRankingByVendedor = useCallback(async (vendedorId: number): Promise<RankingVendedor[]> => {

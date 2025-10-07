@@ -15,7 +15,8 @@ import {
   Bell,
   Star,
   HelpCircle,
-  Sparkles
+  Sparkles,
+  UserPlus
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -81,6 +82,13 @@ export default function IAPage() {
       icon: Settings, 
       color: 'text-yellow-600',
       description: 'Modelos IA'
+    },
+    { 
+      id: 'users', 
+      label: 'Usuários', 
+      icon: UserPlus, 
+      color: 'text-orange-600',
+      description: 'Gerenciar usuários'
     },
     { 
       id: 'notifications', 

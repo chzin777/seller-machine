@@ -27,7 +27,8 @@ function getNavLinks(userConta?: string) {
 		{ href: "/associacoes", label: "Associações", icon: Link2 },
 		{ href: "/ia", label: "Inteligência Artificial", icon: Brain },
 	];
-	if (userConta === "Admin") {
+	// Verificar se o usuário é Admin ou GESTOR_MASTER
+	if (userConta === "Admin" || userConta === "GESTOR_MASTER") {
 		baseLinks.push({ href: "/usuarios", label: "Usuários", icon: UserCog });
 	}
 	return baseLinks;
@@ -75,8 +76,10 @@ function LayoutContent({ children }: { children: React.ReactNode }) {
 			if (user) {
 				try {
 					const parsed = JSON.parse(user);
-					setUserName(parsed.nome ? String(parsed.nome) : undefined);
-					setUserConta(parsed.conta ? String(parsed.conta) : undefined);
+					// Verificar se é o objeto completo com 'user' aninhado ou direto
+					const userData = parsed.user || parsed;
+					setUserName(userData.name || userData.nome ? String(userData.name || userData.nome) : undefined);
+					setUserConta(userData.role || userData.conta ? String(userData.role || userData.conta) : undefined);
 				} catch {
 					setUserName(undefined);
 					setUserConta(undefined);
