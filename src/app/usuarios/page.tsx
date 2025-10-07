@@ -22,8 +22,8 @@ function EditarUsuarioModal({ open, onClose, onSuccess, usuario }: { open: boole
       nomeRef.current.focus();
     }
     if (open && usuario) {
-      setNome(usuario.nome);
-      setSobrenome(usuario.sobrenome);
+      setNome(usuario.nome || '');
+      setSobrenome(usuario.sobrenome || '');
       setEmail(usuario.email);
       setConta(usuario.conta || "Vendedor");
       setErro("");
@@ -48,6 +48,7 @@ function EditarUsuarioModal({ open, onClose, onSuccess, usuario }: { open: boole
       const res = await fetch("/api/users", {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
+        credentials: 'include',
         body: JSON.stringify({ id: usuario?.id, nome, sobrenome, email, conta }),
       });
       if (!res.ok) {
@@ -181,7 +182,9 @@ function NovoUsuarioModal({ open, onClose, onSuccess }: { open: boolean; onClose
 
   const fetchEmpresas = async () => {
     try {
-      const res = await fetch('/api/hierarchy/empresas');
+      const res = await fetch('/api/hierarchy/empresas', {
+        credentials: 'include'
+      });
       if (res.ok) {
         const data = await res.json();
         setEmpresas(data);
@@ -193,7 +196,9 @@ function NovoUsuarioModal({ open, onClose, onSuccess }: { open: boolean; onClose
 
   const fetchDiretorias = async (empresaId: number) => {
     try {
-      const res = await fetch(`/api/hierarchy/diretorias?empresaId=${empresaId}`);
+      const res = await fetch(`/api/hierarchy/diretorias?empresaId=${empresaId}`, {
+        credentials: 'include'
+      });
       if (res.ok) {
         const data = await res.json();
         setDiretorias(data);
@@ -205,7 +210,9 @@ function NovoUsuarioModal({ open, onClose, onSuccess }: { open: boolean; onClose
 
   const fetchRegionais = async (diretoriaId: number) => {
     try {
-      const res = await fetch(`/api/hierarchy/regionais?diretoriaId=${diretoriaId}`);
+      const res = await fetch(`/api/hierarchy/regionais?diretoriaId=${diretoriaId}`, {
+        credentials: 'include'
+      });
       if (res.ok) {
         const data = await res.json();
         setRegionais(data);
@@ -217,7 +224,9 @@ function NovoUsuarioModal({ open, onClose, onSuccess }: { open: boolean; onClose
 
   const fetchFiliais = async (regionalId: number) => {
     try {
-      const res = await fetch(`/api/filiais?regionalId=${regionalId}`);
+      const res = await fetch(`/api/hierarchy/filiais?regionalId=${regionalId}`, {
+        credentials: 'include'
+      });
       if (res.ok) {
         const data = await res.json();
         setFiliais(data);
@@ -232,8 +241,8 @@ function NovoUsuarioModal({ open, onClose, onSuccess }: { open: boolean; onClose
     setErro("");
     setSuccess(false);
     
-    if (!name.trim() || !email.trim() || !password.trim() || !role) {
-      setErro("Nome, email, senha e perfil são obrigatórios.");
+    if (!name.trim() || !email.trim() || !password.trim() || !role || !empresaId || !diretoriaId) {
+      setErro("Nome, email, senha, perfil, empresa e diretoria são obrigatórios.");
       setLoading(false);
       return;
     }
@@ -242,6 +251,7 @@ function NovoUsuarioModal({ open, onClose, onSuccess }: { open: boolean; onClose
       const res = await fetch("/api/users", { 
         method: "POST",
         headers: { "Content-Type": "application/json" },
+        credentials: 'include',
         body: JSON.stringify({ 
           name, 
           email, 
@@ -465,8 +475,8 @@ function NovoUsuarioModal({ open, onClose, onSuccess }: { open: boolean; onClose
 
 interface Usuario {
   id: number;
-  nome: string;
-  sobrenome: string;
+  nome?: string;
+  sobrenome?: string;
   email: string;
   conta?: string;
 }
@@ -491,7 +501,9 @@ export default function UsuariosPage() {
     async function fetchUsuarios() {
       setLoading(true);
       try {
-        const res = await fetch("/api/users");
+        const res = await fetch("/api/users", {
+          credentials: 'include'
+        });
         if (!res.ok) throw new Error("Erro ao buscar usuários");
         const data = await res.json();
         setUsuarios(data || []);
@@ -508,9 +520,9 @@ export default function UsuariosPage() {
   const usuariosFiltrados = usuarios.filter(u => {
     const termo = search.toLowerCase();
     return (
-      u.nome.toLowerCase().includes(termo) ||
-      u.sobrenome.toLowerCase().includes(termo) ||
-      u.email.toLowerCase().includes(termo)
+      (u.nome || '').toLowerCase().includes(termo) ||
+      (u.sobrenome || '').toLowerCase().includes(termo) ||
+      (u.email || '').toLowerCase().includes(termo)
     );
   });
 
@@ -544,7 +556,9 @@ export default function UsuariosPage() {
           onSuccess={async () => {
             setLoading(true);
             try {
-              const res = await fetch("/api/users");
+              const res = await fetch("/api/users", {
+                credentials: 'include'
+              });
               if (!res.ok) throw new Error("Erro ao buscar usuários");
               const data = await res.json();
               setUsuarios(data || []);
@@ -572,7 +586,9 @@ export default function UsuariosPage() {
           (async () => {
             setLoading(true);
             try {
-              const res = await fetch("/api/users");
+              const res = await fetch("/api/users", {
+                credentials: 'include'
+              });
               if (!res.ok) throw new Error("Erro ao buscar usuários");
               const data = await res.json();
               setUsuarios(data || []);
@@ -595,7 +611,7 @@ export default function UsuariosPage() {
               usuariosFiltrados.map((u) => (
                 <div key={u.id} className="rounded-xl shadow-lg border border-gray-100 bg-white p-4 flex flex-col gap-2">
                   <div className="flex items-center gap-2 mb-1">
-                    <span className="font-bold text-blue-800">{u.nome} {u.sobrenome}</span>
+                    <span className="font-bold text-blue-800">{u.nome || ''} {u.sobrenome || ''}</span>
                   </div>
                   <div className="flex flex-wrap gap-2 text-xs mb-1">
                     <span className="bg-blue-50 text-blue-900 rounded px-2 py-1">Email: <b>{u.email}</b></span>
@@ -629,7 +645,7 @@ export default function UsuariosPage() {
               <tbody>
                 {usuariosFiltrados.map((u) => (
                   <tr key={u.id} className="border-t border-gray-100 hover:bg-blue-50/40 transition">
-                    <td className="px-6 py-4 whitespace-nowrap font-semibold text-blue-900">{u.nome} {u.sobrenome}</td>
+                    <td className="px-6 py-4 whitespace-nowrap font-semibold text-blue-900">{u.nome || ''} {u.sobrenome || ''}</td>
                     <td className="px-6 py-4 whitespace-nowrap text-blue-900">{u.email}</td>
                     <td className="px-6 py-4 whitespace-nowrap text-blue-900">{u.conta || '-'}</td>
                     <td className="px-4 py-4 whitespace-nowrap text-center align-middle">
