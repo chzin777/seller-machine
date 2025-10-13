@@ -49,7 +49,35 @@ export async function middleware(request: NextRequest) {
   );
 
   if (!protectedRoute) {
-    // Se não é uma rota protegida específica, permitir acesso
+    // Para rotas não protegidas, tentar injetar cabeçalhos de escopo se houver token
+    const token = request.cookies.get('auth-token')?.value || 
+                  request.headers.get('authorization')?.replace('Bearer ', '');
+
+    if (token) {
+      try {
+        const secret = new TextEncoder().encode(process.env.JWT_SECRET || 'fallback-secret');
+        const { payload } = await jwtVerify(token, secret);
+
+        const requestHeaders = new Headers(request.headers);
+        requestHeaders.set('x-user-id', String(payload.userId || ''));
+        requestHeaders.set('x-user-role', String(payload.role || 'VENDEDOR'));
+        requestHeaders.set('x-user-empresa-id', String(payload.empresaId || ''));
+        requestHeaders.set('x-user-diretoria-id', String(payload.diretoriaId || ''));
+        requestHeaders.set('x-user-regional-id', String(payload.regionalId || ''));
+        requestHeaders.set('x-user-filial-id', String(payload.filialId || ''));
+
+        return NextResponse.next({
+          request: {
+            headers: requestHeaders,
+          },
+        });
+      } catch {
+        // Se token inválido, permitir acesso sem injeção
+        return NextResponse.next();
+      }
+    }
+
+    // Se não há token, seguir normalmente
     return NextResponse.next();
   }
 

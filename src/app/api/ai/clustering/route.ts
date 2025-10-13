@@ -1,26 +1,74 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { PrismaClient } from '@prisma/client';
+import { deriveScopeFromRequest, applyBasicScopeToWhere } from '../../../../../lib/scope';
 
 export async function GET(request: NextRequest) {
   try {
     const { searchParams } = new URL(request.url);
     const filialId = searchParams.get('filialId');
 
-    // Buscar dados de clientes e pedidos das APIs existentes
-    const [clientesResponse, pedidosResponse] = await Promise.all([
-      fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/clientes`),
-      fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/pedidos`)
-    ]);
+    // Buscar dados de clientes e pedidos via Prisma com escopo
+    const prisma = new PrismaClient();
+    const scope = deriveScopeFromRequest(request);
 
-    if (!clientesResponse.ok || !pedidosResponse.ok) {
-      throw new Error('Erro ao buscar dados das APIs externas');
+    let clientes: any[] = [];
+    let pedidos: any[] = [];
+
+    try {
+      let whereClause: any = {};
+      whereClause = applyBasicScopeToWhere(whereClause, scope, { filialKey: 'filialId' });
+      if (filialId) {
+        whereClause.filialId = parseInt(filialId);
+      }
+
+      const notas = await prisma.notasFiscalCabecalho.findMany({
+        where: whereClause,
+        select: {
+          clienteId: true,
+          valorTotal: true,
+          dataEmissao: true,
+          itens: { select: { Quantidade: true, produto: { select: { descricao: true } } } }
+        },
+        take: 5000
+      });
+
+      if (Array.isArray(notas) && notas.length > 0) {
+        const uniqueClienteIds = Array.from(new Set(notas.map((n: any) => n.clienteId).filter((id: number | null) => id)));
+        clientes = uniqueClienteIds.map((id: number) => ({ id }));
+        pedidos = notas.map((nota: any) => ({
+          clienteId: nota.clienteId,
+          data: nota.dataEmissao,
+          valor: (parseFloat(nota.valorTotal?.toString() || '0') || 0) / 100,
+          itens: (nota.itens || []).map((item: any) => ({
+            produto: { descricao: item.produto?.descricao || 'Produto' },
+            quantidade: parseFloat(item.Quantidade?.toString() || '1')
+          }))
+        }));
+      }
+    } catch (error) {
+      console.warn('Erro ao buscar dados via Prisma para clustering:', error);
+    } finally {
+      await prisma.$disconnect();
     }
 
-    const clientes = await clientesResponse.json();
-    const pedidos = await pedidosResponse.json();
+    // Fallback para APIs externas
+    if (clientes.length === 0 || pedidos.length === 0) {
+      const [clientesResponse, pedidosResponse] = await Promise.all([
+        fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/clientes`),
+        fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/pedidos`)
+      ]);
 
-    // Filtrar por filial se especificado
+      if (!clientesResponse.ok || !pedidosResponse.ok) {
+        throw new Error('Erro ao buscar dados das APIs externas');
+      }
+
+      clientes = await clientesResponse.json();
+      pedidos = await pedidosResponse.json();
+    }
+
+    // Filtrar por filial se especificado (já aplicado no whereClause para Prisma)
     let clientesFiltrados = clientes;
-    if (filialId) {
+    if (filialId && clientes[0]?.filialId !== undefined) {
       clientesFiltrados = clientes.filter((c: any) => c.filialId === parseInt(filialId));
     }
 
@@ -30,7 +78,7 @@ export async function GET(request: NextRequest) {
       
       // Recência (dias desde última compra)
       const ultimoPedido = pedidosCliente.reduce((ultimo: any, atual: any) => {
-        return new Date(atual.data) > new Date(ultimo.data) ? atual : ultimo;
+        return new Date(atual.data) > new Date(ultimo?.data || 0) ? atual : ultimo;
       }, pedidosCliente[0]);
       
       const recencia = ultimoPedido ? 
@@ -40,118 +88,41 @@ export async function GET(request: NextRequest) {
       // Frequência (número de pedidos)
       const frequencia = pedidosCliente.length;
       
-      // Valor (soma total dos pedidos)
-      const valor = pedidosCliente.reduce((sum: number, pedido: any) => 
-        sum + (pedido.valorTotal || 0), 0);
+      // Valor (valor total gasto)
+      const valor = pedidosCliente.reduce((acc: number, p: any) => acc + (p.valor || 0), 0);
       
-      // Ticket médio
-      const ticketMedio = frequencia > 0 ? valor / frequencia : 0;
-      
+      // Classificar em clusters (simples): Premium, Regular, Ocasionais
+      let cluster = 'Regular';
+      if (valor > 100000 && frequencia > 12) cluster = 'Premium';
+      else if (valor < 20000 || recencia > 180) cluster = 'Occasional';
+
       return {
-        ...cliente,
+        id: cliente.id,
         recencia,
         frequencia,
         valor,
-        ticketMedio
+        cluster
       };
     });
 
-    // Algoritmo simples de clustering baseado em RFV
-    const clusters = [];
-    
-    // Cluster 1: Clientes Premium (alta frequência, alto valor, baixa recência)
-    const premium = clientesComRFV.filter((c: any) => 
-      c.frequencia >= 5 && c.valor >= 1000 && c.recencia <= 30
-    );
-    
-    if (premium.length > 0) {
-      clusters.push({
-        clusterId: 1,
-        nome: "Clientes Premium",
-        descricao: "Clientes com alto valor de vida e frequência de compra",
-        totalClientes: premium.length,
-        caracteristicas: {
-          valorMedio: premium.reduce((sum: number, c: any) => sum + c.valor, 0) / premium.length,
-          frequenciaMedia: premium.reduce((sum: number, c: any) => sum + c.frequencia, 0) / premium.length,
-          recenciaDias: premium.reduce((sum: number, c: any) => sum + c.recencia, 0) / premium.length,
-          ticketMedio: premium.reduce((sum: number, c: any) => sum + c.ticketMedio, 0) / premium.length
-        },
-        clientes: premium.slice(0, 10).map((c: any) => ({
-          clienteId: c.id,
-          nome: c.nome,
-          valorTotal: c.valor
-        }))
-      });
-    }
-    
-    // Cluster 2: Clientes Regulares (frequência média, valor médio)
-    const regulares = clientesComRFV.filter((c: any) => 
-      (c.frequencia >= 2 && c.frequencia < 5) || 
-      (c.valor >= 300 && c.valor < 1000) ||
-      (c.recencia > 30 && c.recencia <= 90)
-    ).filter((c: any) => !premium.includes(c));
-    
-    if (regulares.length > 0) {
-      clusters.push({
-        clusterId: 2,
-        nome: "Clientes Regulares",
-        descricao: "Clientes com comportamento de compra consistente",
-        totalClientes: regulares.length,
-        caracteristicas: {
-          valorMedio: regulares.reduce((sum: number, c: any) => sum + c.valor, 0) / regulares.length,
-          frequenciaMedia: regulares.reduce((sum: number, c: any) => sum + c.frequencia, 0) / regulares.length,
-          recenciaDias: regulares.reduce((sum: number, c: any) => sum + c.recencia, 0) / regulares.length,
-          ticketMedio: regulares.reduce((sum: number, c: any) => sum + c.ticketMedio, 0) / regulares.length
-        },
-        clientes: regulares.slice(0, 10).map((c: any) => ({
-          clienteId: c.id,
-          nome: c.nome,
-          valorTotal: c.valor
-        }))
-      });
-    }
-    
-    // Cluster 3: Clientes Ocasionais (baixa frequência, baixo valor, alta recência)
-    const ocasionais = clientesComRFV.filter((c: any) => 
-      !premium.includes(c) && !regulares.includes(c)
-    );
-    
-    if (ocasionais.length > 0) {
-      clusters.push({
-        clusterId: 3,
-        nome: "Clientes Ocasionais",
-        descricao: "Clientes com compras esporádicas",
-        totalClientes: ocasionais.length,
-        caracteristicas: {
-          valorMedio: ocasionais.reduce((sum: number, c: any) => sum + c.valor, 0) / ocasionais.length,
-          frequenciaMedia: ocasionais.reduce((sum: number, c: any) => sum + c.frequencia, 0) / ocasionais.length,
-          recenciaDias: ocasionais.reduce((sum: number, c: any) => sum + c.recencia, 0) / ocasionais.length,
-          ticketMedio: ocasionais.reduce((sum: number, c: any) => sum + c.ticketMedio, 0) / ocasionais.length
-        },
-        clientes: ocasionais.slice(0, 10).map((c: any) => ({
-          clienteId: c.id,
-          nome: c.nome,
-          valorTotal: c.valor
-        }))
-      });
-    }
+    // Estatísticas gerais do clustering
+    const totalClientes = clientesComRFV.length;
+    const premium = clientesComRFV.filter((c: any) => c.cluster === 'Premium').length;
+    const regular = clientesComRFV.filter((c: any) => c.cluster === 'Regular').length;
+    const occasional = clientesComRFV.filter((c: any) => c.cluster === 'Occasional').length;
 
-    // Calcular métricas de qualidade do clustering
-    const totalClientes = clientesFiltrados.length;
-    const silhouetteScore = 0.65 + Math.random() * 0.2; // Simular score entre 0.65-0.85
-    const inertia = totalClientes * (50 + Math.random() * 100); // Simular inércia
+    const inertia = clientesComRFV.reduce((acc: number, c: any) => acc + (c.recencia + c.frequencia + c.valor / 1000), 0) / Math.max(1, totalClientes);
 
     const clusteringData = {
-      clusters,
-      summary: {
-        totalClusters: clusters.length,
+      clientes: clientesComRFV,
+      clusters: {
+        Premium: premium,
+        Regular: regular,
+        Occasional: occasional
+      },
+      metrics: {
         totalClientes,
-        algoritmo: "RFV-Based K-Means",
-        ultimaAtualizacao: new Date().toISOString(),
-        metricas: {
-          silhouetteScore: Math.round(silhouetteScore * 100) / 100,
-          inertia: Math.round(inertia * 100) / 100
-        }
+        inertia: Math.round(inertia * 100) / 100
       }
     };
 

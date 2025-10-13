@@ -1,13 +1,32 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '../../../../../lib/prisma';
+import { deriveScopeFromRequest, applyBasicScopeToWhere } from '../../../../../lib/scope';
 
-// GET /api/hierarchy/filiais - Lista todas as filiais
 export async function GET(req: NextRequest) {
   try {
     const { searchParams } = new URL(req.url);
     const regionalId = searchParams.get('regionalId');
 
-    const whereClause = regionalId ? { regionalId: parseInt(regionalId) } : {};
+    const scope = deriveScopeFromRequest(req);
+
+    let whereClause: any = {};
+    if (regionalId) {
+      whereClause.regionalId = parseInt(regionalId);
+    }
+
+    // Aplicar restrições de escopo
+    whereClause = applyBasicScopeToWhere(whereClause, scope, {
+      filialKey: 'id',
+      regionalKey: 'regionalId',
+    });
+
+    // Para GESTOR_III, restringir por diretoria através da relação com regionais
+    if (scope.role === 'GESTOR_III' && scope.diretoriaId) {
+      whereClause = {
+        ...whereClause,
+        regionais: { is: { diretoriaId: scope.diretoriaId } },
+      };
+    }
 
     const filiais = await prisma.filial.findMany({
       where: whereClause,

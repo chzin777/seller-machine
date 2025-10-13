@@ -1,5 +1,6 @@
-import { NextResponse } from 'next/server';
-import { prisma } from '../../../../lib/prisma';
+import { NextRequest, NextResponse } from 'next/server'
+import { prisma } from '../../../../lib/prisma'
+import { deriveScopeFromRequest, applyBasicScopeToWhere } from '../../../../lib/scope'
 
 // Mapeamento de categorias para tipos
 const categoryToType: Record<string, string> = {
@@ -8,10 +9,11 @@ const categoryToType: Record<string, string> = {
   'Copa': 'Maquina'
 };
 
-export async function GET() {
+export async function GET(request: NextRequest) {
   try {
+    const scope = deriveScopeFromRequest(request)
     // Buscar associações reais do banco de dados
-    let realAssociations: any[] = [];
+    let realAssociations: any[] = []
     try {
       realAssociations = await prisma.associacaoProduto.findMany({
         select: {
@@ -28,7 +30,7 @@ export async function GET() {
           vendas_produto_b: true,
           atualizado_em: true
         }
-      });
+      })
 
       // Mapear para o formato esperado
       realAssociations = realAssociations.map((item: any) => ({
@@ -42,15 +44,18 @@ export async function GET() {
         updated_at: item.atualizado_em
       }));
     } catch (error) {
-      console.error('Erro ao buscar associações reais:', error);
+      console.error('Erro ao buscar associações reais:', error)
     }
 
     // Gerar associações baseadas nas notas fiscais se não houver dados reais
-    let generatedAssociations: any[] = [];
+    let generatedAssociations: any[] = []
     
     if (!realAssociations || realAssociations.length === 0) {
       try {
+        let whereClause: any = {}
+        whereClause = applyBasicScopeToWhere(whereClause, scope, { userKey: 'vendedorId', filialKey: 'filialId' })
         const notas = await prisma.notasFiscalCabecalho.findMany({
+          where: whereClause,
           take: 1000,
           include: {
             itens: {
@@ -59,7 +64,7 @@ export async function GET() {
               }
             }
           }
-        });
+        })
         
         console.log(`Carregadas ${notas?.length || 0} notas fiscais`);
         
@@ -158,15 +163,30 @@ export async function GET() {
     }
     
     // Buscar itens de notas fiscais para contar vendas
-    const salesCount = new Map();
+    const salesCount = new Map()
     
     try {
+      let itensWhere: any = {}
+      if (scope.role === 'VENDEDOR' || scope.role === 'GESTOR_I') {
+        if (scope.filialId) {
+          itensWhere.notaFiscal = { filialId: scope.filialId }
+        }
+      } else if (scope.role === 'GESTOR_II') {
+        if (scope.regionalId) {
+          itensWhere.notaFiscal = { filial: { regionalId: scope.regionalId } }
+        }
+      } else if (scope.role === 'GESTOR_III') {
+        if (scope.diretoriaId) {
+          itensWhere.notaFiscal = { filial: { regionais: { diretoriaId: scope.diretoriaId } } }
+        }
+      }
       const itens = await prisma.notaFiscalItem.findMany({
+        where: itensWhere,
         select: {
           produtoId: true,
           notaFiscalId: true
         }
-      });
+      })
       
       itens.forEach((item: any) => {
         if (item.produtoId) {
@@ -174,7 +194,7 @@ export async function GET() {
         }
       });
     } catch (error) {
-      console.error('Erro ao buscar itens de notas fiscais:', error);
+      console.error('Erro ao buscar itens de notas fiscais:', error)
     }
 
     // Mapear os dados para o formato esperado pelo frontend
@@ -204,7 +224,7 @@ export async function GET() {
 
     return NextResponse.json(formattedData);
   } catch (error) {
-    console.error('Erro interno:', error);
-    return NextResponse.json({ error: 'Erro interno do servidor' }, { status: 500 });
+    console.error('Erro interno:', error)
+    return NextResponse.json({ error: 'Erro interno do servidor' }, { status: 500 })
   }
 }

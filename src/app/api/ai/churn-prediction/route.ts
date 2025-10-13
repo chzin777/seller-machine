@@ -1,4 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { PrismaClient } from '@prisma/client';
+import { deriveScopeFromRequest, applyBasicScopeToWhere } from '../../../../../lib/scope';
 
 interface ChurnPrediction {
   clienteId: number;
@@ -19,6 +21,67 @@ export async function GET(req: NextRequest) {
   console.log('=== CHURN PREDICTION API ===');
   console.log('FilialId:', filialId);
   console.log('Limit:', limit);
+
+  // Tentar usar dados via Prisma com escopo e retornar cedo se disponível
+  const prisma = new PrismaClient();
+  const scope = deriveScopeFromRequest(req);
+  try {
+    let whereClause: any = {};
+    whereClause = applyBasicScopeToWhere(whereClause, scope, { filialKey: 'filialId' });
+    if (filialId) {
+      whereClause.filialId = parseInt(filialId);
+    }
+
+    const notas = await prisma.notasFiscalCabecalho.findMany({
+      where: whereClause,
+      select: { clienteId: true, valorTotal: true, dataEmissao: true },
+      take: 5000
+    });
+
+    if (Array.isArray(notas) && notas.length > 0) {
+      const clientesIds = Array.from(new Set(notas.map((n: any) => n.clienteId).filter((id: number | null) => id)));
+
+      const predictions = clientesIds.map((cid: number) => {
+        const notasCliente = notas.filter((n: any) => n.clienteId === cid);
+        const ultimaCompraNota = notasCliente.reduce((ultimo: any, atual: any) => {
+          return new Date(atual.dataEmissao) > new Date(ultimo?.dataEmissao || 0) ? atual : ultimo;
+        }, notasCliente[0]);
+        const ultimaCompra = ultimaCompraNota ? new Date(ultimaCompraNota.dataEmissao).toISOString().slice(0, 10) : null;
+        const valorTotal = notasCliente.reduce((acc: number, n: any) => acc + (parseFloat(n.valorTotal?.toString() || '0') || 0) / 100, 0);
+        const frequenciaCompras = notasCliente.length;
+        const diasDesdeUltima = ultimaCompraNota ? Math.floor((Date.now() - new Date(ultimaCompraNota.dataEmissao).getTime()) / (1000 * 60 * 60 * 24)) : 999;
+        
+        // Probabilidade de churn baseada em recência e frequência (simples)
+        let churnProbability = Math.min(1, diasDesdeUltima / 180);
+        if (frequenciaCompras < 3) churnProbability = Math.min(1, churnProbability + 0.2);
+        
+        let riskLevel: 'Alto' | 'Médio' | 'Baixo' = 'Médio';
+        if (churnProbability >= 0.7) riskLevel = 'Alto';
+        else if (churnProbability <= 0.3) riskLevel = 'Baixo';
+
+        return {
+          clienteId: cid,
+          nome: `Cliente ${cid}`,
+          churnProbability: Math.round(churnProbability * 100) / 100,
+          riskLevel,
+          recommendation: churnProbability >= 0.7 ? 'Oferecer desconto e contato imediato' : churnProbability >= 0.4 ? 'Campanha de reengajamento' : 'Manter comunicação regular',
+          ultimaCompra,
+          valorTotal: Math.round(valorTotal * 100) / 100,
+          frequenciaCompras
+        } as ChurnPrediction;
+      });
+
+      // Ordenar por maior probabilidade e limitar
+      const maxItems = parseInt(limit || '20');
+      const sorted = predictions.sort((a, b) => b.churnProbability - a.churnProbability).slice(0, maxItems);
+      await prisma.$disconnect();
+      return NextResponse.json(sorted);
+    }
+  } catch (error) {
+    console.warn('Erro ao calcular churn via Prisma, usando fallback:', error);
+  } finally {
+    await prisma.$disconnect();
+  }
 
   try {
     // Tentar buscar dados reais de clientes da API externa

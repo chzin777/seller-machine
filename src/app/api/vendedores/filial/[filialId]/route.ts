@@ -1,4 +1,5 @@
-import { NextRequest, NextResponse } from 'next/server';
+import { NextRequest, NextResponse } from 'next/server'
+import { deriveScopeFromRequest } from '../../../../../../lib/scope'
 
 interface RouteParams {
   params: Promise<{
@@ -8,27 +9,52 @@ interface RouteParams {
 
 export async function GET(request: NextRequest, { params }: RouteParams) {
   try {
-    const { filialId } = await params;
+    const { filialId } = await params
     
     // Validate filialId
     if (!filialId) {
       return NextResponse.json(
         { error: 'ID da filial é obrigatório' },
         { status: 400 }
-      );
+      )
+    }
+
+    const scope = deriveScopeFromRequest(request)
+
+    // Restringir por escopo
+    if (scope.role === 'VENDEDOR' || scope.role === 'GESTOR_I') {
+      if (scope.filialId && String(scope.filialId) !== filialId) {
+        return NextResponse.json({ error: 'Acesso negado: só é possível consultar a própria filial.' }, { status: 403 })
+      }
+    } else if (scope.role === 'GESTOR_II') {
+      // Simular mapeamento de filial->regional
+      const regionalMap: Record<string, number> = { '1': 1, '2': 1, '3': 2, '4': 2, '5': 3 }
+      const requestedRegionalId = regionalMap[filialId] || 0
+      if (scope.regionalId && scope.regionalId !== requestedRegionalId) {
+        return NextResponse.json({ error: 'Acesso negado: filial fora da sua regional.' }, { status: 403 })
+      }
+    } else if (scope.role === 'GESTOR_III') {
+      // Simular mapeamento de filial->diretoria
+      const diretoriaMap: Record<string, number> = { '1': 1, '2': 1, '3': 1, '4': 2, '5': 2 }
+      const requestedDiretoriaId = diretoriaMap[filialId] || 0
+      if (scope.diretoriaId && scope.diretoriaId !== requestedDiretoriaId) {
+        return NextResponse.json({ error: 'Acesso negado: filial fora da sua diretoria.' }, { status: 403 })
+      }
     }
     
-    // Fetch vendedores data from the main endpoint
-    const vendedoresResponse = await fetch(`${process.env.NEXT_PUBLIC_BASE_URL || 'http://localhost:3000'}/api/vendedores`);
+    // Fetch vendedores data from the main endpoint (propagar headers para respeitar escopo)
+    const vendedoresResponse = await fetch(`${process.env.NEXT_PUBLIC_BASE_URL || 'http://localhost:3000'}/api/vendedores`, {
+      headers: request.headers
+    })
     
     if (!vendedoresResponse.ok) {
-      throw new Error('Erro ao buscar dados de vendedores');
+      throw new Error('Erro ao buscar dados de vendedores')
     }
     
-    const vendedores = await vendedoresResponse.json();
+    const vendedores = await vendedoresResponse.json()
     
     if (!Array.isArray(vendedores)) {
-      throw new Error('Dados de vendedores inválidos');
+      throw new Error('Dados de vendedores inválidos')
     }
 
     // Since mock data doesn't have filialId, we'll simulate filial assignment
@@ -39,9 +65,9 @@ export async function GET(request: NextRequest, { params }: RouteParams) {
       '3': { nome: 'Filial Sul', cidade: 'São Paulo', regiao: 'Sul' },
       '4': { nome: 'Filial Oeste', cidade: 'São Paulo', regiao: 'Oeste' },
       '5': { nome: 'Filial Leste', cidade: 'São Paulo', regiao: 'Leste' }
-    };
+    }
     
-    const filialInfo = filiaisSimuladas[filialId as keyof typeof filiaisSimuladas];
+    const filialInfo = filiaisSimuladas[filialId as keyof typeof filiaisSimuladas]
     
     if (!filialInfo) {
       return NextResponse.json(
@@ -51,35 +77,35 @@ export async function GET(request: NextRequest, { params }: RouteParams) {
           filiaisDisponiveis: Object.keys(filiaisSimuladas)
         },
         { status: 404 }
-      );
+      )
     }
     
     // Assign vendedores to filiais based on their index
     const vendedoresDaFilial = vendedores
       .map((vendedor, index) => {
-        const filialAssignedId = String((index % 5) + 1); // Distribute across 5 filiais
+        const filialAssignedId = String((index % 5) + 1) // Distribute across 5 filiais
         return {
           ...vendedor,
           filialId: filialAssignedId,
           filialNome: filiaisSimuladas[filialAssignedId as keyof typeof filiaisSimuladas]?.nome,
           filialCidade: filiaisSimuladas[filialAssignedId as keyof typeof filiaisSimuladas]?.cidade,
           filialRegiao: filiaisSimuladas[filialAssignedId as keyof typeof filiaisSimuladas]?.regiao
-        };
+        }
       })
-      .filter(vendedor => vendedor.filialId === filialId);
+      .filter(vendedor => vendedor.filialId === filialId)
     
     // Calculate filial statistics
-    const totalVendedores = vendedoresDaFilial.length;
-    const receitaTotal = vendedoresDaFilial.reduce((acc, v) => acc + (v.receita || 0), 0);
-    const volumeTotal = vendedoresDaFilial.reduce((acc, v) => acc + (v.volume || 0), 0);
-    const metaTotal = vendedoresDaFilial.reduce((acc, v) => acc + (v.meta || 0), 0);
-    const percentualMetaFilial = metaTotal > 0 ? (receitaTotal / metaTotal) * 100 : 0;
+    const totalVendedores = vendedoresDaFilial.length
+    const receitaTotal = vendedoresDaFilial.reduce((acc, v) => acc + (v.receita || 0), 0)
+    const volumeTotal = vendedoresDaFilial.reduce((acc, v) => acc + (v.volume || 0), 0)
+    const metaTotal = vendedoresDaFilial.reduce((acc, v) => acc + (v.meta || 0), 0)
+    const percentualMetaFilial = metaTotal > 0 ? (receitaTotal / metaTotal) * 100 : 0
     
     // Performance analysis
-    const vendedoresAcimaMeta = vendedoresDaFilial.filter(v => (v.percentualMeta || 0) >= 100).length;
+    const vendedoresAcimaMeta = vendedoresDaFilial.filter(v => (v.percentualMeta || 0) >= 100).length
     const melhorVendedor = vendedoresDaFilial.reduce((melhor, atual) => 
       (atual.receita || 0) > (melhor.receita || 0) ? atual : melhor
-    , vendedoresDaFilial[0]);
+    , vendedoresDaFilial[0])
     
     const resultado = {
       filial: {
@@ -126,14 +152,14 @@ export async function GET(request: NextRequest, { params }: RouteParams) {
         }] : [])
       ],
       ultimaAtualizacao: new Date().toISOString()
-    };
+    }
 
-    return NextResponse.json(resultado);
+    return NextResponse.json(resultado)
   } catch (error) {
-    console.error('Erro ao buscar vendedores por filial:', error);
+    console.error('Erro ao buscar vendedores por filial:', error)
     return NextResponse.json(
       { error: 'Erro interno do servidor' },
       { status: 500 }
-    );
+    )
   }
 }

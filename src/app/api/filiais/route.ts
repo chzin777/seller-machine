@@ -1,59 +1,56 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '../../../../lib/prisma';
+import { deriveScopeFromRequest, applyBasicScopeToWhere } from '../../../../lib/scope';
 
 export async function GET(request: NextRequest) {
   try {
     const { searchParams } = new URL(request.url);
     const regionalId = searchParams.get('regionalId');
 
+    const scope = deriveScopeFromRequest(request);
+
+    let whereClause: any = {};
+    if (regionalId) {
+      whereClause.regionalId = parseInt(regionalId);
+    }
+
+    // Aplicar restrições de escopo
+    whereClause = applyBasicScopeToWhere(whereClause, scope, {
+      filialKey: 'id',
+      regionalKey: 'regionalId',
+    });
+
+    // Para GESTOR_III, restringir por diretoria através da relação com regionais
+    if (scope.role === 'GESTOR_III' && scope.diretoriaId) {
+      whereClause = {
+        ...whereClause,
+        regionais: { is: { diretoriaId: scope.diretoriaId } },
+      };
+    }
+
     let filiais;
     
-    if (regionalId) {
-      // Buscar filiais de uma regional específica
-      filiais = await prisma.filial.findMany({
-        where: {
-          regionalId: parseInt(regionalId)
-        },
-        select: {
-          id: true,
-          nome: true,
-          cnpj: true,
-          cidade: true,
-          estado: true,
-          regionalId: true,
-          regionais: {
-            select: {
-              id: true,
-              nome: true
-            }
+    // Buscar filiais com escopo aplicado
+    filiais = await prisma.filial.findMany({
+      where: whereClause,
+      select: {
+        id: true,
+        nome: true,
+        cnpj: true,
+        cidade: true,
+        estado: true,
+        regionalId: true,
+        regionais: {
+          select: {
+            id: true,
+            nome: true
           }
-        },
-        orderBy: {
-          nome: 'asc'
         }
-      });
-    } else {
-      // Buscar todas as filiais
-      filiais = await prisma.filial.findMany({
-        select: {
-          id: true,
-          nome: true,
-          cnpj: true,
-          cidade: true,
-          estado: true,
-          regionalId: true,
-          regionais: {
-            select: {
-              id: true,
-              nome: true
-            }
-          }
-        },
-        orderBy: {
-          nome: 'asc'
-        }
-      });
-    }
+      },
+      orderBy: {
+        nome: 'asc'
+      }
+    });
 
     return NextResponse.json(filiais);
   } catch (error) {

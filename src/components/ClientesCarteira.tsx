@@ -96,9 +96,9 @@ export default function ClientesCarteira({
   };
 
   const getStatusCliente = (diasSemCompra: number | null) => {
-    if (!diasSemCompra) return { label: 'Novo', color: 'bg-blue-100 text-blue-800' };
-    if (diasSemCompra <= 30) return { label: 'Ativo', color: 'bg-green-100 text-green-800' };
-    if (diasSemCompra <= 90) return { label: 'Inativo', color: 'bg-yellow-100 text-yellow-800' };
+    if (!diasSemCompra && diasSemCompra !== 0) return { label: 'Novo', color: 'bg-blue-100 text-blue-800' };
+    if ((diasSemCompra as number) <= 30) return { label: 'Ativo', color: 'bg-green-100 text-green-800' };
+    if ((diasSemCompra as number) <= 90) return { label: 'Inativo', color: 'bg-yellow-100 text-yellow-800' };
     return { label: 'Crítico', color: 'bg-red-100 text-red-800' };
   };
 
@@ -146,7 +146,15 @@ export default function ClientesCarteira({
       {/* Lista de clientes paginada */}
       <div className={`grid grid-cols-1 md:grid-cols-2 gap-3 transition-opacity duration-150 ${isChangingPage ? 'opacity-50' : 'opacity-100'}`}>
         {clientesPaginados.map((cliente) => {
-        const status = getStatusCliente(cliente.estatisticas.diasSemCompra);
+        const estat = cliente.estatisticas ? cliente.estatisticas : {
+          totalVendas: 0,
+          receitaTotal: 0,
+          ticketMedio: 0,
+          ultimaVenda: null,
+          primeiraVenda: null,
+          diasSemCompra: null
+        };
+        const status = getStatusCliente(estat.diasSemCompra ?? null);
         
         return (
           <Card key={cliente.id} className="hover:shadow-md transition-shadow">
@@ -175,7 +183,7 @@ export default function ClientesCarteira({
                     {status.label}
                   </Badge>
                   
-                  {cliente.estatisticas.diasSemCompra && cliente.estatisticas.diasSemCompra > 90 && (
+                  {estat.diasSemCompra && estat.diasSemCompra > 90 && (
                     <AlertTriangle className="w-4 h-4 text-red-500" />
                   )}
                 </div>
@@ -190,7 +198,7 @@ export default function ClientesCarteira({
                     <DollarSign className="w-2.5 h-2.5" />
                   </div>
                   <div className="font-semibold text-xs text-gray-900">
-                    {formatCurrency(cliente.estatisticas.receitaTotal)}
+                    {formatCurrency(estat.receitaTotal || 0)}
                   </div>
                   <div className="text-xs text-gray-500">Receita</div>
                 </div>
@@ -200,7 +208,7 @@ export default function ClientesCarteira({
                     <TrendingUp className="w-2.5 h-2.5" />
                   </div>
                   <div className="font-semibold text-xs text-gray-900">
-                    {formatCurrency(cliente.estatisticas.ticketMedio)}
+                    {formatCurrency(estat.ticketMedio || 0)}
                   </div>
                   <div className="text-xs text-gray-500">Ticket Médio</div>
                 </div>
@@ -210,7 +218,7 @@ export default function ClientesCarteira({
                     <Users className="w-2.5 h-2.5" />
                   </div>
                   <div className="font-semibold text-xs text-gray-900">
-                    {cliente.estatisticas.totalVendas}
+                    {estat.totalVendas || 0}
                   </div>
                   <div className="text-xs text-gray-500">Vendas</div>
                 </div>
@@ -220,7 +228,7 @@ export default function ClientesCarteira({
                     <Clock className="w-2.5 h-2.5" />
                   </div>
                   <div className="font-semibold text-xs text-gray-900">
-                    {cliente.estatisticas.diasSemCompra || 0}d
+                    {(estat.diasSemCompra ?? 0)}d
                   </div>
                   <div className="text-xs text-gray-500">Sem Compra</div>
                 </div>
@@ -228,10 +236,10 @@ export default function ClientesCarteira({
               
               {/* Informações adicionais */}
               <div className="flex flex-col gap-0.5 text-xs text-gray-600 mb-1.5">
-                {cliente.estatisticas.ultimaVenda && (
+                {estat.ultimaVenda && (
                   <div className="flex items-center gap-0.5">
                     <Calendar className="w-2.5 h-2.5" />
-                    <span>Última: {formatDate(cliente.estatisticas.ultimaVenda)}</span>
+                    <span>Última: {formatDate(estat.ultimaVenda)}</span>
                   </div>
                 )}
                 
@@ -244,7 +252,7 @@ export default function ClientesCarteira({
               </div>
               
               {/* Últimas vendas */}
-              {cliente.vendas.length > 0 && (
+              {Array.isArray(cliente.vendas) && cliente.vendas.length > 0 && (
                 <div className="border-t pt-1.5">
                   <h4 className="text-xs font-medium text-gray-700 mb-1">
                     Últimas Vendas ({cliente.vendas.length > 2 ? '2 de ' : ''}{cliente.vendas.length})

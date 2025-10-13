@@ -37,13 +37,13 @@ interface ResumoCarteiraProps {
 }
 
 export default function ResumoCarteira({ vendedor, resumo, metadata }: ResumoCarteiraProps) {
-  // Valores padrão para evitar erros
-  const resumoSafe = resumo || {
-    totalClientes: 0,
-    receitaTotal: 0,
-    ticketMedioGeral: 0,
-    clientesAtivos: 0,
-    clientesInativos: 0
+  // Valores seguros para evitar NaN quando alguns campos do resumo estiverem ausentes
+  const resumoSafe = {
+    totalClientes: resumo?.totalClientes ?? 0,
+    receitaTotal: resumo?.receitaTotal ?? 0,
+    ticketMedioGeral: resumo?.ticketMedioGeral ?? 0,
+    clientesAtivos: resumo?.clientesAtivos ?? 0,
+    clientesInativos: resumo?.clientesInativos ?? 0
   };
 
   // Se não há dados válidos, mostrar estado de carregamento
@@ -63,7 +63,7 @@ export default function ResumoCarteira({ vendedor, resumo, metadata }: ResumoCar
     return new Intl.NumberFormat('pt-BR', {
       style: 'currency',
       currency: 'BRL'
-    }).format(value);
+    }).format(value || 0);
   };
 
   const formatDate = (dateString: string) => {
@@ -71,11 +71,11 @@ export default function ResumoCarteira({ vendedor, resumo, metadata }: ResumoCar
   };
 
   const percentualAtivos = resumoSafe.totalClientes > 0 
-    ? Math.round((resumoSafe.clientesAtivos / resumoSafe.totalClientes) * 100)
+    ? Math.round(((resumoSafe.clientesAtivos || 0) / resumoSafe.totalClientes) * 100)
     : 0;
 
   const percentualInativos = resumoSafe.totalClientes > 0 
-    ? Math.round((resumoSafe.clientesInativos / resumoSafe.totalClientes) * 100)
+    ? Math.round(((resumoSafe.clientesInativos || 0) / resumoSafe.totalClientes) * 100)
     : 0;
 
   return (
@@ -152,7 +152,7 @@ export default function ResumoCarteira({ vendedor, resumo, metadata }: ResumoCar
               <div>
                 <p className="text-sm font-medium text-gray-600">Receita Total</p>
                 <p className="text-2xl font-bold text-gray-900">
-                  {formatCurrency(resumoSafe.receitaTotal)}
+                  {formatCurrency(resumoSafe.receitaTotal || 0)}
                 </p>
               </div>
               <div className="p-3 bg-green-100 rounded-full">
@@ -169,7 +169,7 @@ export default function ResumoCarteira({ vendedor, resumo, metadata }: ResumoCar
               <div>
                 <p className="text-sm font-medium text-gray-600">Ticket Médio</p>
                 <p className="text-2xl font-bold text-gray-900">
-                  {formatCurrency(resumoSafe.ticketMedioGeral)}
+                  {formatCurrency(resumoSafe.ticketMedioGeral || 0)}
                 </p>
               </div>
               <div className="p-3 bg-purple-100 rounded-full">
@@ -250,7 +250,7 @@ export default function ResumoCarteira({ vendedor, resumo, metadata }: ResumoCar
                 </div>
               </div>
               <div className="text-2xl font-bold text-blue-800 mb-1">
-                {resumoSafe.totalClientes - resumoSafe.clientesAtivos - resumoSafe.clientesInativos}
+                {resumoSafe.totalClientes - (resumoSafe.clientesAtivos || 0) - (resumoSafe.clientesInativos || 0)}
               </div>
               <div className="text-sm text-blue-600 mb-1">Clientes Regulares</div>
               <div className="text-xs text-blue-500">

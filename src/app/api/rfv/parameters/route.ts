@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '../../../../../lib/prisma';
+import { deriveScopeFromRequest, applyBasicScopeToWhere } from '../../../../../lib/scope';
 
 // GET /api/rfv/parameters - Buscar parâmetros RFV
 export async function GET(req: NextRequest) {
@@ -8,6 +9,8 @@ export async function GET(req: NextRequest) {
   const filialId = searchParams.get('filialId');
 
   try {
+    const scope = deriveScopeFromRequest(req);
+
     let whereClause: any = {};
 
     // Filtrar por ativo se especificado
@@ -23,6 +26,11 @@ export async function GET(req: NextRequest) {
         whereClause.filialId = parseInt(filialId);
       }
     }
+
+    // Aplicar escopo do usuário
+    whereClause = applyBasicScopeToWhere(whereClause, scope, {
+      filialKey: 'filialId',
+    });
 
     const data = await prisma.rfvParameterSet.findMany({
       where: whereClause,

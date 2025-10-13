@@ -234,7 +234,7 @@ export function useFiliais() {
       setLoading(true);
       setError(null);
       
-      const response = await fetch(`${API_BASE_URL}/api/filiais`);
+      const response = await fetch(`/api/filiais`);
       if (!response.ok) {
         throw new Error(`Erro na API: ${response.status} - ${response.statusText}`);
       }
@@ -307,7 +307,7 @@ export function useCarteiraVendedorClientes(vendedorId?: number, periodoMeses: n
       setLoading(true);
       setError(null);
       
-      const endpoint = `/api/carteira-vendedor/${vendedorId}?periodoMeses=${periodoMeses}`;
+      const endpoint = `/api/carteira-vendedor?vendedorId=${vendedorId}&periodoMeses=${periodoMeses}`;
       
       const response = await fetch(endpoint);
       if (!response.ok) {

@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { PrismaClient } from '@prisma/client';
+import { deriveScopeFromRequest } from '../../../../../lib/scope';
 
 const prisma = new PrismaClient();
 
@@ -12,6 +13,8 @@ export async function GET(
     const vendedorId = parseInt(vendedorIdString);
     const { searchParams } = new URL(request.url);
     const periodoMeses = parseInt(searchParams.get('periodoMeses') || '6');
+    
+    const scope = deriveScopeFromRequest(request);
     
     // Calcular data limite
     const dataLimite = new Date();
@@ -38,15 +41,40 @@ export async function GET(
         { status: 404 }
       );
     }
+
+    // Restringir acesso por escopo básico: vendedor/gestor I só podem ver dados da própria filial
+    if ((scope.role === 'VENDEDOR' || scope.role === 'GESTOR_I') && scope.filialId && vendedor.filial?.id && vendedor.filial.id !== scope.filialId) {
+      return NextResponse.json(
+        { error: 'Acesso negado. Vendedor/gestor de filial só podem acessar dados da própria filial.' },
+        { status: 403 }
+      );
+    }
     
-    // Buscar notas fiscais do vendedor no período
+    // Construir filtro de notas fiscais com base no escopo
+    let notasWhere: any = {
+      vendedorId: vendedorId,
+      dataEmissao: {
+        gte: dataLimite
+      }
+    };
+
+    if (scope.role === 'VENDEDOR' || scope.role === 'GESTOR_I') {
+      if (scope.filialId) {
+        notasWhere.filialId = scope.filialId;
+      }
+    } else if (scope.role === 'GESTOR_II') {
+      if (scope.regionalId) {
+        notasWhere.filial = { regionalId: scope.regionalId };
+      }
+    } else if (scope.role === 'GESTOR_III') {
+      if (scope.diretoriaId) {
+        notasWhere.filial = { regionais: { diretoriaId: scope.diretoriaId } };
+      }
+    }
+    
+    // Buscar notas fiscais do vendedor no período dentro do escopo
     const notasFiscais = await prisma.notasFiscalCabecalho.findMany({
-      where: {
-        vendedorId: vendedorId,
-        dataEmissao: {
-          gte: dataLimite
-        }
-      },
+      where: notasWhere,
       include: {
         cliente: {
           select: {

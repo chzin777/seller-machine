@@ -1,11 +1,14 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '../../../../../lib/prisma';
+import { deriveScopeFromRequest, applyBasicScopeToWhere } from '../../../../../lib/scope';
 
 // GET /api/rfv/analysis - Executar análise RFV dos clientes
 export async function GET(req: NextRequest) {
   const { searchParams } = new URL(req.url);
   const filialId = searchParams.get('filialId');
   const parameterSetId = searchParams.get('parameterSetId');
+
+  const scope = deriveScopeFromRequest(req);
 
   try {
     // Buscar parâmetros RFV ativos
@@ -17,6 +20,17 @@ export async function GET(req: NextRequest) {
       whereClause.id = parseInt(parameterSetId);
     } else if (filialId) {
       whereClause.filialId = parseInt(filialId);
+    }
+
+    // Se não houver filial explicitada, aplicar escopo de filial/regional/diretoria
+    if (!whereClause.filialId) {
+      if (scope.role === 'VENDEDOR' || scope.role === 'GESTOR_I') {
+        if (scope.filialId) whereClause.filialId = scope.filialId;
+      } else if (scope.role === 'GESTOR_II') {
+        if (scope.regionalId) whereClause.filial = { is: { regionalId: scope.regionalId } } as any;
+      } else if (scope.role === 'GESTOR_III') {
+        if (scope.diretoriaId) whereClause.filial = { is: { regionais: { is: { diretoriaId: scope.diretoriaId } } } } as any;
+      }
     }
 
     const parameters = await prisma.rfvParameterSet.findFirst({
@@ -35,7 +49,7 @@ export async function GET(req: NextRequest) {
       }, { status: 404 });
     }
 
-    // Buscar dados dos clientes para análise
+    // Buscar dados dos clientes para análise com escopo nas notas fiscais
     const customers = await prisma.cliente.findMany({
       select: {
         id: true,
@@ -46,6 +60,7 @@ export async function GET(req: NextRequest) {
             dataEmissao: true,
             valorTotal: true
           },
+          where: applyBasicScopeToWhere({}, scope, { filialKey: 'filialId', userKey: 'vendedorId' }),
           orderBy: {
             dataEmissao: 'desc'
           }

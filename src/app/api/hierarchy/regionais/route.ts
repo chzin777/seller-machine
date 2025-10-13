@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '../../../../../lib/prisma';
+import { deriveScopeFromRequest, applyBasicScopeToWhere } from '../../../../../lib/scope';
 
 // GET /api/hierarchy/regionais - Lista todas as regionais
 export async function GET(req: NextRequest) {
@@ -7,7 +8,18 @@ export async function GET(req: NextRequest) {
     const { searchParams } = new URL(req.url);
     const diretoriaId = searchParams.get('diretoriaId');
 
-    const whereClause = diretoriaId ? { diretoriaId: parseInt(diretoriaId) } : {};
+    const scope = deriveScopeFromRequest(req);
+
+    let whereClause: any = {};
+    if (diretoriaId) {
+      whereClause.diretoriaId = parseInt(diretoriaId);
+    }
+
+    // Aplicar restrições de escopo
+    whereClause = applyBasicScopeToWhere(whereClause, scope, {
+      regionalKey: 'id',
+      diretoriaKey: 'diretoriaId',
+    });
 
     const regionais = await prisma.regionais.findMany({
       where: whereClause,

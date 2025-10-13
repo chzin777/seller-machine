@@ -1,8 +1,11 @@
-import { NextRequest, NextResponse } from 'next/server';
+import { NextRequest, NextResponse } from 'next/server'
+import { deriveScopeFromRequest } from '../../../../lib/scope'
 
 // Simular dados de vendedores com vendas
-export async function GET() {
+export async function GET(req: NextRequest) {
   try {
+    const scope = deriveScopeFromRequest(req)
+
     // Simular dados de notas fiscais para desenvolvimento local
     const notas = [
       { id: 1, valor: 15000, vendedorId: 1, data: '2024-01-15' },
@@ -10,7 +13,7 @@ export async function GET() {
       { id: 3, valor: 12000, vendedorId: 1, data: '2024-01-17' },
       { id: 4, valor: 6500, vendedorId: 3, data: '2024-01-18' },
       { id: 5, valor: 9200, vendedorId: 2, data: '2024-01-19' }
-    ];
+    ]
 
     // Simular vendedores baseado nos dados reais
     const vendedores = [
@@ -29,35 +32,48 @@ export async function GET() {
       { id: 13, nome: 'Beatriz Cardoso', avatar: 'BC', meta: 50000, cor: '#EF4444' },
       { id: 14, nome: 'Thiago Barbosa', avatar: 'TB', meta: 48000, cor: '#8B5CF6' },
       { id: 15, nome: 'Larissa Monteiro', avatar: 'LM', meta: 45000, cor: '#10B981' }
-    ];
+    ]
 
-    // Distribuir as notas fiscais entre os vendedores de forma realista
+    // Mapeamento simulado de filiais -> regionais/diretorias
+    const filialHierarchy: Record<number, { regionalId: number, diretoriaId: number }> = {
+      1: { regionalId: 1, diretoriaId: 1 },
+      2: { regionalId: 1, diretoriaId: 1 },
+      3: { regionalId: 2, diretoriaId: 1 },
+      4: { regionalId: 2, diretoriaId: 2 },
+      5: { regionalId: 3, diretoriaId: 2 }
+    }
+
+    // Distribuir as notas fiscais entre os vendedores de forma realista e atribuir filial/regional/diretoria
     const vendedoresComVendas = vendedores.map((vendedor, index) => {
       // Determinar quantas notas cada vendedor tem (distribuição mais realista)
       const fatores = [
         0.18, 0.15, 0.12, 0.10, 0.08, 0.07, 0.06, 0.05, 
         0.04, 0.035, 0.03, 0.025, 0.02, 0.015, 0.01
-      ]; // Ana tem mais, Larissa tem menos
-      const fator = fatores[index] || 0.005;
-      const qtdNotas = Math.floor(notas.length * fator);
+      ] // Ana tem mais, Larissa tem menos
+      const fator = fatores[index] || 0.005
+      const qtdNotas = Math.floor(notas.length * fator)
       
       // Selecionar notas para este vendedor
       const startIndex = vendedores.slice(0, index).reduce((acc, _, i) => {
-        return acc + Math.floor(notas.length * (fatores[i] || 0.005));
-      }, 0);
-      const notasVendedor = notas.slice(startIndex, startIndex + qtdNotas);
+        return acc + Math.floor(notas.length * (fatores[i] || 0.005))
+      }, 0)
+      const notasVendedor = notas.slice(startIndex, startIndex + qtdNotas)
       
       // Calcular métricas (converter de centavos para reais)
-      const receita = notasVendedor.reduce((acc: number, nota: any) => acc + ((parseFloat(nota.valorTotal) || 0) / 100), 0);
-      const volume = notasVendedor.length;
-      const ticketMedio = volume > 0 ? receita / volume : 0;
-      const percentualMeta = vendedor.meta > 0 ? (receita / vendedor.meta) * 100 : 0;
+      const receita = notasVendedor.reduce((acc: number, nota: any) => acc + ((parseFloat(nota.valorTotal) || 0) / 100), 0)
+      const volume = notasVendedor.length
+      const ticketMedio = volume > 0 ? receita / volume : 0
+      const percentualMeta = vendedor.meta > 0 ? (receita / vendedor.meta) * 100 : 0
       
       // Simular crescimento mensal (variação de -10% a +25%)
-      const crescimento = -10 + Math.random() * 35;
+      const crescimento = -10 + Math.random() * 35
       
       // Simular tendência das últimas vendas
-      const tendencia = Math.random() > 0.5 ? 'up' : 'down';
+      const tendencia = Math.random() > 0.5 ? 'up' : 'down'
+
+      // Atribuir filial/regional/diretoria simuladas
+      const filialId = ((vendedor.id % 5) + 1)
+      const { regionalId, diretoriaId } = filialHierarchy[filialId]
       
       return {
         ...vendedor,
@@ -68,46 +84,91 @@ export async function GET() {
         crescimento,
         tendencia,
         ultimaVenda: new Date(Date.now() - Math.random() * 30 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
-        posicao: 0 // Será definido após ordenação
-      };
-    });
+        posicao: 0, // Será definido após ordenação
+        filialId,
+        regionalId,
+        diretoriaId
+      }
+    })
+
+    // Aplicar restrições de escopo
+    let filtered = vendedoresComVendas
+    switch (scope.role) {
+      case 'VENDEDOR': {
+        if (scope.userId) {
+          filtered = filtered.filter(v => v.id === scope.userId)
+        } else if (scope.filialId) {
+          filtered = filtered.filter(v => v.filialId === scope.filialId)
+        }
+        break
+      }
+      case 'GESTOR_I': {
+        if (scope.filialId) {
+          filtered = filtered.filter(v => v.filialId === scope.filialId)
+        }
+        break
+      }
+      case 'GESTOR_II': {
+        if (scope.regionalId) {
+          filtered = filtered.filter(v => v.regionalId === scope.regionalId)
+        }
+        break
+      }
+      case 'GESTOR_III': {
+        if (scope.diretoriaId) {
+          filtered = filtered.filter(v => v.diretoriaId === scope.diretoriaId)
+        }
+        break
+      }
+      case 'GESTOR_MASTER':
+      default:
+        // Sem restrição
+        break
+    }
 
     // Ordenar por receita (ranking)
-    vendedoresComVendas.sort((a, b) => b.receita - a.receita);
+    filtered.sort((a, b) => b.receita - a.receita)
     
     // Adicionar posição no ranking
-    vendedoresComVendas.forEach((vendedor, index) => {
-      vendedor.posicao = index + 1;
-    });
+    filtered.forEach((vendedor, index) => {
+      vendedor.posicao = index + 1
+    })
 
-    return NextResponse.json(vendedoresComVendas);
+    return NextResponse.json(filtered)
   } catch (error) {
-    console.error('Erro ao buscar dados de vendedores:', error);
-    return NextResponse.json({ error: 'Erro interno do servidor' }, { status: 500 });
+    console.error('Erro ao buscar dados de vendedores:', error)
+    return NextResponse.json({ error: 'Erro interno do servidor' }, { status: 500 })
   }
 }
 
 export async function POST(request: NextRequest) {
   try {
-    const body = await request.json();
+    const scope = deriveScopeFromRequest(request)
+    
+    // Vendedores não podem criar novos vendedores
+    if (scope.role === 'VENDEDOR') {
+      return NextResponse.json({ error: 'Acesso negado: vendedores não podem criar registros de vendedores.' }, { status: 403 })
+    }
+
+    const body = await request.json()
     
     // Validate required fields
     if (!body.nome) {
       return NextResponse.json(
         { error: 'Nome é obrigatório' },
         { status: 400 }
-      );
+      )
     }
     
     if (!body.meta || body.meta <= 0) {
       return NextResponse.json(
         { error: 'Meta deve ser um valor positivo' },
         { status: 400 }
-      );
+      )
     }
     
     // Generate new vendedor ID (in real app, this would be handled by database)
-    const novoId = Math.floor(Math.random() * 10000) + 1000;
+    const novoId = Math.floor(Math.random() * 10000) + 1000
     
     // Create new vendedor
     const novoVendedor = {
@@ -137,17 +198,17 @@ export async function POST(request: NextRequest) {
       },
       dataCriacao: new Date().toISOString(),
       ultimaAtualizacao: new Date().toISOString()
-    };
+    }
     
     return NextResponse.json({
       message: 'Vendedor criado com sucesso',
       vendedor: novoVendedor
-    }, { status: 201 });
+    }, { status: 201 })
   } catch (error) {
-    console.error('Erro ao criar vendedor:', error);
+    console.error('Erro ao criar vendedor:', error)
     return NextResponse.json(
       { error: 'Erro interno do servidor' },
       { status: 500 }
-    );
+    )
   }
 }

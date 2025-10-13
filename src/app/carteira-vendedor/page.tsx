@@ -83,11 +83,21 @@ export default function CarteiraVendedorPage() {
       );
     }
     
-    // Filtro por status
-    if (filters.status === 'ativos') {
-      resultado = resultado.filter(vendedor => vendedor.ativo);
-    } else if (filters.status === 'inativos') {
-      resultado = resultado.filter(vendedor => !vendedor.ativo);
+    // Filtro por filial
+    if (filters.filialId) {
+      resultado = resultado.filter(vendedor => 
+        vendedor.filialId === filters.filialId || vendedor.filial?.id === filters.filialId
+      );
+    }
+    
+    // Filtro por status com fallback quando 'ativo' não está disponível
+    if (filters.status !== 'todos') {
+      resultado = resultado.filter(vendedor => {
+        const hasReceita = Array.isArray(vendedor.receitaVendedor) && vendedor.receitaVendedor.some(r => (r.valorTotal || 0) > 0 || (r.quantidadeNotas || 0) > 0);
+        const flagAtivo = vendedor.ativo;
+        const isAtivo = typeof flagAtivo === 'boolean' ? flagAtivo : hasReceita;
+        return filters.status === 'ativos' ? isAtivo : !isAtivo;
+      });
     }
     
     // Ordenação
@@ -104,8 +114,8 @@ export default function CarteiraVendedorPage() {
           const coberturaB = b.cobertura?.reduce((sum, c) => sum + (c.percentualCobertura || 0), 0) / (b.cobertura?.length || 1) || 0;
           return coberturaB - coberturaA;
         case 'ranking':
-          const rankingA = a.ranking?.[0]?.posicao || 999;
-          const rankingB = b.ranking?.[0]?.posicao || 999;
+          const rankingA = typeof a.ranking?.[0]?.posicaoRanking === 'number' ? a.ranking[0].posicaoRanking : 999;
+          const rankingB = typeof b.ranking?.[0]?.posicaoRanking === 'number' ? b.ranking[0].posicaoRanking : 999;
           return rankingA - rankingB;
         default:
           return 0;
@@ -114,7 +124,61 @@ export default function CarteiraVendedorPage() {
     
     return resultado;
   }, [vendedores, filters]);
-  
+
+  // Adaptar clientes da API para o formato esperado pelo componente ClientesCarteira
+  const clientesAdaptados = useMemo(() => {
+    const origem = carteiraData?.clientes || [];
+    return origem.map((c: any) => {
+      const parseToISOString = (d: any) => {
+        const date = new Date(d);
+        return isFinite(date.getTime()) ? date.toISOString() : null;
+      };
+      const ultimaVendaStr = c?.resumo?.ultimaVenda ? parseToISOString(c.resumo.ultimaVenda) : null;
+      const primeiraVendaStr = c?.resumo?.primeiraVenda ? parseToISOString(c.resumo.primeiraVenda) : null;
+      const dias = ultimaVendaStr ? Math.floor((Date.now() - new Date(ultimaVendaStr).getTime()) / (1000 * 60 * 60 * 24)) : null;
+      return {
+        id: c?.cliente?.id ?? 0,
+        nome: c?.cliente?.nome ?? 'Cliente',
+        cpfCnpj: c?.cliente?.cpfCnpj ?? '',
+        cidade: c?.cliente?.cidade ?? null,
+        estado: c?.cliente?.estado ?? null,
+        telefone: c?.cliente?.telefone ?? null,
+        vendas: Array.isArray(c?.vendas) ? c.vendas.map((v: any, idx: number) => ({
+          id: v?.id != null && !Number.isNaN(Number(v.id)) ? Number(v.id) : idx + 1,
+          numeroNota: v?.numeroNota != null && !Number.isNaN(Number(v.numeroNota)) ? Number(v.numeroNota) : idx + 1,
+          dataEmissao: parseToISOString(v?.dataEmissao) || new Date().toISOString(),
+          valorTotal: Number(v?.valorTotal) || 0
+        })) : [],
+        estatisticas: {
+          totalVendas: Number(c?.resumo?.totalVendas) || 0,
+          receitaTotal: Number(c?.resumo?.receitaTotal) || 0,
+          ticketMedio: Number(c?.resumo?.ticketMedio) || 0,
+          ultimaVenda: ultimaVendaStr,
+          primeiraVenda: primeiraVendaStr,
+          diasSemCompra: dias
+        }
+      };
+    });
+  }, [carteiraData]);
+
+  // Resumo derivado para evitar NaN e garantir contagens reais
+  const resumoDerivado = useMemo(() => {
+    const clientes = clientesAdaptados || [];
+    const totalClientes = (carteiraData?.resumo?.totalClientes ?? clientes.length) || 0;
+    const receitaTotal = (carteiraData?.resumo?.receitaTotal ?? clientes.reduce((sum, c) => sum + (c.estatisticas?.receitaTotal || 0), 0)) || 0;
+    const totalVendas = clientes.reduce((sum, c) => sum + (c.estatisticas?.totalVendas || 0), 0);
+    const ticketMedioGeral = totalVendas > 0 ? receitaTotal / totalVendas : 0;
+    const clientesAtivos = clientes.filter(c => c.estatisticas?.diasSemCompra !== null && (c.estatisticas?.diasSemCompra as number) <= 30).length;
+    const clientesInativos = clientes.filter(c => c.estatisticas?.diasSemCompra !== null && (c.estatisticas?.diasSemCompra as number) > 90).length; // críticos
+    return {
+      totalClientes,
+      receitaTotal,
+      ticketMedioGeral,
+      clientesAtivos,
+      clientesInativos
+    };
+  }, [carteiraData, clientesAdaptados]);
+
   const handleFilterChange = (key: keyof FilterState, value: any) => {
     setFilters(prev => ({ ...prev, [key]: value }));
   };
@@ -393,7 +457,7 @@ export default function CarteiraVendedorPage() {
               {/* Resumo da Carteira */}
               <ResumoCarteira
                 vendedor={carteiraData.vendedor}
-                resumo={carteiraData.resumo}
+                resumo={resumoDerivado}
                 metadata={carteiraData.metadata}
               />
               
@@ -415,7 +479,7 @@ export default function CarteiraVendedorPage() {
                 </div>
                 
                 <ClientesCarteira
-                  clientes={carteiraData.clientes || []}
+                  clientes={clientesAdaptados}
                   loading={carteiraLoading}
                   onViewDetails={handleClienteDetails}
                   itemsPerPage={itemsPerPage}

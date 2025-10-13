@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '../../../../../lib/prisma';
+import { deriveScopeFromRequest, applyBasicScopeToWhere } from '../../../../../lib/scope';
 
 // GET /api/hierarchy/diretorias - Lista todas as diretorias
 export async function GET(req: NextRequest) {
@@ -7,7 +8,17 @@ export async function GET(req: NextRequest) {
     const { searchParams } = new URL(req.url);
     const empresaId = searchParams.get('empresaId');
 
-    const whereClause = empresaId ? { empresaId: parseInt(empresaId) } : {};
+    const scope = deriveScopeFromRequest(req);
+
+    let whereClause: any = {};
+    if (empresaId) {
+      whereClause.empresaId = parseInt(empresaId);
+    }
+
+    // Aplicar restrições de escopo (gestores com diretoria vinculada)
+    whereClause = applyBasicScopeToWhere(whereClause, scope, {
+      diretoriaKey: 'id',
+    });
 
     const diretorias = await prisma.diretorias.findMany({
       where: whereClause,

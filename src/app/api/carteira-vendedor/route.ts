@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { PrismaClient } from '@prisma/client';
+import { deriveScopeFromRequest, applyBasicScopeToWhere } from '../../../../lib/scope';
 
 const prisma = new PrismaClient();
 
@@ -13,6 +14,8 @@ interface ClienteCarteira {
     telefone: string | null;
   };
   vendas: {
+    id: number;
+    numeroNota: number;
     dataEmissao: Date;
     valorTotal: number;
   }[];
@@ -47,6 +50,8 @@ export async function GET(request: NextRequest) {
     const vendedorId = searchParams.get('vendedorId');
     const filialId = searchParams.get('filialId');
     const periodoMeses = parseInt(searchParams.get('periodoMeses') || '6'); // Padrão: últimos 6 meses
+
+    const scope = deriveScopeFromRequest(request);
     
     // Calcular data limite baseada no período
     const dataLimite = new Date();
@@ -66,11 +71,19 @@ export async function GET(request: NextRequest) {
     if (filialId) {
       whereClause.filialId = parseInt(filialId);
     }
+
+    // Aplicar escopo hierárquico
+    whereClause = applyBasicScopeToWhere(whereClause, scope, {
+      userKey: 'vendedorId',
+      filialKey: 'filialId',
+    });
     
     // Buscar notas fiscais com vendedores e clientes
     const notasFiscais = await prisma.notasFiscalCabecalho.findMany({
       where: whereClause,
       select: {
+        id: true,
+        numeroNota: true,
         clienteId: true,
         vendedorId: true,
         dataEmissao: true,
@@ -151,6 +164,8 @@ export async function GET(request: NextRequest) {
       
       // Adicionar venda ao cliente
       clienteData.vendas.push({
+        id: nota.id,
+        numeroNota: nota.numeroNota,
         dataEmissao: nota.dataEmissao,
         valorTotal: valorNota
       });

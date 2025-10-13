@@ -1,4 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { PrismaClient } from '@prisma/client';
+import { deriveScopeFromRequest, applyBasicScopeToWhere } from '../../../../../lib/scope';
 
 export async function GET(request: NextRequest) {
   try {
@@ -6,16 +8,43 @@ export async function GET(request: NextRequest) {
     const filialId = searchParams.get('filialId');
     const meses = parseInt(searchParams.get('meses') || '6');
 
-    // Buscar dados históricos de vendas
+    // Buscar dados históricos de vendas escopados
     let vendas: any[] = [];
-    
+
+    const prisma = new PrismaClient();
+    const scope = deriveScopeFromRequest(request);
     try {
-      const notasResponse = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/notas-fiscais`);
-      if (notasResponse.ok) {
-        vendas = await notasResponse.json();
+      let whereClause: any = {};
+      whereClause = applyBasicScopeToWhere(whereClause, scope, { filialKey: 'filialId' });
+      if (filialId) {
+        whereClause.filialId = parseInt(filialId);
       }
+
+      const notas = await prisma.notasFiscalCabecalho.findMany({
+        where: whereClause,
+        select: { valorTotal: true, dataEmissao: true },
+        take: 5000
+      });
+      vendas = notas.map((n: any) => ({
+        dataEmissao: n.dataEmissao,
+        valorTotal: (parseFloat(n.valorTotal?.toString() || '0') || 0) / 100
+      }));
     } catch (error) {
-      console.warn('Erro ao buscar notas fiscais:', error);
+      console.warn('Erro ao buscar vendas via Prisma:', error);
+    } finally {
+      await prisma.$disconnect();
+    }
+
+    // Fallback
+    if (!Array.isArray(vendas) || vendas.length === 0) {
+      try {
+        const notasResponse = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/notas-fiscais`);
+        if (notasResponse.ok) {
+          vendas = await notasResponse.json();
+        }
+      } catch (error) {
+        console.warn('Erro ao buscar notas fiscais:', error);
+      }
     }
 
     // Gerar previsões baseadas nos dados históricos
@@ -38,40 +67,26 @@ export async function GET(request: NextRequest) {
         : 50000; // Valor padrão
       
       // Aplicar variação sazonal simulada
-      const variacao = (Math.random() - 0.5) * 0.3; // ±15%
-      const valorPrevisto = mediaHistorica * (1 + variacao);
+      const variacaoSazonal = 1 + (Math.sin((mesPrevisao / 12) * Math.PI * 2) * 0.1);
+      const previsao = mediaHistorica * variacaoSazonal;
+      
+      // Calcular intervalo de confiança (simulado)
+      const confianca = Math.max(0.6, Math.min(0.95, 0.8 + (Math.random() - 0.5) * 0.2));
+      const intervaloInferior = previsao * (1 - (1 - confianca) * 0.5);
+      const intervaloSuperior = previsao * (1 + (1 - confianca) * 0.5);
       
       previsoes.push({
-        mes: dataPrevisao.toISOString().substring(0, 7), // YYYY-MM
-        valorPrevisto: Math.round(valorPrevisto * 100) / 100,
-        confianca: Math.random() * 0.3 + 0.7, // Entre 70% e 100%
-        tendencia: variacao > 0 ? 'crescimento' : variacao < -0.1 ? 'declinio' : 'estavel',
-        fatoresInfluencia: [
-          'Sazonalidade histórica',
-          'Tendência de mercado',
-          'Comportamento do cliente'
-        ]
+        mes: dataPrevisao.toLocaleString('pt-BR', { month: 'long' }),
+        valorPrevisto: Math.round(previsao),
+        confianca: Math.round(confianca * 100) / 100,
+        intervalo: {
+          inferior: Math.round(intervaloInferior),
+          superior: Math.round(intervaloSuperior)
+        }
       });
     }
 
-    const salesPrediction = {
-      timestamp: new Date().toISOString(),
-      filialId: filialId ? parseInt(filialId) : null,
-      periodo: `${meses} meses`,
-      previsoes,
-      resumo: {
-        crescimentoEsperado: previsoes.reduce((acc, p) => acc + (p.tendencia === 'crescimento' ? 1 : 0), 0) / previsoes.length,
-        confiancaMedia: previsoes.reduce((acc, p) => acc + p.confianca, 0) / previsoes.length,
-        valorTotalPrevisto: previsoes.reduce((acc, p) => acc + p.valorPrevisto, 0)
-      },
-      recomendacoes: [
-        'Focar em produtos com maior margem durante períodos de crescimento',
-        'Preparar estratégias de retenção para meses de declínio',
-        'Monitorar indicadores de mercado para ajustar previsões'
-      ]
-    };
-
-    return NextResponse.json(salesPrediction);
+    return NextResponse.json({ previsoes });
   } catch (error) {
     console.error('Erro na previsão de vendas:', error);
     return NextResponse.json(

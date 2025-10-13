@@ -59,6 +59,6 @@ try {
     npm run dev
 }
 catch {
-    Write-Host "❌ Erro ao iniciar o servidor: $($_.Exception.Message)" -ForegroundColor Red
-    Write-Host "💡 Tente executar 'npm install' primeiro" -ForegroundColor Yellow
+    Write-Host "Erro ao iniciar o servidor: $($_.Exception.Message)" -ForegroundColor Red
+    Write-Host "Tente executar 'npm install' primeiro" -ForegroundColor Yellow
 }

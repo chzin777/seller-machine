@@ -1,4 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { PrismaClient } from '@prisma/client';
+import { deriveScopeFromRequest, applyBasicScopeToWhere } from '../../../../../lib/scope';
 
 export async function GET(request: NextRequest) {
   try {
@@ -12,26 +14,75 @@ export async function GET(request: NextRequest) {
       );
     }
 
-    // Buscar dados do cliente
-    let cliente = null;
+    // Buscar dados do cliente e histórico com escopo hierárquico via Prisma
+    let cliente: any = null;
+    let pedidos: any[] = [];
+
+    const prisma = new PrismaClient();
+    const scope = deriveScopeFromRequest(request);
     try {
-      const clienteResponse = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/clientes/${clienteId}`);
-      if (clienteResponse.ok) {
-        cliente = await clienteResponse.json();
+      let whereClause: any = {};
+      whereClause = applyBasicScopeToWhere(whereClause, scope, { filialKey: 'filialId' });
+      whereClause.clienteId = parseInt(clienteId);
+
+      const notas = await prisma.notasFiscalCabecalho.findMany({
+        where: whereClause,
+        select: {
+          clienteId: true,
+          dataEmissao: true,
+          valorTotal: true,
+          itens: { select: { Quantidade: true, produto: { select: { id: true, descricao: true, tipo: true, preco: true } } } }
+        },
+        take: 3000
+      });
+
+      if (Array.isArray(notas) && notas.length > 0) {
+        // Montar pedidos a partir das notas fiscais
+        pedidos = notas.map((nota: any) => ({
+          data: nota.dataEmissao,
+          valor: (parseFloat(nota.valorTotal?.toString() || '0') || 0) / 100,
+          itens: (nota.itens || []).map((item: any) => ({
+            id: item.produto?.id,
+            nome: item.produto?.descricao,
+            categoria: item.produto?.tipo || 'Geral',
+            quantidade: parseFloat(item.Quantidade?.toString() || '1')
+          }))
+        }));
+
+        // Buscar informações básicas do cliente
+        cliente = await prisma.cliente.findUnique({
+          where: { id: parseInt(clienteId) },
+          select: { nome: true }
+        });
       }
     } catch (error) {
-      console.warn('Erro ao buscar dados do cliente:', error);
+      console.warn('Erro ao buscar dados via Prisma para customer-insights:', error);
+    } finally {
+      await prisma.$disconnect();
     }
 
-    // Buscar histórico de pedidos do cliente
-    let pedidos = [];
-    try {
-      const pedidosResponse = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/pedidos?clienteId=${clienteId}`);
-      if (pedidosResponse.ok) {
-        pedidos = await pedidosResponse.json();
+    // Fallback: Buscar dados do cliente se não encontrado via Prisma
+    if (!cliente) {
+      try {
+        const clienteResponse = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/clientes/${clienteId}`);
+        if (clienteResponse.ok) {
+          cliente = await clienteResponse.json();
+        }
+      } catch (error) {
+        console.warn('Erro ao buscar dados do cliente:', error);
       }
-    } catch (error) {
-      console.warn('Erro ao buscar pedidos do cliente:', error);
+    }
+
+    // Fallback: Buscar histórico de pedidos do cliente se não encontrado via Prisma
+    if (pedidos.length === 0) {
+      try {
+        const pedidosResponse = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/pedidos?clienteId=${clienteId}`);
+        if (pedidosResponse.ok) {
+          pedidos = await pedidosResponse.json();
+        }
+      } catch (error) {
+        console.warn('Erro ao buscar pedidos do cliente:', error);
+      }
     }
 
     // Calcular métricas do cliente

@@ -163,6 +163,231 @@ async function testHierarchyAPIs() {
       console.log('Erro na API de empresas:', empresasResponse.data);
     }
 
+    console.log('\n6. Testando /api/ai/dashboard-summary...');
+    const summaryResponse = await makeRequest('/api/ai/dashboard-summary', authCookie);
+    console.log(`Status: ${summaryResponse.status}`);
+    if (summaryResponse.status === 200) {
+      try {
+        const summary = JSON.parse(summaryResponse.data);
+        console.log(`Resumo recebido com ${Array.isArray(summary.cards) ? summary.cards.length : 0} cards.`);
+      } catch (e) {
+        console.log('Resposta (raw) summary:', summaryResponse.data);
+      }
+    } else {
+      console.log('Erro na API dashboard-summary:', summaryResponse.data);
+    }
+
+    console.log('\n7. Testando /api/ai/dashboard-stats...');
+    const statsResponse = await makeRequest('/api/ai/dashboard-stats', authCookie);
+    console.log(`Status: ${statsResponse.status}`);
+    if (statsResponse.status === 200) {
+      try {
+        const stats = JSON.parse(statsResponse.data);
+        console.log('Stats recebidos (chaves):', Object.keys(stats || {}));
+      } catch (e) {
+        console.log('Resposta (raw) stats:', statsResponse.data);
+      }
+    } else {
+      console.log('Erro na API dashboard-stats:', statsResponse.data);
+    }
+
+    console.log('\n8. Testando /api/users (rota protegida)...');
+    const usersResponse = await makeRequest('/api/users', authCookie);
+    console.log(`Status: ${usersResponse.status}`);
+    if (usersResponse.status === 200) {
+      try {
+        const users = JSON.parse(usersResponse.data);
+        console.log(`Usuários recebidos: ${users.length}`);
+      } catch (e) {
+        console.log('Resposta (raw) users:', usersResponse.data);
+      }
+    } else {
+      console.log('Erro na API de users:', usersResponse.data);
+    }
+
+    console.log('\n9. Testando /api/ai/customer-insights?clienteId=1...');
+    const ciResponse = await makeRequest('/api/ai/customer-insights?clienteId=1', authCookie);
+    console.log(`Status: ${ciResponse.status}`);
+    if (ciResponse.status === 200) {
+      try {
+        const ci = JSON.parse(ciResponse.data);
+        console.log('Customer insights (keys):', Object.keys(ci || {}));
+      } catch (e) {
+        console.log('Resposta (raw) customer-insights:', ciResponse.data);
+      }
+    } else {
+      console.log('Erro na API customer-insights:', ciResponse.data);
+    }
+
+    console.log('\n10. Testando /api/ai/clustering...');
+    const clusterResponse = await makeRequest('/api/ai/clustering', authCookie);
+    console.log(`Status: ${clusterResponse.status}`);
+    if (clusterResponse.status === 200) {
+      try {
+        const cluster = JSON.parse(clusterResponse.data);
+        console.log('Clustering recebido (keys):', Object.keys(cluster || {}));
+      } catch (e) {
+        console.log('Resposta (raw) clustering:', clusterResponse.data);
+      }
+    } else {
+      console.log('Erro na API clustering:', clusterResponse.data);
+    }
+
+    console.log('\n11. Testando /api/ai/recommendations?clienteId=1...');
+    const recResponse = await makeRequest('/api/ai/recommendations?clienteId=1', authCookie);
+    console.log(`Status: ${recResponse.status}`);
+    if (recResponse.status === 200) {
+      try {
+        const rec = JSON.parse(recResponse.data);
+        console.log('Recomendações:', Array.isArray(rec) ? rec.length : 0);
+      } catch (e) {
+        console.log('Resposta (raw) recommendations:', recResponse.data);
+      }
+    } else {
+      console.log('Erro na API recommendations:', recResponse.data);
+    }
+
+    console.log('\n12. Testando /api/ai/sales-prediction...');
+    const spResponse = await makeRequest('/api/ai/sales-prediction', authCookie);
+    console.log(`Status: ${spResponse.status}`);
+    if (spResponse.status === 200) {
+      try {
+        const sp = JSON.parse(spResponse.data);
+        console.log('Sales prediction (keys):', Object.keys(sp || {}));
+      } catch (e) {
+        console.log('Resposta (raw) sales-prediction:', spResponse.data);
+      }
+    } else {
+      console.log('Erro na API sales-prediction:', spResponse.data);
+    }
+
+    console.log('\n13. Testando /api/ai/churn-prediction...');
+    const churnResponse = await makeRequest('/api/ai/churn-prediction', authCookie);
+    console.log(`Status: ${churnResponse.status}`);
+    if (churnResponse.status === 200) {
+      try {
+        const churn = JSON.parse(churnResponse.data);
+        console.log('Churn prediction (keys):', Object.keys(churn || {}));
+      } catch (e) {
+        console.log('Resposta (raw) churn-prediction:', churnResponse.data);
+      }
+    } else {
+      console.log('Erro na API churn-prediction:', churnResponse.data);
+    }
+
+    console.log('\n14b. Testando /api/carteira-vendedor (sem filial)...');
+    const carteiraSemFilialResponse = await makeRequest('/api/carteira-vendedor', authCookie);
+    console.log(`Status: ${carteiraSemFilialResponse.status}`);
+    if (carteiraSemFilialResponse.status === 200) {
+      try {
+        const carteiraSemFilial = JSON.parse(carteiraSemFilialResponse.data);
+        console.log('Carteira (sem filial) (keys):', Object.keys(carteiraSemFilial || {}));
+      } catch (e) {
+        console.log('Resposta (raw) carteira-vendedor (sem filial):', carteiraSemFilialResponse.data);
+      }
+    } else {
+      console.log('Erro na API carteira-vendedor (sem filial):', carteiraSemFilialResponse.data);
+    }
+
+    console.log('\n21. Testando /api/filiais...');
+    const filiaisResponse = await makeRequest('/api/filiais', authCookie);
+    console.log(`Status: ${filiaisResponse.status}`);
+    if (filiaisResponse.status === 200) {
+      try {
+        const filiais = JSON.parse(filiaisResponse.data);
+        const total = Array.isArray(filiais) ? filiais.length : (filiais?.length ?? 0);
+        console.log('Total de filiais:', total);
+      } catch (e) {
+        console.log('Resposta (raw) filiais:', filiaisResponse.data);
+      }
+    } else {
+      console.log('Erro na API filiais:', filiaisResponse.data);
+    }
+
+    console.log('\n15. Testando /api/vendedores...');
+    const vendedoresResponse = await makeRequest('/api/vendedores', authCookie);
+    console.log(`Status: ${vendedoresResponse.status}`);
+    if (vendedoresResponse.status === 200) {
+      try {
+        const vendedores = JSON.parse(vendedoresResponse.data);
+        console.log('Total de vendedores:', Array.isArray(vendedores) ? vendedores.length : 0);
+      } catch (e) {
+        console.log('Resposta (raw) vendedores:', vendedoresResponse.data);
+      }
+    } else {
+      console.log('Erro na API vendedores:', vendedoresResponse.data);
+    }
+
+    console.log('\n16. Testando /api/rfv/parameters...');
+    const rfvParamsResponse = await makeRequest('/api/rfv/parameters', authCookie);
+    console.log(`Status: ${rfvParamsResponse.status}`);
+    if (rfvParamsResponse.status === 200) {
+      try {
+        const rfvParams = JSON.parse(rfvParamsResponse.data);
+        console.log('RFV Parameters (keys):', Object.keys(rfvParams || {}));
+      } catch (e) {
+        console.log('Resposta (raw) rfv/parameters:', rfvParamsResponse.data);
+      }
+    } else {
+      console.log('Erro na API rfv/parameters:', rfvParamsResponse.data);
+    }
+
+    console.log('\n17. Testando /api/rfv/segments...');
+    const rfvSegmentsResponse = await makeRequest('/api/rfv/segments', authCookie);
+    console.log(`Status: ${rfvSegmentsResponse.status}`);
+    if (rfvSegmentsResponse.status === 200) {
+      try {
+        const rfvSegments = JSON.parse(rfvSegmentsResponse.data);
+        console.log('RFV Segments (keys):', Object.keys(rfvSegments || {}));
+      } catch (e) {
+        console.log('Resposta (raw) rfv/segments:', rfvSegmentsResponse.data);
+      }
+    } else {
+      console.log('Erro na API rfv/segments:', rfvSegmentsResponse.data);
+    }
+
+    console.log('\n18. Testando /api/associacoes...');
+    const associacoesResponse = await makeRequest('/api/associacoes', authCookie);
+    console.log(`Status: ${associacoesResponse.status}`);
+    if (associacoesResponse.status === 200) {
+      try {
+        const associacoes = JSON.parse(associacoesResponse.data);
+        const total = Array.isArray(associacoes) ? associacoes.length : (associacoes?.length ?? 0);
+        console.log('Total de associações:', total);
+      } catch (e) {
+        console.log('Resposta (raw) associacoes:', associacoesResponse.data);
+      }
+    } else {
+      console.log('Erro na API associacoes:', associacoesResponse.data);
+    }
+    console.log('\n19. Testando /api/proxy?url=/api/clientes...');
+    const clientesProxyResponse = await makeRequest('/api/proxy?url=/api/clientes', authCookie);
+    console.log(`Status: ${clientesProxyResponse.status}`);
+    if (clientesProxyResponse.status === 200) {
+      try {
+        const clientes = JSON.parse(clientesProxyResponse.data);
+        const total = Array.isArray(clientes) ? clientes.length : (clientes?.length ?? 0);
+        console.log('Total de clientes (via proxy):', total);
+      } catch (e) {
+        console.log('Resposta (raw) clientes (via proxy):', clientesProxyResponse.data);
+      }
+    } else {
+      console.log('Erro na API clientes (via proxy):', clientesProxyResponse.data);
+    }
+
+    console.log('\n20. Testando /api/ai/system-status...');
+    const sysStatusResponse = await makeRequest('/api/ai/system-status', authCookie);
+    console.log(`Status: ${sysStatusResponse.status}`);
+    if (sysStatusResponse.status === 200) {
+      try {
+        const status = JSON.parse(sysStatusResponse.data);
+        console.log('System status (keys):', Object.keys(status || {}));
+      } catch (e) {
+        console.log('Resposta (raw) system-status:', sysStatusResponse.data);
+      }
+    } else {
+      console.log('Erro na API system-status:', sysStatusResponse.data);
+    }
   } catch (error) {
     console.error('Erro durante o teste:', error);
   }

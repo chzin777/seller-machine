@@ -40,9 +40,11 @@ async function createAdminUser() {
       console.log('Usuário admin já existe. Tentando atualizar...');
       
       try {
+        const newHashedPassword = await bcrypt.hash('admin123', 10);
         const updatedUser = await prisma.users.update({
           where: { email: 'admin@agromaq.com' },
           data: {
+            password: newHashedPassword,
             role: 'GESTOR_MASTER',
             active: true,
             updatedAt: new Date()
