@@ -2,6 +2,20 @@ import { NextRequest, NextResponse } from 'next/server';
 import bcrypt from 'bcryptjs';
 import crypto from 'crypto';
 import { prisma } from '../../../../../lib/prisma';
+import sgMail from '@sendgrid/mail'
+// SendGrid and URL configs
+const SENDGRID_API_KEY = process.env.SENDGRID_API_KEY
+const SENDGRID_FROM = process.env.SENDGRID_FROM || 'no-reply@seller-machine.local'
+const FRONTEND_URL = process.env.FRONTEND_URL || 'http://localhost:3000'
+const SENDGRID_REGION = process.env.SENDGRID_REGION
+const SENDGRID_REPLY_TO = process.env.SENDGRID_REPLY_TO
+if (SENDGRID_API_KEY) {
+  sgMail.setApiKey(SENDGRID_API_KEY)
+  if (SENDGRID_REGION === 'eu') {
+    // @ts-expect-error: typings may vary by @sendgrid/mail version
+    sgMail.setDataResidency?.('eu')
+  }
+}
 
 // POST /api/auth/password-reset - Solicitar reset de senha
 export async function POST(req: NextRequest) {
@@ -18,7 +32,9 @@ export async function POST(req: NextRequest) {
 
     if (!user) {
       // Por segurança, sempre retornar sucesso mesmo se o usuário não existir
-      return NextResponse.json({ message: 'Se o email existir, você receberá instruções para redefinir sua senha.' });
+      return NextResponse.json({ 
+        message: 'Se o email existir, você receberá instruções para redefinir sua senha.'
+      });
     }
 
     if (!user.active) {
@@ -38,13 +54,28 @@ export async function POST(req: NextRequest) {
       }
     });
 
-    // TODO: Enviar email com o token (implementar serviço de email)
-    console.log(`Token de reset para ${email}: ${resetToken}`);
+    // Enviar email com o link de redefinição
+    try {
+      if (SENDGRID_API_KEY) {
+        const resetLink = `${FRONTEND_URL}/redefinir-senha?token=${resetToken}`
+        await sgMail.send({
+          to: email,
+          from: { email: SENDGRID_FROM, name: 'Seller Machine' },
+          replyTo: SENDGRID_REPLY_TO || SENDGRID_FROM,
+          subject: 'Redefinição de senha',
+          text: `Recebemos uma solicitação para redefinir sua senha. Use este link: ${resetLink} (expira em 1 hora). Se você não solicitou, ignore este email.`,
+          html: `<p>Recebemos uma solicitação para redefinir sua senha.</p><p><a href="${resetLink}" style="color:#1e3a8a">Redefinir senha</a></p><p>Este link expira em 1 hora.</p><p>Se você não solicitou, ignore este email.</p>`,
+          trackingSettings: { clickTracking: { enable: false, enableText: false } }
+        })
+      } else {
+        console.log('SENDGRID_API_KEY não configurado; pulando envio de e-mail.')
+      }
+    } catch (emailErr) {
+      console.error('Falha ao enviar e-mail de redefinição:', emailErr)
+    }
 
     return NextResponse.json({ 
-      message: 'Se o email existir, você receberá instruções para redefinir sua senha.',
-      // Em desenvolvimento, retornar o token para testes
-      ...(process.env.NODE_ENV === 'development' && { resetToken })
+      message: 'Se o email existir, você receberá instruções para redefinir sua senha.'
     });
   } catch (error) {
     console.error('Erro ao solicitar reset de senha:', error);
@@ -90,6 +121,23 @@ export async function PUT(req: NextRequest) {
         resetTokenExpiry: null
       }
     });
+
+    // Opcional: e-mail de confirmação de redefinição
+    try {
+      if (SENDGRID_API_KEY && user.email) {
+        await sgMail.send({
+          to: user.email,
+          from: { email: SENDGRID_FROM, name: 'Seller Machine' },
+          replyTo: SENDGRID_REPLY_TO || SENDGRID_FROM,
+          subject: 'Senha redefinida com sucesso',
+          text: 'Sua senha foi redefinida com sucesso. Você já pode fazer login novamente.',
+          html: `<p>Sua senha foi redefinida com sucesso.</p><p><a href="${FRONTEND_URL}/login" style="color:#1e3a8a">Voltar ao login</a></p>`,
+          trackingSettings: { clickTracking: { enable: false, enableText: false } }
+        })
+      }
+    } catch (emailErr) {
+      console.error('Falha ao enviar e-mail de confirmação:', emailErr)
+    }
 
     return NextResponse.json({ message: 'Senha redefinida com sucesso.' });
   } catch (error) {

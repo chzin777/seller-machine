@@ -1,7 +1,6 @@
 "use client";
 import { useState } from "react";
 import { Checkbox } from "../../components/ui/checkbox";
-// ...existing code...
 import { useRouter } from "next/navigation";
 
 
@@ -101,7 +100,7 @@ export default function LoginPage() {
               />
               Lembrar-me
             </label>
-            <a href="#" className="hover:underline opacity-60 cursor-not-allowed">Esqueceu a senha?</a>
+            <a href="/esqueci-senha" className="hover:underline">Esqueceu a senha?</a>
           </div>
           <button
             type="submit"
