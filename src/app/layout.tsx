@@ -96,7 +96,7 @@ function LayoutContent({ children }: { children: React.ReactNode }) {
 	const [userName, setUserName] = useState<string | undefined>(undefined);
 	const [userConta, setUserConta] = useState<string | undefined>(undefined);
 	const [isClient, setIsClient] = useState(false);
-	const isLoginPage = pathname === "/login";
+	const isLoginPage = pathname === "/login" || pathname === "/redefinir-senha" || pathname === "/esqueci-senha" || pathname === "/nova-senha";
 
 	useEffect(() => {
 		setIsClient(true);
