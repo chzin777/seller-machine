@@ -4,7 +4,7 @@ import { useRouter } from "next/navigation";
 
 import { Button } from "../../components/ui/button";
 import { UserPlus, Pencil, Users, Search } from "lucide-react";
-import LoadingSpinner from "../../components/LoadingSpinner";
+import LoadingSpinner, { CardLoader, InlineLogoSpinner } from "../../components/LoadingSpinner";
 // import Header from "../../components/header";
 // Modal para editar usuário
 function EditarUsuarioModal({ open, onClose, onSuccess, usuario }: { open: boolean; onClose: () => void; onSuccess: () => void; usuario: Usuario | null }) {
@@ -73,37 +73,102 @@ function EditarUsuarioModal({ open, onClose, onSuccess, usuario }: { open: boole
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40">
       <form onSubmit={handleSubmit} className="bg-white rounded-xl shadow-2xl p-8 min-w-[340px] w-full max-w-md flex flex-col gap-4 animate-fade-in">
-        <h2 className="text-2xl font-bold mb-2 text-blue-900 text-center">Editar Usuário</h2>
+        <h2 className="text-2xl font-bold mb-2 text-center" style={{ color: '#003153' }}>Editar Usuário</h2>
         <div className="flex flex-col gap-2">
-          <label className="text-sm font-medium text-blue-900" htmlFor="nome-edit">Nome</label>
-          <input ref={nomeRef} id="nome-edit" className="border border-blue-300 rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-400 transition bg-white text-blue-900" placeholder="Nome" value={nome} onChange={e => setNome(e.target.value)} required autoComplete="off" />
+          <label className="text-sm font-medium" style={{ color: '#003153' }} htmlFor="nome-edit">Nome</label>
+          <input 
+            ref={nomeRef} 
+            id="nome-edit" 
+            className="border rounded px-3 py-2 focus:outline-none focus:ring-2 transition bg-white" 
+            style={{ 
+              borderColor: 'rgba(0, 49, 83, 0.3)', 
+              color: '#003153',
+              '--tw-ring-color': '#003153',
+              '--tw-ring-opacity': '0.5'
+            } as any}
+            placeholder="Nome" 
+            value={nome} 
+            onChange={e => setNome(e.target.value)} 
+            required 
+            autoComplete="off" 
+          />
         </div>
         <div className="flex flex-col gap-2">
-          <label className="text-sm font-medium text-blue-900" htmlFor="sobrenome-edit">Sobrenome</label>
-          <input id="sobrenome-edit" className="border border-blue-300 rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-400 transition bg-white text-blue-900" placeholder="Sobrenome" value={sobrenome} onChange={e => setSobrenome(e.target.value)} required autoComplete="off" />
+          <label className="text-sm font-medium" style={{ color: '#003153' }} htmlFor="sobrenome-edit">Sobrenome</label>
+          <input 
+            id="sobrenome-edit" 
+            className="border rounded px-3 py-2 focus:outline-none focus:ring-2 transition bg-white" 
+            style={{ 
+              borderColor: 'rgba(0, 49, 83, 0.3)', 
+              color: '#003153',
+              '--tw-ring-color': '#003153',
+              '--tw-ring-opacity': '0.5'
+            } as any}
+            placeholder="Sobrenome" 
+            value={sobrenome} 
+            onChange={e => setSobrenome(e.target.value)} 
+            required 
+            autoComplete="off" 
+          />
         </div>
         <div className="flex flex-col gap-2">
-          <label className="text-sm font-medium text-blue-900" htmlFor="email-edit">Email</label>
-          <input id="email-edit" type="email" className="border border-blue-300 rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-400 transition bg-white text-blue-900" placeholder="Email" value={email} onChange={e => setEmail(e.target.value)} required autoComplete="off" />
+          <label className="text-sm font-medium" style={{ color: '#003153' }} htmlFor="email-edit">Email</label>
+          <input 
+            id="email-edit" 
+            type="email" 
+            className="border rounded px-3 py-2 focus:outline-none focus:ring-2 transition bg-white" 
+            style={{ 
+              borderColor: 'rgba(0, 49, 83, 0.3)', 
+              color: '#003153',
+              '--tw-ring-color': '#003153',
+              '--tw-ring-opacity': '0.5'
+            } as any}
+            placeholder="Email" 
+            value={email} 
+            onChange={e => setEmail(e.target.value)} 
+            required 
+            autoComplete="off" 
+          />
         </div>
         <div className="flex flex-col gap-2">
-          <label className="text-sm font-medium text-blue-900" htmlFor="conta-edit">Tipo de Conta</label>
+          <label className="text-sm font-medium" style={{ color: '#003153' }} htmlFor="conta-edit">Tipo de Conta</label>
           <select
             id="conta-edit"
-            className="border border-blue-300 rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-400 transition bg-white text-blue-900 hover:cursor-pointer"
+            className="border rounded px-3 py-2 focus:outline-none focus:ring-2 transition bg-white hover:cursor-pointer"
+            style={{ 
+              borderColor: 'rgba(0, 49, 83, 0.3)', 
+              color: '#003153',
+              '--tw-ring-color': '#003153',
+              '--tw-ring-opacity': '0.5'
+            } as any}
             value={conta}
             onChange={e => setConta(e.target.value)}
             required
           >
-            <option className="bg-white text-blue-900" value="Admin">Admin</option>
-            <option className="bg-white text-blue-900" value="Vendedor">Vendedor</option>
+            <option className="bg-white" style={{ color: '#003153' }} value="Admin">Admin</option>
+            <option className="bg-white" style={{ color: '#003153' }} value="Vendedor">Vendedor</option>
           </select>
         </div>
         {erro && <div className="text-red-600 text-sm text-center mt-1">{erro}</div>}
         {success && <div className="text-green-600 text-sm text-center mt-1">Usuário editado com sucesso!</div>}
         <div className="flex gap-2 mt-2">
           <button type="button" className="flex-1 py-2 rounded bg-gray-200 hover:bg-gray-300 transition hover:scale-105 hover:cursor-pointer" onClick={onClose} disabled={loading}>Cancelar</button>
-          <button type="submit" className="flex-1 py-2 rounded bg-blue-700 text-white hover:bg-blue-800 transition font-semibold disabled:opacity-60 hover:scale-105 hover:cursor-pointer" disabled={loading}>{loading ? "Salvando..." : "Salvar"}</button>
+          <button 
+            type="submit" 
+            className="flex-1 py-2 rounded text-white transition font-semibold disabled:opacity-60 hover:scale-105 hover:cursor-pointer" 
+            style={{ 
+              backgroundColor: loading ? '#6b7280' : '#003153',
+              ':hover': !loading ? { backgroundColor: '#004a6b' } : {}
+            } as any}
+            disabled={loading}
+          >
+            {loading ? (
+              <div className="flex items-center justify-center gap-2">
+                <InlineLogoSpinner size={16} />
+                Salvando...
+              </div>
+            ) : "Salvar"}
+          </button>
         </div>
       </form>
     </div>
@@ -294,16 +359,22 @@ function NovoUsuarioModal({ open, onClose, onSuccess }: { open: boolean; onClose
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4">
       <form onSubmit={e => { e.preventDefault(); handleSubmit(); }} className="bg-white rounded-xl shadow-2xl p-6 w-full max-w-2xl max-h-[90vh] overflow-y-auto flex flex-col gap-4 animate-fade-in">
-        <h2 className="text-2xl font-bold mb-2 text-blue-900 text-center">Novo Usuário</h2>
+        <h2 className="text-2xl font-bold mb-2 text-center" style={{ color: '#003153' }}>Novo Usuário</h2>
         
         {/* Informações Básicas */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <div className="flex flex-col gap-2">
-            <label className="text-sm font-medium text-blue-900" htmlFor="name">Nome Completo *</label>
+            <label className="text-sm font-medium" style={{ color: '#003153' }} htmlFor="name">Nome Completo *</label>
             <input 
               ref={nomeRef} 
               id="name" 
-              className="border border-blue-300 rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-400 transition bg-white text-blue-900" 
+              className="border rounded px-3 py-2 focus:outline-none focus:ring-2 transition bg-white" 
+              style={{ 
+                borderColor: 'rgba(0, 49, 83, 0.3)', 
+                color: '#003153',
+                '--tw-ring-color': '#003153',
+                '--tw-ring-opacity': '0.5'
+              } as any}
               placeholder="Nome completo" 
               value={name} 
               onChange={e => setName(e.target.value)} 
@@ -313,11 +384,17 @@ function NovoUsuarioModal({ open, onClose, onSuccess }: { open: boolean; onClose
           </div>
           
           <div className="flex flex-col gap-2">
-            <label className="text-sm font-medium text-blue-900" htmlFor="email">Email *</label>
+            <label className="text-sm font-medium" style={{ color: '#003153' }} htmlFor="email">Email *</label>
             <input 
               id="email" 
               type="email" 
-              className="border border-blue-300 rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-400 transition bg-white text-blue-900" 
+              className="border rounded px-3 py-2 focus:outline-none focus:ring-2 transition bg-white" 
+              style={{ 
+                borderColor: 'rgba(0, 49, 83, 0.3)', 
+                color: '#003153',
+                '--tw-ring-color': '#003153',
+                '--tw-ring-opacity': '0.5'
+              } as any}
               placeholder="Email" 
               value={email} 
               onChange={e => setEmail(e.target.value)} 
@@ -329,11 +406,17 @@ function NovoUsuarioModal({ open, onClose, onSuccess }: { open: boolean; onClose
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <div className="flex flex-col gap-2">
-            <label className="text-sm font-medium text-blue-900" htmlFor="password">Senha *</label>
+            <label className="text-sm font-medium" style={{ color: '#003153' }} htmlFor="password">Senha *</label>
             <input 
               id="password" 
               type="password" 
-              className="border border-blue-300 rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-400 transition bg-white text-blue-900" 
+              className="border rounded px-3 py-2 focus:outline-none focus:ring-2 transition bg-white" 
+              style={{ 
+                borderColor: 'rgba(0, 49, 83, 0.3)', 
+                color: '#003153',
+                '--tw-ring-color': '#003153',
+                '--tw-ring-opacity': '0.5'
+              } as any}
               placeholder="Senha (mín. 6 caracteres)" 
               value={password} 
               onChange={e => setPassword(e.target.value)} 
@@ -344,10 +427,16 @@ function NovoUsuarioModal({ open, onClose, onSuccess }: { open: boolean; onClose
           </div>
           
           <div className="flex flex-col gap-2">
-            <label className="text-sm font-medium text-blue-900" htmlFor="role">Perfil *</label>
+            <label className="text-sm font-medium" style={{ color: '#003153' }} htmlFor="role">Perfil *</label>
             <select
               id="role"
-              className="border border-blue-300 rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-400 transition bg-white text-blue-900 hover:cursor-pointer"
+              className="border rounded px-3 py-2 focus:outline-none focus:ring-2 transition bg-white hover:cursor-pointer"
+              style={{ 
+                borderColor: 'rgba(0, 49, 83, 0.3)', 
+                color: '#003153',
+                '--tw-ring-color': '#003153',
+                '--tw-ring-opacity': '0.5'
+              } as any}
               value={role}
               onChange={e => setRole(e.target.value)}
               required
@@ -363,7 +452,7 @@ function NovoUsuarioModal({ open, onClose, onSuccess }: { open: boolean; onClose
 
         {/* Hierarquia Organizacional */}
         <div className="border-t pt-4">
-          <h3 className="text-lg font-semibold text-blue-900 mb-3">Hierarquia Organizacional</h3>
+          <h3 className="text-lg font-semibold mb-3" style={{ color: '#003153' }}>Hierarquia Organizacional</h3>
           
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div className="flex flex-col gap-2">
@@ -461,10 +550,19 @@ function NovoUsuarioModal({ open, onClose, onSuccess }: { open: boolean; onClose
           </button>
           <button 
             type="submit" 
-            className="flex-1 py-2 rounded bg-blue-700 text-white hover:bg-blue-800 transition font-semibold disabled:opacity-60 hover:scale-105 hover:cursor-pointer" 
+            className="flex-1 py-2 rounded text-white transition font-semibold disabled:opacity-60 hover:scale-105 hover:cursor-pointer" 
+            style={{ 
+              backgroundColor: loading ? '#6b7280' : '#003153',
+              ':hover': !loading ? { backgroundColor: '#004a6b' } : {}
+            } as any}
             disabled={loading}
           >
-            {loading ? "Salvando..." : "Salvar"}
+            {loading ? (
+              <div className="flex items-center justify-center gap-2">
+                <InlineLogoSpinner size={16} />
+                Salvando...
+              </div>
+            ) : "Salvar"}
           </button>
         </div>
       </form>
@@ -532,18 +630,23 @@ export default function UsuariosPage() {
     <>
       {/* Título da página */}
       <div className="flex items-center gap-3 mb-8 mt-16 sm:mt-0 max-w-3xl mx-auto px-4">
-        <div className="flex items-center justify-center w-12 h-12 rounded-xl bg-blue-100 text-blue-700 shadow">
+        <div className="flex items-center justify-center w-12 h-12 rounded-xl shadow" style={{ backgroundColor: '#003153', color: '#ffffff' }}>
           <Users className="w-7 h-7" />
         </div>
         <div>
-          <h1 className="text-3xl font-extrabold leading-tight text-blue-900">Usuários</h1>
+          <h1 className="text-3xl font-extrabold leading-tight" style={{ color: '#003153' }}>Usuários</h1>
           <p className="text-gray-600 text-sm mt-1">Gerencie os usuários cadastrados e suas permissões de acesso.</p>
         </div>
       </div>
       {/* Botão de novo usuário abaixo do header global */}
       <div className="max-w-3xl mx-auto mt-4 mb-2 px-4 flex justify-end">
         <Button
-          className="flex items-center gap-2 hover:cursor-pointer bg-blue-100 text-blue-700 hover:bg-blue-200 border-none shadow font-semibold px-5 py-2 rounded-lg transition-transform hover:scale-105"
+          className="flex items-center gap-2 hover:cursor-pointer border-none shadow font-semibold px-5 py-2 rounded-lg transition-transform hover:scale-105"
+          style={{ 
+            backgroundColor: 'rgba(0, 49, 83, 0.1)', 
+            color: '#003153',
+            ':hover': { backgroundColor: 'rgba(0, 49, 83, 0.15)' }
+          } as any}
           onClick={() => setModalOpen(true)}
         >
           <UserPlus className="w-5 h-5" /> Novo Usuário
@@ -575,7 +678,13 @@ export default function UsuariosPage() {
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 w-5 h-5" />
           <input
             type="text"
-            className="pl-10 pr-4 py-2 rounded-lg border border-blue-200 bg-white shadow-sm w-full focus:outline-none focus:ring-2 focus:ring-blue-400 text-base transition text-blue-900"
+            className="pl-10 pr-4 py-2 rounded-lg border border-gray-200 bg-white shadow-sm w-full focus:outline-none focus:ring-2 text-base transition"
+            style={{ 
+              color: '#003153',
+              '--tw-ring-color': '#003153',
+              '--tw-ring-opacity': '0.5',
+              borderColor: 'rgba(0, 49, 83, 0.2)'
+            } as any}
             placeholder="Buscar usuário..."
             value={search}
             onChange={e => setSearch(e.target.value)}
@@ -604,23 +713,28 @@ export default function UsuariosPage() {
           {/* Mobile: Cards */}
           <div className="flex flex-col gap-4 sm:hidden">
             {loading ? (
-              <div className="text-center py-8 text-blue-700">Carregando...</div>
+              <CardLoader text="Carregando usuários..." />
             ) : usuariosFiltrados.length === 0 ? (
-              <div className="text-center py-8 text-blue-700 bg-white rounded-xl shadow border border-gray-100">Nenhum usuário encontrado.</div>
+              <div className="text-center py-8 bg-white rounded-xl shadow border border-gray-100" style={{ color: '#003153' }}>Nenhum usuário encontrado.</div>
             ) : (
               usuariosFiltrados.map((u) => (
                 <div key={u.id} className="rounded-xl shadow-lg border border-gray-100 bg-white p-4 flex flex-col gap-2">
                   <div className="flex items-center gap-2 mb-1">
-                    <span className="font-bold text-blue-800">{u.nome || ''} {u.sobrenome || ''}</span>
+                    <span className="font-bold" style={{ color: '#003153' }}>{u.nome || ''} {u.sobrenome || ''}</span>
                   </div>
                   <div className="flex flex-wrap gap-2 text-xs mb-1">
-                    <span className="bg-blue-50 text-blue-900 rounded px-2 py-1">Email: <b>{u.email}</b></span>
-                    <span className="bg-blue-50 text-blue-900 rounded px-2 py-1">Conta: <b>{u.conta || '-'}</b></span>
+                    <span className="rounded px-2 py-1" style={{ backgroundColor: 'rgba(0, 49, 83, 0.05)', color: '#003153' }}>Email: <b>{u.email}</b></span>
+                    <span className="rounded px-2 py-1" style={{ backgroundColor: 'rgba(0, 49, 83, 0.05)', color: '#003153' }}>Conta: <b>{u.conta || '-'}</b></span>
                   </div>
                   <div className="flex gap-2 mt-2">
                     <button
                       type="button"
-                      className="flex-1 py-2 rounded bg-blue-100 hover:bg-blue-200 text-blue-700 font-semibold transition hover:scale-105 hover:cursor-pointer"
+                      className="flex-1 py-2 rounded font-semibold transition hover:scale-105 hover:cursor-pointer"
+                      style={{ 
+                        backgroundColor: 'rgba(0, 49, 83, 0.1)', 
+                        color: '#003153',
+                        ':hover': { backgroundColor: 'rgba(0, 49, 83, 0.15)' }
+                      } as any}
                       title="Editar usuário"
                       onClick={() => { setUsuarioEditando(u); setEditarModalOpen(true); }}
                     >
@@ -635,7 +749,7 @@ export default function UsuariosPage() {
           <div className="hidden sm:block overflow-x-auto rounded-xl shadow-lg bg-white border border-gray-100">
             <table className="w-full text-sm">
               <thead>
-                <tr className="bg-blue-50 text-blue-900">
+                <tr style={{ backgroundColor: 'rgba(0, 49, 83, 0.05)', color: '#003153' }}>
                   <th className="px-6 py-3 text-left text-xs font-bold uppercase tracking-wider">Nome</th>
                   <th className="px-6 py-3 text-left text-xs font-bold uppercase tracking-wider">Email</th>
                   <th className="px-6 py-3 text-left text-xs font-bold uppercase tracking-wider">Conta</th>
@@ -643,28 +757,39 @@ export default function UsuariosPage() {
                 </tr>
               </thead>
               <tbody>
-                {usuariosFiltrados.map((u) => (
-                  <tr key={u.id} className="border-t border-gray-100 hover:bg-blue-50/40 transition">
-                    <td className="px-6 py-4 whitespace-nowrap font-semibold text-blue-900">{u.nome || ''} {u.sobrenome || ''}</td>
-                    <td className="px-6 py-4 whitespace-nowrap text-blue-900">{u.email}</td>
-                    <td className="px-6 py-4 whitespace-nowrap text-blue-900">{u.conta || '-'}</td>
-                    <td className="px-4 py-4 whitespace-nowrap text-center align-middle">
-                      <button
-                        type="button"
-                        className="p-1 rounded hover:bg-blue-100 transition hover:scale-110 hover:cursor-pointer"
-                        title="Editar usuário"
-                        onClick={() => { setUsuarioEditando(u); setEditarModalOpen(true); }}
-                      >
-                        <Pencil className="w-4 h-4 text-blue-700 mx-auto" />
-                      </button>
+                {loading ? (
+                  <tr>
+                    <td colSpan={4} className="py-8">
+                      <CardLoader text="Carregando lista de usuários..." />
                     </td>
                   </tr>
-                ))}
+                ) : usuariosFiltrados.length === 0 ? (
+                  <tr>
+                    <td colSpan={4} className="text-center py-8" style={{ color: '#003153' }}>Nenhum usuário encontrado.</td>
+                  </tr>
+                ) : (
+                  usuariosFiltrados.map((u) => (
+                    <tr key={u.id} className="border-t border-gray-100 hover:bg-blue-50 transition">
+                      <td className="px-6 py-4 whitespace-nowrap font-semibold" style={{ color: '#003153' }}>{u.nome || ''} {u.sobrenome || ''}</td>
+                      <td className="px-6 py-4 whitespace-nowrap" style={{ color: '#003153' }}>{u.email}</td>
+                      <td className="px-6 py-4 whitespace-nowrap" style={{ color: '#003153' }}>{u.conta || '-'}</td>
+                      <td className="px-4 py-4 whitespace-nowrap text-center align-middle">
+                        <button
+                          type="button"
+                          className="p-1 rounded transition hover:scale-110 hover:cursor-pointer"
+                          style={{ ':hover': { backgroundColor: 'rgba(0, 49, 83, 0.1)' } } as any}
+                          title="Editar usuário"
+                          onClick={() => { setUsuarioEditando(u); setEditarModalOpen(true); }}
+                        >
+                          <Pencil className="w-4 h-4 mx-auto" style={{ color: '#003153' }} />
+                        </button>
+                      </td>
+                    </tr>
+                  ))
+                )}
               </tbody>
             </table>
-            {usuariosFiltrados.length === 0 && (
-              <div className="text-center py-8 text-blue-700">Nenhum usuário encontrado.</div>
-            )}
+
           </div>
         </div>
       </div>

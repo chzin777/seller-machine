@@ -9,7 +9,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Badge } from '@/components/ui/badge';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { UserPlus, Users, Search, Edit, Trash2, Eye, EyeOff } from 'lucide-react';
-import { toast } from 'sonner';
+import { useToast } from '@/components/ui/toast';
 
 interface User {
   id: number;
@@ -51,6 +51,7 @@ interface Filial {
 }
 
 export default function UserManagement() {
+  const { showToast } = useToast();
   const [users, setUsers] = useState<User[]>([]);
   const [empresas, setEmpresas] = useState<Empresa[]>([]);
   const [diretorias, setDiretorias] = useState<Diretoria[]>([]);
@@ -98,7 +99,7 @@ export default function UserManagement() {
       }
     } catch (error) {
       console.error('Erro ao carregar usuários:', error);
-      toast.error('Erro ao carregar usuários');
+      showToast('Erro ao carregar usuários', 'error');
     } finally {
       setLoading(false);
     }
@@ -157,7 +158,7 @@ export default function UserManagement() {
     
     if (!formData.name || !formData.email || !formData.password || !formData.role || 
         !formData.empresaId || !formData.diretoriaId || !formData.area) {
-      toast.error('Preencha todos os campos obrigatórios');
+      showToast('Preencha todos os campos obrigatórios', 'error');
       return;
     }
 
@@ -178,7 +179,7 @@ export default function UserManagement() {
       });
 
       if (response.ok) {
-        toast.success('Usuário cadastrado com sucesso!');
+        showToast('Usuário cadastrado com sucesso!', 'success');
         setFormData({
           name: '',
           email: '',
@@ -194,11 +195,11 @@ export default function UserManagement() {
         loadUsers();
       } else {
         const error = await response.json();
-        toast.error(error.error || 'Erro ao cadastrar usuário');
+        showToast(error.error || 'Erro ao cadastrar usuário', 'error');
       }
     } catch (error) {
       console.error('Erro ao cadastrar usuário:', error);
-      toast.error('Erro ao cadastrar usuário');
+      showToast('Erro ao cadastrar usuário', 'error');
     } finally {
       setLoading(false);
     }
@@ -473,7 +474,15 @@ export default function UserManagement() {
             <CardContent>
               {loading ? (
                 <div className="text-center py-8">
-                  <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto mb-4"></div>
+                  <div className="logo-loading mx-auto mb-4">
+                    <img 
+                      src="/images/logo.png" 
+                      alt="Carregando" 
+                      width={32}
+                      height={32}
+                      className="object-contain"
+                    />
+                  </div>
                   <p className="text-gray-600">Carregando usuários...</p>
                 </div>
               ) : filteredUsers.length === 0 ? (

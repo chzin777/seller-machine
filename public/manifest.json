@@ -11,15 +11,15 @@
   "lang": "pt-BR",
   "icons": [
     {
-      "src": "/images/logo.png",
+      "src": "/images/logo-quadrada-fundo-branco.jpg",
       "sizes": "192x192",
-      "type": "image/png",
+      "type": "image/jpeg",
       "purpose": "any maskable"
     },
     {
-      "src": "/images/logo.png",
+      "src": "/images/logo-quadrada-fundo-branco.jpg",
       "sizes": "512x512", 
-      "type": "image/png",
+      "type": "image/jpeg",
       "purpose": "any maskable"
     }
   ],
@@ -45,7 +45,7 @@
       "url": "/",
       "icons": [
         {
-          "src": "/images/logo.png",
+          "src": "/images/logo-quadrada-fundo-branco.jpg",
           "sizes": "96x96"
         }
       ]
@@ -57,7 +57,7 @@
       "url": "/mapa-vendas",
       "icons": [
         {
-          "src": "/images/logo.png", 
+          "src": "/images/logo-quadrada-fundo-branco.jpg", 
           "sizes": "96x96"
         }
       ]

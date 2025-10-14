@@ -11,8 +11,10 @@ export default function Head() {
       
       {/* PWA */}
       <link rel="manifest" href="/manifest.json" />
-      <link rel="icon" type="image/png" href="/images/logo.png" />
-      <link rel="apple-touch-icon" href="/images/logo.png" />
+      <link rel="icon" type="image/x-icon" href="/favicon.ico" />
+      <link rel="icon" type="image/png" sizes="32x32" href="/images/logo-quadrada-fundo-branco.jpg" />
+      <link rel="icon" type="image/png" sizes="16x16" href="/images/logo-quadrada-fundo-branco.jpg" />
+      <link rel="apple-touch-icon" href="/images/logo-quadrada-fundo-branco.jpg" />
       
       {/* Preconnect para APIs externas */}
       <link rel="preconnect" href="https://api.exemplo.com" />

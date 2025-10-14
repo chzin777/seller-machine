@@ -60,7 +60,7 @@ function FeatureCard({ title, description, icon: Icon, color, bgColor, status, m
             {currentStatus.label}
           </Badge>
         </div>
-        <CardTitle className="text-base sm:text-lg font-semibold group-hover:text-blue-600 transition-colors">
+        <CardTitle className="text-base sm:text-lg font-semibold transition-colors" style={{ color: '#003153' }} onMouseEnter={(e) => e.currentTarget.style.color = '#002d4a'} onMouseLeave={(e) => e.currentTarget.style.color = '#003153'}>
           {title}
         </CardTitle>
       </CardHeader>
@@ -80,7 +80,7 @@ function FeatureCard({ title, description, icon: Icon, color, bgColor, status, m
 
         <div className="flex items-center justify-between">
           <span className="text-xs text-gray-500">Clique para explorar</span>
-          <ArrowRight className="h-4 w-4 text-gray-400 group-hover:text-blue-500 transition-colors" />
+          <ArrowRight className="h-4 w-4 text-gray-400 transition-colors" style={{ color: 'rgb(156 163 175)' }} />
         </div>
       </CardContent>
     </Card>
@@ -232,7 +232,7 @@ export default function AIOverviewDashboard({ onNavigate }: AIOverviewDashboardP
             title="Predição de Vendas"
             description="Previsões precisas de vendas futuras com intervalos de confiança."
             icon={TrendingUp}
-            color="text-blue-600"
+            color="#003153"
             bgColor="bg-blue-100"
             status="active"
             metrics={{
@@ -295,7 +295,7 @@ export default function AIOverviewDashboard({ onNavigate }: AIOverviewDashboardP
               className="h-auto p-4 flex flex-col items-start gap-2"
               onClick={() => onNavigate('notifications')}
             >
-              <Bell className="h-5 w-5 text-blue-500" />
+              <Bell className="h-5 w-5" style={{ color: '#003153' }} />
               <div className="text-left">
                 <div className="font-medium">Central de Alertas</div>
                 <div className="text-xs text-gray-500">Ver notificações</div>
@@ -333,7 +333,7 @@ export default function AIOverviewDashboard({ onNavigate }: AIOverviewDashboardP
               </div>
               
               <div className="flex items-center gap-3 p-3 bg-blue-50 rounded-lg">
-                <BarChart3 className="h-6 w-6 text-blue-600" />
+                <BarChart3 className="h-6 w-6" style={{ color: '#003153' }} />
                 <div>
                   <div className="font-medium text-blue-900">Vendas</div>
                   <div className="text-sm text-blue-700">{dashboardData.resumo.salesPrediction.status}</div>

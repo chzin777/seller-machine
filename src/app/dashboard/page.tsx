@@ -26,7 +26,15 @@ export default function DashboardPage() {
   if (isLoading) {
     return (
       <div className="flex items-center justify-center min-h-screen">
-        <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-blue-700"></div>
+        <div className="logo-loading">
+          <img 
+            src="/images/logo.png" 
+            alt="Carregando" 
+            width={128}
+            height={128}
+            className="object-contain"
+          />
+        </div>
       </div>
     );
   }
@@ -34,20 +42,20 @@ export default function DashboardPage() {
   return (
     <div className="p-6">
       <div className="mb-8">
-        <h1 className="text-3xl font-bold text-gray-900 mb-2">Dashboard</h1>
-        <p className="text-gray-600">Visão geral dos seus indicadores de vendas</p>
+        <h1 className="text-3xl font-bold mb-2" style={{ color: '#003153' }}>Dashboard</h1>
+        <p style={{ color: 'rgba(0, 49, 83, 0.7)' }}>Visão geral dos seus indicadores de vendas</p>
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
         {/* Card de Receita Total */}
-        <div className="bg-white rounded-lg shadow-md p-6 border-l-4 border-blue-500">
+        <div className="bg-white rounded-lg shadow-md p-6" style={{ borderLeft: '4px solid #003153' }}>
           <div className="flex items-center">
             <div className="flex-1">
-              <p className="text-sm font-medium text-gray-600">Receita Total</p>
-              <p className="text-2xl font-bold text-gray-900">R$ 0,00</p>
+              <p className="text-sm font-medium" style={{ color: 'rgba(0, 49, 83, 0.7)' }}>Receita Total</p>
+              <p className="text-2xl font-bold" style={{ color: '#003153' }}>R$ 0,00</p>
             </div>
-            <div className="p-3 bg-blue-100 rounded-full">
-              <svg className="w-6 h-6 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <div className="p-3 rounded-full" style={{ backgroundColor: 'rgba(0, 49, 83, 0.1)' }}>
+              <svg className="w-6 h-6" style={{ color: '#003153' }} fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1" />
               </svg>
             </div>
@@ -58,8 +66,8 @@ export default function DashboardPage() {
         <div className="bg-white rounded-lg shadow-md p-6 border-l-4 border-green-500">
           <div className="flex items-center">
             <div className="flex-1">
-              <p className="text-sm font-medium text-gray-600">Total de Vendas</p>
-              <p className="text-2xl font-bold text-gray-900">0</p>
+              <p className="text-sm font-medium" style={{ color: 'rgba(0, 49, 83, 0.7)' }}>Total de Vendas</p>
+              <p className="text-2xl font-bold" style={{ color: '#003153' }}>0</p>
             </div>
             <div className="p-3 bg-green-100 rounded-full">
               <svg className="w-6 h-6 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -73,8 +81,8 @@ export default function DashboardPage() {
         <div className="bg-white rounded-lg shadow-md p-6 border-l-4 border-yellow-500">
           <div className="flex items-center">
             <div className="flex-1">
-              <p className="text-sm font-medium text-gray-600">Clientes Ativos</p>
-              <p className="text-2xl font-bold text-gray-900">0</p>
+              <p className="text-sm font-medium" style={{ color: 'rgba(0, 49, 83, 0.7)' }}>Clientes Ativos</p>
+              <p className="text-2xl font-bold" style={{ color: '#003153' }}>0</p>
             </div>
             <div className="p-3 bg-yellow-100 rounded-full">
               <svg className="w-6 h-6 text-yellow-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -88,8 +96,8 @@ export default function DashboardPage() {
         <div className="bg-white rounded-lg shadow-md p-6 border-l-4 border-purple-500">
           <div className="flex items-center">
             <div className="flex-1">
-              <p className="text-sm font-medium text-gray-600">Meta do Mês</p>
-              <p className="text-2xl font-bold text-gray-900">0%</p>
+              <p className="text-sm font-medium" style={{ color: 'rgba(0, 49, 83, 0.7)' }}>Meta do Mês</p>
+              <p className="text-2xl font-bold" style={{ color: '#003153' }}>0%</p>
             </div>
             <div className="p-3 bg-purple-100 rounded-full">
               <svg className="w-6 h-6 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -103,14 +111,14 @@ export default function DashboardPage() {
       {/* Seção de Gráficos */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         <div className="bg-white rounded-lg shadow-md p-6">
-          <h3 className="text-lg font-semibold text-gray-900 mb-4">Vendas por Mês</h3>
+          <h3 className="text-lg font-semibold mb-4" style={{ color: '#003153' }}>Vendas por Mês</h3>
           <div className="h-64 flex items-center justify-center text-gray-500">
             <p>Gráfico de vendas será carregado aqui</p>
           </div>
         </div>
 
         <div className="bg-white rounded-lg shadow-md p-6">
-          <h3 className="text-lg font-semibold text-gray-900 mb-4">Top Produtos</h3>
+          <h3 className="text-lg font-semibold mb-4" style={{ color: '#003153' }}>Top Produtos</h3>
           <div className="h-64 flex items-center justify-center text-gray-500">
             <p>Lista de produtos mais vendidos será carregada aqui</p>
           </div>

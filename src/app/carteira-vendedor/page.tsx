@@ -211,11 +211,11 @@ export default function CarteiraVendedorPage() {
       <div className="mb-8">
         <div className="flex items-center justify-between mb-4">
           <div>
-            <h1 className="text-3xl font-bold text-gray-900 flex items-center gap-3">
+            <h1 className="text-3xl font-bold flex items-center gap-3" style={{ color: '#003153' }}>
               {viewMode === 'vendedores' ? (
-                <Users className="w-8 h-8 text-blue-600" />
+                <Users className="w-8 h-8" style={{ color: '#003153' }} />
               ) : (
-                <UserCheck className="w-8 h-8 text-blue-600" />
+                <UserCheck className="w-8 h-8" style={{ color: '#003153' }} />
               )}
               {viewMode === 'vendedores' ? 'Carteira de Vendedores' : 'Clientes da Carteira'}
             </h1>
@@ -234,7 +234,11 @@ export default function CarteiraVendedorPage() {
                 <select
                     value={periodoMeses}
                     onChange={(e) => setPeriodoMeses(parseInt(e.target.value))}
-                    className="px-3 py-1 border border-gray-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    className="px-3 py-1 border border-gray-300 rounded-md text-sm focus:outline-none focus:ring-2"
+                    style={{ 
+                      '--tw-ring-color': '#003153',
+                      '--tw-ring-opacity': '0.5'
+                    } as any}
                   >
                     <option value={3}>3 meses</option>
                     <option value={6}>6 meses</option>
@@ -313,7 +317,11 @@ export default function CarteiraVendedorPage() {
                 <select
                   value={filters.filialId || ''}
                   onChange={(e) => handleFilterChange('filialId', e.target.value ? Number(e.target.value) : undefined)}
-                  className="w-full h-10 px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  className="w-full h-10 px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:border-transparent"
+                  style={{ 
+                    '--tw-ring-color': '#003153',
+                    '--tw-ring-opacity': '0.5'
+                  } as any}
                   disabled={loadingFiliais}
                 >
                   <option value="">Todas as filiais</option>
@@ -333,7 +341,11 @@ export default function CarteiraVendedorPage() {
                 <select
                   value={filters.status}
                   onChange={(e) => handleFilterChange('status', e.target.value as FilterState['status'])}
-                  className="w-full h-10 px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  className="w-full h-10 px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:border-transparent"
+                  style={{ 
+                    '--tw-ring-color': '#003153',
+                    '--tw-ring-opacity': '0.5'
+                  } as any}
                 >
                   <option value="todos">Todos</option>
                   <option value="ativos">Ativos</option>
@@ -349,7 +361,11 @@ export default function CarteiraVendedorPage() {
                 <select
                   value={filters.ordenacao}
                   onChange={(e) => handleFilterChange('ordenacao', e.target.value as FilterState['ordenacao'])}
-                  className="w-full h-10 px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  className="w-full h-10 px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:border-transparent"
+                  style={{ 
+                    '--tw-ring-color': '#003153',
+                    '--tw-ring-opacity': '0.5'
+                  } as any}
                 >
                   <option value="nome">Nome</option>
                   <option value="receita">Receita</option>
@@ -395,7 +411,7 @@ export default function CarteiraVendedorPage() {
                 <div className="text-sm text-gray-600">
                   {vendedoresFiltrados.length} vendedor(es) encontrado(s)
                   {filialSelecionada && (
-                    <span className="ml-2 px-2 py-1 bg-blue-100 text-blue-800 rounded-full text-xs">
+                    <span className="ml-2 px-2 py-1 rounded-full text-xs" style={{ backgroundColor: 'rgba(0, 49, 83, 0.1)', color: '#003153' }}>
                       <Building2 className="w-3 h-3 inline mr-1" />
                       {filialSelecionada.nome}
                     </span>
@@ -464,8 +480,8 @@ export default function CarteiraVendedorPage() {
               {/* Lista de Clientes */}
               <div>
                 <div className="flex items-center justify-between mb-6">
-                  <h2 className="text-2xl font-bold text-gray-900 flex items-center gap-2">
-                    <UserCheck className="w-6 h-6 text-blue-600" />
+                  <h2 className="text-2xl font-bold flex items-center gap-2" style={{ color: '#003153' }}>
+                    <UserCheck className="w-6 h-6" style={{ color: '#003153' }} />
                     Clientes da Carteira
                   </h2>
                   <div className="flex items-center gap-4">
@@ -495,11 +511,16 @@ export default function CarteiraVendedorPage() {
       {viewMode === 'clientes' && (
         <div className="fixed bottom-6 right-6 z-50 group">
           {/* Efeito de pulso de fundo */}
-          <div className="absolute inset-0 bg-blue-600 rounded-full opacity-30 animate-ping"></div>
+          <div className="absolute inset-0 rounded-full opacity-30 animate-ping" style={{ backgroundColor: '#003153' }}></div>
           
           <Button
             onClick={handleBackToVendedores}
-            className="relative bg-blue-600 hover:bg-blue-700 text-white shadow-lg hover:shadow-xl transition-all duration-300 transform hover:scale-105 flex items-center gap-2 px-4 py-3 rounded-full border border-blue-500 backdrop-blur-sm"
+            className="relative text-white shadow-lg hover:shadow-xl transition-all duration-300 transform hover:scale-105 flex items-center gap-2 px-4 py-3 rounded-full backdrop-blur-sm"
+            style={{ 
+              backgroundColor: '#003153',
+              borderColor: '#003153',
+              ':hover': { backgroundColor: '#004a6b' }
+            } as any}
             size="lg"
           >
             <Users className="w-5 h-5 transition-transform duration-200 group-hover:-rotate-12" />

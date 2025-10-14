@@ -103,7 +103,7 @@ function formatPercentage(value: number | undefined | null): string {
 function getRankingColor(posicao: number, total: number): string {
   const percentil = (posicao / total) * 100;
   if (percentil <= 20) return 'text-green-600 bg-green-50';
-  if (percentil <= 50) return 'text-blue-600 bg-blue-50';
+  if (percentil <= 50) return 'bg-opacity-5' + ' ' + 'text-[#003153]' + ' ' + 'bg-[#003153]';
   if (percentil <= 80) return 'text-yellow-600 bg-yellow-50';
   return 'text-red-600 bg-red-50';
 }
@@ -145,12 +145,12 @@ export default function CarteiraVendedorCard({
 
   return (
     <Card 
-      className="hover:shadow-lg hover:scale-105 transition-all duration-200 cursor-pointer border-l-4 border-l-blue-500 relative group"
+      className="hover:shadow-lg hover:scale-105 transition-all duration-200 cursor-pointer border-l-4 border-l-[#003153] relative group"
       onClick={onClick}
     >
       {/* Indicador visual de clicável */}
       <div className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity duration-200">
-        <div className="w-6 h-6 rounded-full bg-blue-500 flex items-center justify-center">
+        <div className="w-6 h-6 rounded-full flex items-center justify-center" style={{ backgroundColor: '#003153' }}>
           <Users className="w-3 h-3 text-white" />
         </div>
       </div>
@@ -158,11 +158,11 @@ export default function CarteiraVendedorCard({
       <CardHeader className="pb-3">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-full bg-gradient-to-br from-blue-500 to-indigo-600 flex items-center justify-center">
+            <div className="w-10 h-10 rounded-full flex items-center justify-center" style={{ background: 'linear-gradient(to bottom right, #003153, #004a7a)' }}>
               <User className="w-5 h-5 text-white" />
             </div>
             <div>
-              <CardTitle className="text-lg font-bold text-gray-900 group-hover:text-blue-600 transition-colors">
+              <CardTitle className="text-lg font-bold text-gray-900 transition-colors group-hover:text-[#003153]">
                 {vendedor.nome}
               </CardTitle>
               <p className="text-sm text-gray-500">
@@ -202,7 +202,7 @@ export default function CarteiraVendedorCard({
           {/* Cobertura */}
           <div className="bg-gray-50 rounded-lg p-3">
             <div className="flex items-center gap-2 mb-1">
-              <Target className="w-4 h-4 text-blue-600" />
+              <Target className="w-4 h-4" style={{ color: '#003153' }} />
               <span className="text-xs font-medium text-gray-600">Cobertura</span>
             </div>
             <p className={`text-lg font-bold ${getCoberturaColor(coberturaAtual?.percentualCobertura || 0)}`}>
@@ -213,10 +213,10 @@ export default function CarteiraVendedorCard({
         
         {/* Clientes atendidos */}
         {coberturaAtual && (
-          <div className="bg-blue-50 rounded-lg p-3">
+          <div className="rounded-lg p-3" style={{ backgroundColor: '#003153', opacity: 0.05 }}>
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-2">
-                <Users className="w-4 h-4 text-blue-600" />
+                <Users className="w-4 h-4" style={{ color: '#003153' }} />
                 <span className="text-sm font-medium text-gray-700">Clientes</span>
               </div>
               <div className="text-right">
@@ -244,8 +244,8 @@ export default function CarteiraVendedorCard({
               </div>
               <div className="w-full bg-gray-200 rounded-full h-1.5">
                 <div 
-                  className="bg-blue-500 h-1.5 rounded-full" 
-                  style={{ width: `${mixAtual?.percentualMaquinas || 0}%` }}
+                  className="h-1.5 rounded-full" 
+                  style={{ backgroundColor: '#003153', width: `${mixAtual?.percentualMaquinas || 0}%` }}
                 />
               </div>
               
@@ -295,7 +295,7 @@ export default function CarteiraVendedorCard({
           </div>
           
           {/* Indicador de ação */}
-          <div className="text-xs text-blue-500 font-medium opacity-0 group-hover:opacity-100 transition-opacity duration-200 flex items-center gap-1">
+          <div className="text-xs font-medium opacity-0 group-hover:opacity-100 transition-opacity duration-200 flex items-center gap-1" style={{ color: '#003153' }}>
             <Users className="w-3 h-3" />
             Ver Clientes
           </div>

@@ -100,7 +100,7 @@ function MetricCard({
   subtitle, 
   icon, 
   trend, 
-  color = 'blue',
+  color = 'custom-blue',
   onClick 
 }: {
   title: string;
@@ -120,7 +120,8 @@ function MetricCard({
   };
 
   const colorClasses = {
-    blue: 'border-blue-200 bg-blue-50',
+    'custom-blue': 'border-opacity-20 bg-opacity-5',
+    blue: 'border-opacity-20 bg-opacity-5',
     green: 'border-green-200 bg-green-50',
     red: 'border-red-200 bg-red-50',
     yellow: 'border-yellow-200 bg-yellow-50',
@@ -140,7 +141,7 @@ function MetricCard({
             </div>
             <div>
               <p className="text-sm font-medium text-gray-600">{title}</p>
-              <p className="text-2xl font-bold text-gray-900">{value}</p>
+              <p className="text-2xl font-bold" style={{ color: '#003153' }}>{value}</p>
               {subtitle && (
                 <p className="text-xs text-gray-500">{subtitle}</p>
               )}
@@ -164,7 +165,7 @@ function AIAlertsPanel({ alerts }: { alerts: AIAlert[] }) {
       case 'error': return <XCircle className="h-4 w-4 text-red-600" />;
       case 'warning': return <AlertTriangle className="h-4 w-4 text-yellow-600" />;
       case 'success': return <CheckCircle className="h-4 w-4 text-green-600" />;
-      default: return <Info className="h-4 w-4 text-blue-600" />;
+      default: return <Info className="h-4 w-4" style={{ color: '#003153' }} />;
     }
   };
 
@@ -173,7 +174,7 @@ function AIAlertsPanel({ alerts }: { alerts: AIAlert[] }) {
       case 'error': return 'border-l-red-500 bg-red-50';
       case 'warning': return 'border-l-yellow-500 bg-yellow-50';
       case 'success': return 'border-l-green-500 bg-green-50';
-      default: return 'border-l-blue-500 bg-blue-50';
+      default: return 'border-l-[#003153] bg-[#003153] bg-opacity-5';
     }
   };
 
@@ -209,7 +210,7 @@ function AIAlertsPanel({ alerts }: { alerts: AIAlert[] }) {
                   <div className="flex items-start gap-2">
                     {getAlertIcon(alert.type)}
                     <div className="flex-1">
-                      <h4 className="font-medium text-sm text-gray-900">
+                      <h4 className="font-medium text-sm" style={{ color: '#003153' }}>
                         {alert.title}
                       </h4>
                       <p className="text-xs text-gray-600 mt-1">
@@ -472,7 +473,7 @@ export default function AIConsolidatedDashboard() {
       title: 'Retreinar Churn',
       description: 'Atualizar modelo de predição',
       icon: <Brain className="h-4 w-4" />,
-      color: 'bg-blue-100',
+      color: 'bg-[#003153] bg-opacity-10',
       action: () => console.log('Retreinar modelo de churn'),
       enabled: true
     },
@@ -532,7 +533,7 @@ export default function AIConsolidatedDashboard() {
         <CardContent className="p-6">
           <div className="text-center">
             <AlertCircle className="h-12 w-12 text-red-500 mx-auto mb-4" />
-            <h3 className="text-lg font-semibold text-red-700 mb-2">Erro ao Carregar Dashboard</h3>
+            <h3 className="text-lg font-semibold mb-2" style={{ color: '#dc2626' }}>Erro ao Carregar Dashboard</h3>
             <p className="text-red-600 mb-4">{error}</p>
             <Button onClick={() => window.location.reload()} variant="outline">
               <RefreshCw className="h-4 w-4 mr-2" />
@@ -549,8 +550,8 @@ export default function AIConsolidatedDashboard() {
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-3xl font-bold text-gray-900">Dashboard de IA</h1>
-          <p className="text-gray-600 mt-1">
+          <h1 className="text-3xl font-bold" style={{ color: '#003153' }}>Dashboard de IA</h1>
+          <p className="mt-1" style={{ color: 'rgba(0, 49, 83, 0.7)' }}>
             Visão consolidada de todas as análises de inteligência artificial
           </p>
         </div>
@@ -572,9 +573,9 @@ export default function AIConsolidatedDashboard() {
           title="Clientes Analisados"
           value={metrics.churnPrediction.totalClients.toLocaleString('pt-BR')}
           subtitle={`${metrics.churnPrediction.highRisk} em alto risco`}
-          icon={<Users className="h-5 w-5 text-blue-600" />}
+          icon={<Users className="h-5 w-5" style={{ color: '#003153' }} />}
           trend={metrics.churnPrediction.trend}
-          color="blue"
+          color="custom-blue"
         />
         
         <MetricCard
@@ -671,7 +672,7 @@ export default function AIConsolidatedDashboard() {
             <Card>
               <CardHeader>
                 <CardTitle className="flex items-center gap-2">
-                  <Users className="h-5 w-5 text-blue-600" />
+                  <Users className="h-5 w-5" style={{ color: '#003153' }} />
                   Segmentação RFV
                 </CardTitle>
               </CardHeader>
@@ -691,7 +692,7 @@ export default function AIConsolidatedDashboard() {
                   </div>
                   <div className="flex justify-between">
                     <span className="text-sm text-gray-600">Novos:</span>
-                    <span className="font-semibold text-blue-600">
+                    <span className="font-semibold" style={{ color: '#003153' }}>
                       {metrics.customerInsights.newCustomers}
                     </span>
                   </div>

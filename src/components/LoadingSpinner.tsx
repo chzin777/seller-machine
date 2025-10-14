@@ -20,70 +20,32 @@ export default function LoadingSpinner({
     full: 'h-screen'
   };
 
-  const hourglassSizes = {
-    small: 'w-8 h-8',
-    medium: 'w-12 h-12',
-    large: 'w-16 h-16',
-    full: 'w-20 h-20'
+  const logoSizes = {
+    small: { width: 50, height: 50 },
+    medium: { width: 80, height: 80 },
+    large: { width: 120, height: 120 },
+    full: { width: 150, height: 150 }
   };
 
   return (
     <div className={`flex flex-col items-center justify-center ${sizeClasses[size]} w-full`}>
-      {/* Ampulheta animada */}
-      <div className="relative">
-        <div className={`${hourglassSizes[size]} animate-spin`} style={{ animationDuration: '2s' }}>
-          {/* SVG da ampulheta */}
-          <svg 
-            viewBox="0 0 24 24" 
-            fill="none" 
-            xmlns="http://www.w3.org/2000/svg"
-            className="w-full h-full"
-          >
-            {/* Gradiente azul do site */}
-            <defs>
-              <linearGradient id="hourglassGradient" x1="0%" y1="0%" x2="100%" y2="100%">
-                <stop offset="0%" stopColor="#3B82F6" />
-                <stop offset="50%" stopColor="#2563EB" />
-                <stop offset="100%" stopColor="#1D4ED8" />
-              </linearGradient>
-            </defs>
-            
-            {/* Contorno da ampulheta */}
-            <path
-              d="M6 2v6h.01L6 8.01 10 12l-4 4 .01.01H6V22h12v-5.99h-.01L18 16l-4-4 4-3.99-.01-.01H18V2H6z"
-              stroke="url(#hourglassGradient)"
-              strokeWidth="2"
-              fill="none"
-              strokeLinecap="round"
-              strokeLinejoin="round"
-            />
-            
-            {/* Areia superior */}
-            <path
-              d="M6 2h12v6l-6 4V2z"
-              fill="url(#hourglassGradient)"
-              opacity="0.4"
-            />
-            
-            {/* Areia inferior */}
-            <path
-              d="M6 22h12v-6l-6-4v10z"
-              fill="url(#hourglassGradient)"
-              opacity="0.7"
-            />
-          </svg>
-        </div>
+      {/* Logo girando com pulse de opacidade */}
+      <div className="logo-loading">
+        <img 
+          src="/images/logo.png" 
+          alt="Logo Única" 
+          width={logoSizes[size].width}
+          height={logoSizes[size].height}
+          className="object-contain"
+        />
       </div>
 
       {/* Texto de loading */}
       {showText && (
         <div className="mt-6 text-center">
-          <p className="text-lg font-medium text-blue-800 dark:text-blue-300 animate-pulse">
+          <p className="text-lg font-medium" style={{ color: '#003153' }}>
             {text}
           </p>
-          <div className="flex justify-center mt-2">
-            <div className="w-24 h-1 bg-gradient-to-r from-blue-500 to-blue-700 rounded-full animate-pulse"></div>
-          </div>
         </div>
       )}
     </div>
@@ -106,6 +68,21 @@ export function CardLoader({ text = 'Carregando...' }: { text?: string }) {
   return (
     <div className="flex items-center justify-center p-8 bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700">
       <LoadingSpinner size="small" text={text} showText={false} />
+    </div>
+  );
+}
+
+// Componente inline para substituir spinners básicos
+export function InlineLogoSpinner({ size = 32 }: { size?: number }) {
+  return (
+    <div className="logo-loading inline-block">
+      <img 
+        src="/images/logo.png" 
+        alt="Carregando" 
+        width={size}
+        height={size}
+        className="object-contain"
+      />
     </div>
   );
 }

@@ -368,7 +368,7 @@ export default function CadastroUsuarioPage() {
           </Button>
           <div className="flex items-center gap-3">
             <UserPlus className="h-8 w-8 text-blue-600" />
-            <h1 className="text-3xl font-bold text-gray-900">Cadastro de Usuário</h1>
+            <h1 className="text-3xl font-bold" style={{ color: '#003153' }}>Cadastro de Usuário</h1>
           </div>
         </div>
 
@@ -377,7 +377,7 @@ export default function CadastroUsuarioPage() {
           <form onSubmit={handleSubmit} className="space-y-6">
             {/* Dados Pessoais */}
             <div className="border-b border-gray-200 pb-6">
-              <h2 className="text-xl font-semibold text-gray-900 mb-4">Dados Pessoais</h2>
+              <h2 className="text-xl font-semibold mb-4" style={{ color: '#003153' }}>Dados Pessoais</h2>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2">
@@ -446,7 +446,7 @@ export default function CadastroUsuarioPage() {
 
             {/* Senha */}
             <div className="border-b border-gray-200 pb-6">
-              <h2 className="text-xl font-semibold text-gray-900 mb-4">Credenciais de Acesso</h2>
+              <h2 className="text-xl font-semibold mb-4" style={{ color: '#003153' }}>Credenciais de Acesso</h2>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2">
@@ -490,7 +490,7 @@ export default function CadastroUsuarioPage() {
 
             {/* Hierarquia Organizacional */}
             <div className="border-b border-gray-200 pb-6">
-              <h2 className="text-xl font-semibold text-gray-900 mb-4">Hierarquia Organizacional</h2>
+              <h2 className="text-xl font-semibold mb-4" style={{ color: '#003153' }}>Hierarquia Organizacional</h2>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2">
@@ -588,7 +588,7 @@ export default function CadastroUsuarioPage() {
 
             {/* Perfil de Acesso */}
             <div className="pb-6">
-              <h2 className="text-xl font-semibold text-gray-900 mb-4">Perfil de Acesso</h2>
+              <h2 className="text-xl font-semibold mb-4" style={{ color: '#003153' }}>Perfil de Acesso</h2>
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">
                   Nível de Acesso *

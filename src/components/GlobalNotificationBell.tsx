@@ -48,7 +48,7 @@ export default function GlobalNotificationBell() {
       {/* Bell Icon */}
       <button
         onClick={() => setIsOpen(!isOpen)}
-        className="relative p-2 text-gray-600 hover:text-blue-600 transition-colors rounded-lg hover:bg-blue-50"
+        className="relative p-2 text-gray-600 transition-colors rounded-lg hover:text-[#003153] hover:bg-[#003153] hover:bg-opacity-5"
       >
         <Bell className="w-5 h-5" />
         {unreadCount > 0 && (
@@ -107,9 +107,11 @@ export default function GlobalNotificationBell() {
                 {recentNotifications.map(notification => (
                   <div
                     key={notification.id}
-                    className={`p-3 sm:p-4 hover:bg-gray-50 transition-colors cursor-pointer ${
-                      !notification.read ? 'bg-blue-50/50 border-l-2 border-l-blue-500' : ''
-                    }`}
+                    className="p-3 sm:p-4 hover:bg-gray-50 transition-colors cursor-pointer"
+                    style={!notification.read ? { 
+                      backgroundColor: 'rgba(0, 49, 83, 0.05)',
+                      borderLeft: '2px solid #003153'
+                    } : {}}
                     onClick={() => {
                       if (!notification.read) markAsRead(notification.id);
                       if (notification.actionFn) notification.actionFn();
@@ -132,7 +134,7 @@ export default function GlobalNotificationBell() {
                               {formatTime(notification.timestamp)}
                             </span>
                             {!notification.read && (
-                              <div className="w-2 h-2 bg-blue-500 rounded-full" />
+                              <div className="w-2 h-2 rounded-full" style={{ backgroundColor: '#003153' }} />
                             )}
                           </div>
                         </div>
@@ -186,7 +188,8 @@ export default function GlobalNotificationBell() {
                   setIsOpen(false);
                   window.location.href = '/ia';
                 }}
-                className="text-xs text-blue-600 hover:text-blue-700 h-7 w-full sm:w-auto justify-center sm:justify-start"
+                className="text-xs h-7 w-full sm:w-auto justify-center sm:justify-start hover:text-[#002d4a]" 
+                style={{ color: '#003153' }}
               >
                 <Eye className="w-3 h-3 mr-1" />
                 Ver todas

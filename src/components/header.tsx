@@ -53,10 +53,15 @@ export default function Header({ userName }: HeaderProps) {
           className="flex items-center gap-2 focus:outline-none group hover:cursor-pointer"
           onClick={() => setMenuOpen((v) => !v)}
         >
-          <span className="text-sm text-gray-500 group-hover:text-blue-700 transition-colors hover:cursor-pointer">
+          <span className="text-sm text-gray-500 transition-colors hover:cursor-pointer group-hover:text-[#003153]">
             {isClient && userName ? userName : 'Usuário'}
           </span>
-          <div className="w-8 h-8 rounded-full bg-blue-100 dark:bg-blue-900 flex items-center justify-center text-blue-700 dark:text-blue-200 font-bold border border-blue-200 dark:border-blue-800 hover:cursor-pointer">
+          <div className="w-8 h-8 rounded-full flex items-center justify-center font-bold border hover:cursor-pointer" 
+               style={{ 
+                 backgroundColor: '#003153', 
+                 color: 'white',
+                 borderColor: '#003153'
+               }}>
             {initials}
           </div>
         </button>
@@ -64,16 +69,16 @@ export default function Header({ userName }: HeaderProps) {
           <div ref={menuRef} className="absolute right-0 top-12 mt-2 w-72 max-w-[90vw] bg-white dark:bg-gray-900 rounded-lg shadow-lg border border-gray-200 dark:border-gray-800 z-50 animate-fade-in">
             <ul className="py-2">
               <li>
-                <a href="/configuracoes" className="block px-4 py-2 text-sm text-gray-700 dark:text-gray-200 hover:bg-blue-50 dark:hover:bg-blue-900/40 transition-colors hover:cursor-pointer">Configurações</a>
+                <a href="/configuracoes" className="block px-4 py-2 text-sm text-gray-700 dark:text-gray-200 transition-colors hover:cursor-pointer hover:bg-[#003153] hover:bg-opacity-5">Configurações</a>
               </li>
               <li>
-                <a href="/ajuda" className="block px-4 py-2 text-sm text-gray-700 dark:text-gray-200 hover:bg-blue-50 dark:hover:bg-blue-900/40 transition-colors hover:cursor-pointer">Ajuda</a>
+                <a href="/ajuda" className="block px-4 py-2 text-sm text-gray-700 dark:text-gray-200 transition-colors hover:cursor-pointer hover:bg-[#003153] hover:bg-opacity-5">Ajuda</a>
               </li>
               <li>
-                <a href="/feedback" className="block px-4 py-2 text-sm text-gray-700 dark:text-gray-200 hover:bg-blue-50 dark:hover:bg-blue-900/40 transition-colors hover:cursor-pointer">Feedback</a>
+                <a href="/feedback" className="block px-4 py-2 text-sm text-gray-700 dark:text-gray-200 transition-colors hover:cursor-pointer hover:bg-[#003153] hover:bg-opacity-5">Feedback</a>
               </li>
               <li>
-                <button onClick={handleLogout} className="w-full text-left block px-4 py-2 text-sm text-gray-700 dark:text-gray-200 hover:bg-blue-50 dark:hover:bg-blue-900/40 transition-colors hover:cursor-pointer">Sair</button>
+                <button onClick={handleLogout} className="w-full text-left block px-4 py-2 text-sm text-gray-700 dark:text-gray-200 transition-colors hover:cursor-pointer hover:bg-[#003153] hover:bg-opacity-5">Sair</button>
               </li>
             </ul>
           </div>

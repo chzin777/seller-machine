@@ -12,7 +12,7 @@ import { GlobalNotificationProvider } from "../providers/GlobalNotificationProvi
 import GlobalToastContainer from "../components/GlobalToastContainer";
 import GlobalNotificationBell from "../components/GlobalNotificationBell";
 import { LayoutDashboard, Link2, Users, Menu, UserCog, X, Map, Settings, Brain, Briefcase } from "lucide-react";
-import { useState, useRef, useEffect } from "react";
+import { useState, useRef, useEffect, useCallback } from "react";
 import "./globals.css";
 import { useRouter, usePathname } from "next/navigation";
 
@@ -92,6 +92,10 @@ function LayoutContent({ children }: { children: React.ReactNode }) {
 	}, []);
 	const [sidebarOpen, setSidebarOpen] = useState(false);
 	const sidebarRef = useRef<HTMLDivElement>(null);
+	
+	const toggleSidebar = useCallback(() => {
+		setSidebarOpen(prev => !prev);
+	}, []);
 	const pathname = usePathname();
 	const [userName, setUserName] = useState<string | undefined>(undefined);
 	const [userConta, setUserConta] = useState<string | undefined>(undefined);
@@ -113,25 +117,35 @@ function LayoutContent({ children }: { children: React.ReactNode }) {
 					   {!isLoginPage && (
 						   <aside
 							   ref={sidebarRef}
-							   className={`hidden sm:flex fixed left-0 top-0 h-screen transition-all duration-300 ${sidebarOpen ? "w-64" : "w-20"} bg-white border-r-4 border-blue-700 flex-col py-6 px-2 shadow-xl z-40`}
+							   className={`hidden sm:flex fixed left-0 top-0 h-screen ${sidebarOpen ? "w-64" : "w-20"} bg-white flex-col py-6 px-2 shadow-xl z-40 sidebar-transition`}
 							   aria-label="Menu lateral"
 							   style={{
 								   boxShadow: sidebarOpen ? "4px 0 32px 0 rgba(0,0,0,0.13)" : undefined,
 								   height: '100vh',
 								   maxHeight: '100vh',
+								   borderRight: '4px solid #003153',
+								   transition: 'width 0.15s cubic-bezier(0.25, 0.46, 0.45, 0.94)',
+								   willChange: 'width',
+								   transform: 'translateZ(0)'
 							   }}
 						   >
 							   {/* Barra de destaque */}
-							   <div className="absolute left-0 top-0 h-full w-1.5 bg-blue-700 rounded-r-lg" style={{ opacity: 0.85 }} />
+							   <div className="absolute left-0 top-0 h-full w-1.5 rounded-r-lg" style={{ opacity: 0.85, backgroundColor: '#003153' }} />
 							   {/* Logo e avatar */}
 							   <div className="flex flex-col items-center gap-6 mb-10 relative">
 								   <div className="flex items-center justify-center w-full">
 									   <Logo
-										   className={`block transition-all duration-300 mx-auto text-[#1e293b] ${sidebarOpen ? "scale-100" : "scale-90"}`}
+										   type={sidebarOpen ? 'full' : 'square'}
+										   className="block mx-auto"
 										   width={sidebarOpen ? 140 : 36}
 										   height={sidebarOpen ? 48 : 36}
-										   style={{ height: sidebarOpen ? 48 : 36, maxWidth: sidebarOpen ? 140 : 36, marginBottom: 0 }}
-										   aria-label="Logo Sales Machine"
+										   style={{ 
+											   height: sidebarOpen ? 48 : 36, 
+											   maxWidth: sidebarOpen ? 140 : 36, 
+											   marginBottom: 0,
+											   transition: 'all 0.2s cubic-bezier(0.4, 0, 0.2, 1)',
+											   willChange: 'width, height'
+										   }}
 									   />
 								   </div>
 							   </div>
@@ -144,8 +158,17 @@ function LayoutContent({ children }: { children: React.ReactNode }) {
 											   <button
 												   key={"toggle-menu"}
 												   type="button"
-												   onClick={() => setSidebarOpen((v) => !v)}
-												   className="flex items-center justify-center w-full h-12 rounded-lg transition-colors bg-blue-50  text-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-400 mb-2 hover:bg-blue-100  hover:cursor-pointer"
+												   onClick={toggleSidebar}
+												   className="flex items-center justify-center w-full h-12 rounded-lg focus:outline-none mb-2 hover:cursor-pointer"
+												   style={{ 
+													   backgroundColor: 'rgba(0, 49, 83, 0.05)', 
+													   color: '#003153',
+													   transition: 'background-color 0.15s ease-out'
+												   }}
+												   onMouseEnter={(e) => e.currentTarget.style.backgroundColor = 'rgba(0, 49, 83, 0.1)'}
+												   onMouseLeave={(e) => e.currentTarget.style.backgroundColor = 'rgba(0, 49, 83, 0.05)'}
+												   onFocus={(e) => e.currentTarget.style.boxShadow = '0 0 0 2px #003153'}
+												   onBlur={(e) => e.currentTarget.style.boxShadow = 'none'}
 												   aria-label="Alternar menu lateral"
 											   >
 												   <span className="mx-auto flex items-center justify-center"><Icon className="w-6 h-6" /></span>
@@ -164,23 +187,53 @@ function LayoutContent({ children }: { children: React.ReactNode }) {
 										   <a
 											   key={link.href}
 											   href={link.href}
-											   className={`group flex items-center gap-3 rounded-lg px-3 py-3 font-medium transition-all duration-200 pl-5
-												   ${isActive ? "bg-blue-700 text-white font-semibold shadow-lg" : "text-blue-700 hover:bg-blue-700 hover:text-white"}
-											   `}
-											   style={isActive ? { boxShadow: "0 2px 16px 0 rgba(29,78,216,0.15)" } : {}}
+											   className={`group flex items-center gap-3 rounded-lg px-3 py-3 font-medium pl-5 hover:cursor-pointer`}
+											   style={isActive ? { 
+												   backgroundColor: '#003153',
+												   color: 'white',
+												   fontWeight: '600',
+												   boxShadow: "0 2px 16px 0 rgba(0,49,83,0.15)",
+												   transition: 'all 0.15s cubic-bezier(0.4, 0, 0.2, 1)'
+											   } : { 
+												   color: '#003153',
+												   transition: 'all 0.15s cubic-bezier(0.4, 0, 0.2, 1)'
+											   }}
+											   onMouseEnter={(e) => {
+												   if (!isActive) {
+													   e.currentTarget.style.backgroundColor = '#003153';
+													   e.currentTarget.style.color = 'white';
+												   }
+											   }}
+											   onMouseLeave={(e) => {
+												   if (!isActive) {
+													   e.currentTarget.style.backgroundColor = '';
+													   e.currentTarget.style.color = '#003153';
+												   }
+											   }}
 											   aria-current={isActive ? "page" : undefined}
 										   >
-											   <Icon className={`w-5 h-5 flex-shrink-0 transition-colors
-												   ${isActive ? "text-white" : "text-blue-700 group-hover:text-white"}
-											   `} />
-											   <span className={`transition-all duration-300 origin-left ${sidebarOpen ? "opacity-100 ml-2 scale-x-100" : "opacity-0 ml-0 scale-x-0 w-0"}`} style={{ width: sidebarOpen ? "auto" : 0, overflow: "hidden", whiteSpace: "nowrap" }}>{link.label}</span>
+											   <Icon className={`w-5 h-5 flex-shrink-0 transition-colors`}
+												   style={{ color: isActive ? 'white' : '#003153' }}
+											   />
+											   <span 
+												   className="origin-left ml-2" 
+												   style={{ 
+													   opacity: sidebarOpen ? 1 : 0,
+													   transform: sidebarOpen ? 'scaleX(1)' : 'scaleX(0)',
+													   width: sidebarOpen ? "auto" : 0,
+													   overflow: "hidden", 
+													   whiteSpace: "nowrap",
+													   transition: 'opacity 0.15s ease-out, transform 0.2s cubic-bezier(0.4, 0, 0.2, 1)',
+													   willChange: 'opacity, transform'
+												   }}
+											   >{link.label}</span>
 										   </a>
 									   );
 								   })}
 							   </nav>
 							   {/* Divider */}
 							   {/* Divider */}
-							   <div className="my-4 border-t border-blue-200" />
+							   <div className="my-4 border-t" style={{ borderColor: 'rgba(0, 49, 83, 0.2)' }} />
 						   </aside>
 					   )}
 
@@ -189,19 +242,22 @@ function LayoutContent({ children }: { children: React.ReactNode }) {
 						<div className="sm:hidden fixed top-0 left-0 w-full z-50">
 							<div className="flex items-center justify-between bg-gray-50/95 backdrop-blur-md px-3 py-3 shadow-lg border-b border-gray-200/50">
 								<button
-									className="flex items-center gap-2 text-blue-700 focus:outline-none hover:cursor-pointer p-2 rounded-lg hover:bg-blue-50 transition-colors"
-									onClick={() => setSidebarOpen((v) => !v)}
+									className="flex items-center gap-2 focus:outline-none hover:cursor-pointer p-2 rounded-lg transition-colors"
+									style={{ color: '#003153' }}
+									onClick={toggleSidebar}
+									onMouseEnter={(e) => e.currentTarget.style.backgroundColor = 'rgba(0, 49, 83, 0.05)'}
+									onMouseLeave={(e) => e.currentTarget.style.backgroundColor = ''}
 									aria-label="Abrir menu"
 									type="button"
 								>
 									<Menu className="w-6 h-6" />
 								</button>
 								<Logo
-									className="block mx-auto text-[#1e293b]"
+									type="full"
+									className="block mx-auto"
 									width={110}
 									height={40}
 									style={{ height: 40, maxWidth: 110 }}
-									aria-label="Logo Sales Machine"
 								/>
 								{/* Sino de notificações mobile */}
 								<div className="flex items-center">
@@ -216,17 +272,20 @@ function LayoutContent({ children }: { children: React.ReactNode }) {
 										onClick={() => setSidebarOpen(false)}
 									/>
 									{/* Menu lateral */}
-									   <div className="fixed left-0 top-0 h-full w-80 max-w-[85vw] bg-white shadow-2xl border-r-4 border-blue-700 flex flex-col py-4 px-3 animate-fade-in z-50 overflow-y-auto">
+									   <div className="fixed left-0 top-0 h-full w-80 max-w-[85vw] bg-white shadow-2xl flex flex-col py-4 px-3 animate-fade-in z-50 overflow-y-auto" style={{ borderRight: '4px solid #003153' }}>
 										<div className="flex items-center justify-between mb-4 px-2">
 											<Logo
-												className="text-[#1e293b]"
+												type="full"
+												className=""
 												width={120}
 												height={42}
 												style={{ height: 42, maxWidth: 120 }}
-												aria-label="Logo Sales Machine"
 											/>
 											<button
-												className="text-gray-400 hover:text-blue-700 p-2 rounded-lg hover:bg-gray-100 transition-colors hover:cursor-pointer"
+												className="text-gray-400 p-2 rounded-lg hover:bg-gray-100 transition-colors hover:cursor-pointer"
+												style={{ color: 'rgb(156 163 175)' }}
+												onMouseEnter={(e) => e.currentTarget.style.color = '#003153'}
+												onMouseLeave={(e) => e.currentTarget.style.color = 'rgb(156 163 175)'}
 												onClick={() => setSidebarOpen(false)}
 												aria-label="Fechar menu"
 												type="button"
@@ -235,13 +294,18 @@ function LayoutContent({ children }: { children: React.ReactNode }) {
 											</button>
 										</div>
 										{/* Bloco do usuário */}
-										<div className="flex items-center gap-3 px-4 py-4 border border-blue-100 bg-gradient-to-r from-blue-50 to-indigo-50 rounded-xl mb-4">
-											<div className="w-12 h-12 rounded-full bg-gradient-to-br from-blue-600 to-blue-700 flex items-center justify-center text-white font-bold text-lg shadow-lg">
+										<div className="flex items-center gap-3 px-4 py-4 border rounded-xl mb-4" style={{ 
+											borderColor: 'rgba(0, 49, 83, 0.1)',
+											background: 'linear-gradient(to right, rgba(0, 49, 83, 0.05), rgba(0, 49, 83, 0.08))'
+										}}>
+											<div className="w-12 h-12 rounded-full flex items-center justify-center text-white font-bold text-lg shadow-lg" style={{
+												background: 'linear-gradient(to bottom right, #003153, #002d4a)'
+											}}>
 												{userName ? userName.split(' ').map((n) => n[0]).join('').toUpperCase().slice(0, 2) : 'U'}
 											</div>
 											<div className="flex-1 min-w-0">
-												<span className="font-semibold text-base text-blue-900 block truncate">{userName || 'Usuário'}</span>
-												<span className="text-xs text-blue-600 ">Conectado</span>
+												<span className="font-semibold text-base block truncate" style={{ color: '#003153' }}>{userName || 'Usuário'}</span>
+												<span className="text-xs" style={{ color: 'rgba(0, 49, 83, 0.7)' }}>Conectado</span>
 											</div>
 										</div>
 										{/* Links de navegação principais */}
@@ -264,27 +328,40 @@ function LayoutContent({ children }: { children: React.ReactNode }) {
 														<a
 															key={link.href}
 															href={link.href}
-															   className={`group flex items-center gap-4 rounded-xl px-4 py-3 font-medium transition-all duration-200
-																   ${isActive ? "bg-blue-700 text-white font-semibold shadow-lg" : "text-blue-700 hover:bg-blue-700 hover:text-white"}
-															   `}
-															   style={
-																   isActive
-																	   ? { boxShadow: "0 4px 20px 0 rgba(29,78,216,0.25)" }
-																	   : {}
-															   }
+															   className={`group flex items-center gap-4 rounded-xl px-4 py-3 font-medium transition-all duration-200 hover:cursor-pointer`}
+															   style={isActive ? { 
+																   backgroundColor: '#003153',
+																   color: 'white',
+																   fontWeight: '600',
+																   boxShadow: '0 4px 12px 0 rgba(0,49,83,0.15)' 
+															   } : { 
+																   color: '#003153'
+															   }}
+															   onMouseEnter={(e) => {
+																   if (!isActive) {
+																	   e.currentTarget.style.backgroundColor = '#003153';
+																	   e.currentTarget.style.color = 'white';
+																   }
+															   }}
+															   onMouseLeave={(e) => {
+																   if (!isActive) {
+																	   e.currentTarget.style.backgroundColor = '';
+																	   e.currentTarget.style.color = '#003153';
+																   }
+															   }}
 															   aria-current={isActive ? "page" : undefined}
 															   onClick={() => setSidebarOpen(false)}
 														   >
-															   <Icon className={`w-5 h-5 flex-shrink-0 transition-colors
-																   ${isActive ? "text-white" : "text-blue-700 group-hover:text-white"}
-															   `} />
+															   <Icon className={`w-5 h-5 flex-shrink-0 transition-colors`}
+																   style={{ color: isActive ? 'white' : '#003153' }}
+															   />
 															   <span className="text-base">{link.label}</span>
 														   </a>
 													);
 												})}
 										</nav>
 										{/* Opções extras do usuário */}
-										<div className="mt-auto border-t border-blue-100 pt-4 flex flex-col gap-1">
+										<div className="mt-auto border-t pt-4 flex flex-col gap-1" style={{ borderColor: 'rgba(0, 49, 83, 0.1)' }}>
 											   <a href="/configuracoes" className="flex items-center gap-3 px-4 py-3 text-sm text-gray-700 rounded-lg hover:bg-blue-50 transition-colors hover:cursor-pointer" onClick={() => setSidebarOpen(false)}>
 												   <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
 													   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" />

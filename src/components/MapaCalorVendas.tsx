@@ -232,12 +232,12 @@ export default function MapaCalorVendas({ vendasPorFilial = [] }: MapaCalorVenda
 
         {/* Total de Clientes */}
         <GenericTiltedCard className="col-span-1">
-          <Card className="shadow-lg border border-blue-200/60 bg-white h-full kpi-container">
+          <Card className="shadow-lg border bg-white h-full kpi-container" style={{ borderColor: 'rgba(0, 49, 83, 0.6)' }}>
             <CardHeader className="flex flex-row items-start justify-between pb-1 pt-3 px-3 flex-shrink-0">
-              <CardTitle className="text-xs sm:text-sm md:text-base font-bold text-blue-800 leading-tight w-full">Total de Clientes</CardTitle>
+              <CardTitle className="text-xs sm:text-sm md:text-base font-bold leading-tight w-full" style={{ color: '#003153' }}>Total de Clientes</CardTitle>
             </CardHeader>
             <CardContent className="kpi-content px-3 pt-2 pb-3">
-              <div className="font-extrabold tracking-tight text-blue-800 kpi-number-responsive kpi-number">
+              <div className="font-extrabold tracking-tight kpi-number-responsive kpi-number" style={{ color: '#003153' }}>
                 {totalClientes.toLocaleString('pt-BR')}
               </div>
             </CardContent>
@@ -262,7 +262,7 @@ export default function MapaCalorVendas({ vendasPorFilial = [] }: MapaCalorVenda
       {/* Mapa de calor */}
   <Card className="shadow-xl border-0 bg-white rounded-2xl overflow-hidden">
         <CardHeader className="pb-4">
-          <CardTitle className="flex items-center gap-2 text-lg font-bold text-blue-800">
+          <CardTitle className="flex items-center gap-2 text-lg font-bold" style={{ color: '#003153' }}>
             <MapPin className="w-5 h-5" />
             Mapa de Calor - Vendas por Região
           </CardTitle>
@@ -294,16 +294,16 @@ export default function MapaCalorVendas({ vendasPorFilial = [] }: MapaCalorVenda
               <div className="flex items-center gap-2 mb-2">
                 <div className="flex-1 min-w-0">
                   <div className="flex items-center gap-2 mb-1">
-                    <span className="w-6 h-6 bg-blue-600 text-white rounded-full text-xs font-bold flex items-center justify-center">{item.cidade[0]}</span>
-                    <span className="font-bold text-blue-800 text-sm truncate">{item.cidade}</span>
+                    <span className="w-6 h-6 text-white rounded-full text-xs font-bold flex items-center justify-center" style={{ backgroundColor: '#003153' }}>{item.cidade[0]}</span>
+                    <span className="font-bold text-sm truncate" style={{ color: '#003153' }}>{item.cidade}</span>
                   </div>
-                  <span className="text-xs text-blue-600 ml-8">{item.estado}</span>
+                  <span className="text-xs ml-8" style={{ color: '#003153' }}>{item.estado}</span>
                 </div>
               </div>
               <div className="grid grid-cols-2 gap-2 mt-2">
-                <div className="bg-blue-50 rounded-lg px-3 py-2">
-                  <span className="text-blue-600 font-medium text-xs">Clientes</span>
-                  <p className="text-blue-800 font-bold text-sm">{formatarNumero(item.totalClientes)}</p>
+                <div className="rounded-lg px-3 py-2" style={{ backgroundColor: 'rgba(0, 49, 83, 0.05)' }}>
+                  <span className="font-medium text-xs" style={{ color: '#003153' }}>Clientes</span>
+                  <p className="font-bold text-sm" style={{ color: '#003153' }}>{formatarNumero(item.totalClientes)}</p>
                 </div>
                 <div className="bg-green-50 rounded-lg px-3 py-2">
                   <span className="text-green-600 font-medium text-xs">Vendas</span>
@@ -324,7 +324,8 @@ export default function MapaCalorVendas({ vendasPorFilial = [] }: MapaCalorVenda
               <label htmlFor="porPaginaMobile" className="text-sm text-gray-700 ">Por página:</label>
               <select
                 id="porPaginaMobile"
-                className="border rounded px-2 py-1 bg-white text-blue-700 text-sm"
+                className="border rounded px-2 py-1 bg-white text-sm" 
+                style={{ color: '#003153' }}
                 value={porPagina}
                 onChange={e => {
                   setPorPagina(Number(e.target.value));

@@ -18,7 +18,7 @@ export default function AISidebar({ activeTab, favorites, collapsed, onTabChange
     'recommendations': { icon: Target, label: 'Recomendações', color: 'bg-green-50 text-green-700 border-l-4 border-green-500' },
     'insights': { icon: Users, label: 'Insights', color: 'bg-purple-50 text-purple-700 border-l-4 border-purple-500' },
     'clustering': { icon: Users, label: 'Segmentação', color: 'bg-indigo-50 text-indigo-700 border-l-4 border-indigo-500' },
-    'sales': { icon: TrendingUp, label: 'Predição Vendas', color: 'bg-blue-50 text-blue-700 border-l-4 border-blue-500' },
+    'sales': { icon: TrendingUp, label: 'Predição Vendas', color: 'bg-[#003153] bg-opacity-5 text-[#003153] border-l-4 border-[#003153]' },
     'training': { icon: Settings, label: 'Treinamento', color: 'bg-yellow-50 text-yellow-700 border-l-4 border-yellow-500' }
   };
 
@@ -87,13 +87,13 @@ export default function AISidebar({ activeTab, favorites, collapsed, onTabChange
     `}>
       {/* Borda lateral sutil para modo colapsado */}
       {collapsed && (
-        <div className="absolute right-0 top-0 bottom-0 w-0.5 bg-blue-500 opacity-30"></div>
+        <div className="absolute right-0 top-0 bottom-0 w-0.5 bg-[#003153] opacity-30"></div>
       )}
       
       {/* Header da Sidebar */}
       <div className="p-6 border-b border-gray-200">
         <div className={`flex items-center ${collapsed ? 'justify-center' : 'space-x-3'}`}>
-          <div className="p-2 bg-blue-600 rounded-lg shadow-lg">
+          <div className="p-2 rounded-lg shadow-lg" style={{ backgroundColor: '#003153' }}>
             <Brain className="h-6 w-6 text-white" />
           </div>
           {!collapsed && (
@@ -109,12 +109,17 @@ export default function AISidebar({ activeTab, favorites, collapsed, onTabChange
           <button
             onClick={onToggleCollapse}
             className={`
-              group relative bg-blue-600 hover:bg-blue-700 text-white 
+              group relative text-white 
               rounded-full shadow-lg hover:shadow-xl transition-all duration-300 
               hover:scale-110 active:scale-95 focus:outline-none focus:ring-2 
-              focus:ring-blue-500 focus:ring-offset-2 hover:cursor-pointer
+              focus:ring-offset-2 hover:cursor-pointer
               ${collapsed ? 'p-2' : 'w-full p-3'}
             `}
+            style={{ 
+              backgroundColor: '#003153'
+            }}
+            onMouseEnter={(e) => e.currentTarget.style.backgroundColor = '#002d4a'}
+            onMouseLeave={(e) => e.currentTarget.style.backgroundColor = '#003153'}
             title={collapsed ? 'Expandir sidebar' : 'Colapsar sidebar'}
           >
             <div className="flex items-center justify-center space-x-2">
@@ -187,7 +192,7 @@ export default function AISidebar({ activeTab, favorites, collapsed, onTabChange
           icon={BarChart3}
           label="Dashboard"
           tabName="dashboard"
-          color="bg-blue-50 text-blue-700 border-l-4 border-blue-500"
+          color="bg-[#003153] bg-opacity-5 text-[#003153] border-l-4 border-[#003153]"
         />
 
         {/* Análise de Clientes */}
@@ -239,7 +244,7 @@ export default function AISidebar({ activeTab, favorites, collapsed, onTabChange
             icon={TrendingUp}
             label="Predição de Vendas"
             tabName="sales"
-            color="bg-blue-50 text-blue-700 border-l-4 border-blue-500"
+            color="bg-[#003153] bg-opacity-5 text-[#003153] border-l-4 border-[#003153]"
             showFavorite={true}
           />
         </div>
@@ -270,11 +275,11 @@ export default function AISidebar({ activeTab, favorites, collapsed, onTabChange
       <div className="p-4 border-t border-gray-200">
         <div className="flex items-center justify-center">
           {collapsed ? (
-            <div className="p-2 bg-blue-600 rounded-lg" title="TensorFlow.js">
+            <div className="p-2 rounded-lg" style={{ backgroundColor: '#003153' }} title="TensorFlow.js">
               <Sparkles className="h-3 w-3 text-white" />
             </div>
           ) : (
-            <Badge variant="secondary" className="bg-blue-600 text-white">
+            <Badge variant="secondary" className="text-white" style={{ backgroundColor: '#003153' }}>
               <Sparkles className="h-3 w-3 mr-1" />
               TensorFlow.js
             </Badge>

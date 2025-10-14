@@ -201,7 +201,15 @@ export default function MapaComponente({ dados }: MapaComponenteProps) {
       {dados.length === 0 && (
         <div className="absolute inset-0 bg-gray-100 dark:bg-gray-800 rounded-lg flex items-center justify-center">
           <div className="text-center">
-            <div className="w-8 h-8 border-4 border-blue-600 border-t-transparent rounded-full animate-spin mx-auto mb-2"></div>
+            <div className="logo-loading mx-auto mb-2">
+              <img 
+                src="/images/logo.png" 
+                alt="Carregando" 
+                width={32}
+                height={32}
+                className="object-contain"
+              />
+            </div>
             <p className="text-gray-600 dark:text-gray-400">Nenhum dado disponível</p>
           </div>
         </div>

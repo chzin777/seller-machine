@@ -398,7 +398,15 @@ export default function HistoricoComprasModal({ clienteId, clienteNome, isOpen, 
         <div className="p-6 overflow-y-auto max-h-[calc(90vh-140px)]">
           {(loading || (usingGraphQL && graphqlLoading)) && (
             <div className="text-center py-12">
-              <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto mb-4"></div>
+              <div className="logo-loading mx-auto mb-4">
+                <img 
+                  src="/images/logo.png" 
+                  alt="Carregando" 
+                  width={32}
+                  height={32}
+                  className="object-contain"
+                />
+              </div>
               <div className="space-y-2">
                 <span className="text-gray-600 block">
                   Carregando histórico{usingGraphQL ? ' (GraphQL)' : ' (REST API)'}...

@@ -2,7 +2,8 @@
 import { useState } from "react";
 import { Card, CardHeader, CardTitle, CardContent } from "../../components/ui/card";
 import { Button } from "../../components/ui/button";
-import { UserCog, Lock, Mail, User } from "lucide-react"; // Added User import
+import { UserCog, Lock, Mail, User } from "lucide-react";
+import { InlineLogoSpinner } from "../../components/LoadingSpinner";
 
 export default function ConfiguracoesPage() {
   // Estados
@@ -159,20 +160,30 @@ export default function ConfiguracoesPage() {
   // JSX de retorno
   return (
   <div className="max-w-2xl w-full mx-auto py-6 px-2 sm:py-10 sm:px-4 min-h-screen flex flex-col">
-      <h1 className="text-3xl font-bold text-blue-900 mb-8 flex items-center gap-3">
-        <UserCog className="w-7 h-7 text-blue-700" /> Configurações
+      <h1 className="text-3xl font-bold mb-8 flex items-center gap-3" style={{ color: '#003153' }}>
+        <UserCog className="w-7 h-7" style={{ color: '#003153' }} /> Configurações
       </h1>
 
       {/* Card Alterar e-mail */}
   <Card className="shadow-lg border border-gray-100 bg-white mb-8">
         <CardHeader>
-          <CardTitle className="text-lg font-bold flex items-center gap-2 text-blue-900">
-            <Mail className="w-5 h-5 text-blue-700" /> E-mail
+          <CardTitle className="text-lg font-bold flex items-center gap-2" style={{ color: '#003153' }}>
+            <Mail className="w-5 h-5" style={{ color: '#003153' }} /> E-mail
           </CardTitle>
         </CardHeader>
         <CardContent>
           <div className="flex flex-col gap-2">
-            <Button className="w-fit hover:cursor-pointer bg-blue-100 text-blue-700 hover:bg-blue-200 border-none shadow font-semibold px-5 py-2 rounded-lg" onClick={() => setShowEmailModal(true)}>Alterar e-mail</Button>
+            <Button 
+              className="w-fit hover:cursor-pointer border-none shadow font-semibold px-5 py-2 rounded-lg" 
+              style={{ 
+                backgroundColor: 'rgba(0, 49, 83, 0.1)', 
+                color: '#003153',
+                ':hover': { backgroundColor: 'rgba(0, 49, 83, 0.15)' }
+              } as any}
+              onClick={() => setShowEmailModal(true)}
+            >
+              Alterar e-mail
+            </Button>
             <span className="text-xs text-gray-500">Mantenha seu e-mail atualizado para receber notificações importantes.</span>
           </div>
         </CardContent>
@@ -181,13 +192,23 @@ export default function ConfiguracoesPage() {
       {/* Card Alterar dados pessoais */}
   <Card className="shadow-lg border border-gray-100 bg-white mb-8">
         <CardHeader>
-          <CardTitle className="text-lg font-bold flex items-center gap-2 text-blue-900">
-            <User className="w-5 h-5 text-blue-700" /> Dados pessoais
+          <CardTitle className="text-lg font-bold flex items-center gap-2" style={{ color: '#003153' }}>
+            <User className="w-5 h-5" style={{ color: '#003153' }} /> Dados pessoais
           </CardTitle>
         </CardHeader>
         <CardContent>
           <div className="flex flex-col gap-2">
-            <Button className="w-fit hover:cursor-pointer bg-blue-100 text-blue-700 hover:bg-blue-200 border-none shadow font-semibold px-5 py-2 rounded-lg" onClick={() => setShowDadosModal(true)}>Alterar nome e sobrenome</Button>
+            <Button 
+              className="w-fit hover:cursor-pointer border-none shadow font-semibold px-5 py-2 rounded-lg" 
+              style={{ 
+                backgroundColor: 'rgba(0, 49, 83, 0.1)', 
+                color: '#003153',
+                ':hover': { backgroundColor: 'rgba(0, 49, 83, 0.15)' }
+              } as any}
+              onClick={() => setShowDadosModal(true)}
+            >
+              Alterar nome e sobrenome
+            </Button>
             <span className="text-xs text-gray-500">Mantenha seus dados pessoais atualizados.</span>
           </div>
         </CardContent>
@@ -196,13 +217,23 @@ export default function ConfiguracoesPage() {
       {/* Card Segurança */}
   <Card className="shadow-lg border border-gray-100 bg-white">
         <CardHeader>
-          <CardTitle className="text-lg font-bold flex items-center gap-2 text-blue-900">
-            <Lock className="w-5 h-5 text-blue-700" /> Segurança
+          <CardTitle className="text-lg font-bold flex items-center gap-2" style={{ color: '#003153' }}>
+            <Lock className="w-5 h-5" style={{ color: '#003153' }} /> Segurança
           </CardTitle>
         </CardHeader>
         <CardContent>
           <div className="flex flex-col gap-2">
-            <Button className="w-fit hover:cursor-pointer bg-blue-100 text-blue-700 hover:bg-blue-200 border-none shadow font-semibold px-5 py-2 rounded-lg" onClick={() => setShowSenhaModal(true)}>Alterar senha</Button>
+            <Button 
+              className="w-fit hover:cursor-pointer border-none shadow font-semibold px-5 py-2 rounded-lg" 
+              style={{ 
+                backgroundColor: 'rgba(0, 49, 83, 0.1)', 
+                color: '#003153',
+                ':hover': { backgroundColor: 'rgba(0, 49, 83, 0.15)' }
+              } as any}
+              onClick={() => setShowSenhaModal(true)}
+            >
+              Alterar senha
+            </Button>
             <span className="text-xs text-gray-500">Recomendado trocar sua senha periodicamente para maior segurança.</span>
           </div>
         </CardContent>
@@ -224,8 +255,21 @@ export default function ConfiguracoesPage() {
                 onChange={e => setNovoEmail(e.target.value)}
                 disabled={loadingEmail}
               />
-              <Button onClick={handleAlterarEmail} disabled={loadingEmail} className="mt-2 hover:cursor-pointer bg-blue-100 text-blue-700 hover:bg-blue-200 border-none shadow font-semibold px-5 py-2 rounded-lg">
-                {loadingEmail ? "Salvando..." : "Salvar novo e-mail"}
+              <Button 
+                onClick={handleAlterarEmail} 
+                disabled={loadingEmail} 
+                className="mt-2 hover:cursor-pointer border-none shadow font-semibold px-5 py-2 rounded-lg text-white"
+                style={{ 
+                  backgroundColor: loadingEmail ? '#6b7280' : '#003153',
+                  ':hover': !loadingEmail ? { backgroundColor: '#004a6b' } : {}
+                } as any}
+              >
+                {loadingEmail ? (
+                  <div className="flex items-center justify-center gap-2">
+                    <InlineLogoSpinner size={16} />
+                    Salvando...
+                  </div>
+                ) : "Salvar novo e-mail"}
               </Button>
               {emailMsg && (
                 <span className={`text-xs ${emailMsg.includes("sucesso") ? "text-green-600" : "text-red-600"}`}>{emailMsg}</span>
@@ -260,8 +304,21 @@ export default function ConfiguracoesPage() {
                 onChange={e => setNovoSobrenome(e.target.value)}
                 disabled={loadingDados}
               />
-              <Button onClick={handleAlterarDados} disabled={loadingDados} className="mt-2 hover:cursor-pointer bg-blue-100 text-blue-700 hover:bg-blue-200 border-none shadow font-semibold px-5 py-2 rounded-lg">
-                {loadingDados ? "Salvando..." : "Salvar dados"}
+              <Button 
+                onClick={handleAlterarDados} 
+                disabled={loadingDados} 
+                className="mt-2 hover:cursor-pointer border-none shadow font-semibold px-5 py-2 rounded-lg text-white"
+                style={{ 
+                  backgroundColor: loadingDados ? '#6b7280' : '#003153',
+                  ':hover': !loadingDados ? { backgroundColor: '#004a6b' } : {}
+                } as any}
+              >
+                {loadingDados ? (
+                  <div className="flex items-center justify-center gap-2">
+                    <InlineLogoSpinner size={16} />
+                    Salvando...
+                  </div>
+                ) : "Salvar dados"}
               </Button>
               {dadosMsg && (
                 <span className={`text-xs ${dadosMsg.includes("sucesso") ? "text-green-600" : "text-red-600"}`}>{dadosMsg}</span>
@@ -294,8 +351,21 @@ export default function ConfiguracoesPage() {
                 onChange={e => setNovaSenha2(e.target.value)}
                 disabled={loadingSenha}
               />
-              <Button onClick={handleAlterarSenha} disabled={loadingSenha} className="mt-2 hover:cursor-pointer bg-blue-100 text-blue-700 hover:bg-blue-200 border-none shadow font-semibold px-5 py-2 rounded-lg">
-                {loadingSenha ? "Salvando..." : "Salvar nova senha"}
+              <Button 
+                onClick={handleAlterarSenha} 
+                disabled={loadingSenha} 
+                className="mt-2 hover:cursor-pointer border-none shadow font-semibold px-5 py-2 rounded-lg text-white"
+                style={{ 
+                  backgroundColor: loadingSenha ? '#6b7280' : '#003153',
+                  ':hover': !loadingSenha ? { backgroundColor: '#004a6b' } : {}
+                } as any}
+              >
+                {loadingSenha ? (
+                  <div className="flex items-center justify-center gap-2">
+                    <InlineLogoSpinner size={16} />
+                    Salvando...
+                  </div>
+                ) : "Salvar nova senha"}
               </Button>
               {senhaMsg && (
                 <span className={`text-xs ${senhaMsg.includes("sucesso") ? "text-green-600" : "text-red-600"}`}>{senhaMsg}</span>

@@ -96,7 +96,7 @@ const defaultRules: NotificationRule[] = [
     enabled: true,
     channels: ['email'],
     frequency: 'weekly',
-    icon: <Target className="h-4 w-4 text-blue-500" />
+    icon: <Target className="h-4 w-4" style={{ color: '#003153' }} />
   },
   {
     id: 'cluster-shift',
@@ -204,7 +204,7 @@ export default function AINotifications() {
       case 'warning': return <AlertTriangle className="h-4 w-4 text-orange-500" />;
       case 'error': return <X className="h-4 w-4 text-red-500" />;
       case 'success': return <Check className="h-4 w-4 text-green-500" />;
-      case 'info': return <Bell className="h-4 w-4 text-blue-500" />;
+      case 'info': return <Bell className="h-4 w-4" style={{ color: '#003153' }} />;
     }
   };
 
@@ -404,7 +404,7 @@ export default function AINotifications() {
                   <div className="text-xs text-muted-foreground">Regras Ativas</div>
                 </div>
                 <div className="text-center">
-                  <div className="text-2xl font-bold text-blue-600">
+                  <div className="text-2xl font-bold" style={{ color: '#003153' }}>
                     {notifications.filter(n => n.type === 'success').length}
                   </div>
                   <div className="text-xs text-muted-foreground">Positivas</div>

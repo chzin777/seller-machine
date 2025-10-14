@@ -4,6 +4,7 @@ import './ai-custom.css';
 import AIContent from '@/components/AIContent';
 import AITourGuide from '@/components/AITourGuide';
 import { useAIPage } from '@/hooks/useAIPage';
+import LoadingSpinner from '@/components/LoadingSpinner';
 import { 
   Brain, 
   BarChart3, 
@@ -38,7 +39,7 @@ export default function IAPage() {
       id: 'dashboard', 
       label: 'Dashboard', 
       icon: BarChart3, 
-      color: 'text-blue-600',
+      color: 'text-[#003153]',
       description: 'Visão geral'
     },
     { 
@@ -73,7 +74,7 @@ export default function IAPage() {
       id: 'sales', 
       label: 'Vendas', 
       icon: TrendingUp, 
-      color: 'text-blue-600',
+      color: 'text-[#003153]',
       description: 'Predição de vendas'
     },
     { 
@@ -103,7 +104,7 @@ export default function IAPage() {
     return (
       <div className="flex items-center justify-center min-h-screen">
         <div className="text-center">
-          <div className="animate-spin rounded-full h-16 w-16 border-b-2 border-blue-600 mx-auto mb-4"></div>
+          <LoadingSpinner text="Carregando IA..." />
           <p className="text-gray-600">Carregando IA Sistema...</p>
         </div>
       </div>
@@ -120,14 +121,14 @@ export default function IAPage() {
           {/* Top Header */}
           <div className="flex items-center justify-between py-4">
             <div className="flex items-center space-x-3">
-              <div className="p-2 bg-gradient-to-r from-blue-600 to-purple-600 rounded-lg shadow-lg">
+              <div className="p-2 rounded-lg shadow-lg" style={{ background: 'linear-gradient(135deg, #003153 0%, #4c1d95 100%)' }}>
                 <Brain className="h-6 w-6 text-white" />
               </div>
               <div>
-                <h1 className="text-xl sm:text-2xl font-bold text-gray-900">IA Sistema</h1>
+                <h1 className="text-xl sm:text-2xl font-bold" style={{ color: '#003153' }}>IA Sistema</h1>
                 <p className="text-sm text-gray-600 hidden sm:block">Inteligência Artificial para Vendas</p>
               </div>
-              <Badge className="bg-gradient-to-r from-blue-500 to-purple-500 text-white">
+              <Badge className="text-white" style={{ background: 'linear-gradient(135deg, #003153 0%, #7c3aed 100%)' }}>
                 <Sparkles className="h-3 w-3 mr-1" />
                 TensorFlow.js
               </Badge>
@@ -138,7 +139,14 @@ export default function IAPage() {
                 variant="outline"
                 size="sm"
                 onClick={() => setShowTour(true)}
-                className="tour-button flex items-center space-x-2 border-gray-300 hover:border-blue-500 hover:text-blue-600 transition-colors focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
+                className="tour-button flex items-center space-x-2 border-gray-300 transition-colors focus:outline-none focus:ring-2 focus:ring-offset-2"
+                style={{ 
+                  '--tw-ring-color': '#003153',
+                  ':hover': { 
+                    borderColor: '#003153', 
+                    color: '#003153'
+                  }
+                } as any}
               >
                 <HelpCircle className="h-4 w-4" />
                 <span className="hidden sm:inline">Tour Guiado</span>
@@ -164,10 +172,15 @@ export default function IAPage() {
                       nav-tab-button group relative flex items-center space-x-2 px-3 sm:px-4 py-2 sm:py-3 rounded-lg font-medium text-sm
                       transition-all duration-200 whitespace-nowrap flex-shrink-0 ai-transition tab-hover
                       ${isActive 
-                        ? 'bg-gradient-to-r from-blue-50 to-purple-50 text-blue-700 border-2 border-blue-200 shadow-md' 
+                        ? 'shadow-md border-2' 
                         : 'text-gray-600 hover:text-gray-900 hover:bg-gray-50 border-2 border-transparent'
                       }
                     `}
+                    style={isActive ? {
+                      background: 'linear-gradient(135deg, rgba(0, 49, 83, 0.05) 0%, rgba(124, 58, 237, 0.05) 100%)',
+                      color: '#003153',
+                      borderColor: 'rgba(0, 49, 83, 0.2)'
+                    } : {}}
                   >
                     <Icon className={`h-4 w-4 ${isActive ? tab.color : 'text-gray-400 group-hover:text-gray-600'}`} />
                     <span className="hidden sm:inline">{tab.label}</span>
@@ -185,7 +198,10 @@ export default function IAPage() {
                     
                     {/* Active indicator */}
                     {isActive && (
-                      <div className="absolute bottom-0 left-1/2 transform -translate-x-1/2 w-2 h-0.5 bg-gradient-to-r from-blue-600 to-purple-600 rounded-full"></div>
+                      <div 
+                        className="absolute bottom-0 left-1/2 transform -translate-x-1/2 w-2 h-0.5 rounded-full" 
+                        style={{ background: 'linear-gradient(135deg, #003153 0%, #7c3aed 100%)' }}
+                      ></div>
                     )}
                   </button>
                 );
