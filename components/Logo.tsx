@@ -21,14 +21,14 @@ const Logo = ({
   const getLogoSrc = () => {
     switch (type) {
       case 'square':
-        return '/images/logo.png';
+        return '/images/logo-branca.png';
       case 'text':
-        return '/images/logo-texto.png';
+        return '/images/logo-texto-branca.png';
       case 'icon':
-        return '/images/logo.png';
+        return '/images/logo-branca.png';
       case 'full':
       default:
-        return '/images/logo-texto.png';
+        return '/images/logo-texto-branca.png';
     }
   };
 

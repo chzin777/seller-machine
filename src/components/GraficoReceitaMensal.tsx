@@ -161,7 +161,7 @@ export default function GraficoReceitaMensal() {
         </div>
       </div>
       <CardContent className="p-4 sm:p-6">
-        <div className="h-80 sm:h-[500px] w-full chart-container">
+        <div className="h-64 sm:h-80 w-full chart-container">
           {receitaMensal && (
             <ResponsiveContainer width="100%" height="100%">
               <BarChart 

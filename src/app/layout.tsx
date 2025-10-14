@@ -117,9 +117,10 @@ function LayoutContent({ children }: { children: React.ReactNode }) {
 					   {!isLoginPage && (
 						   <aside
 							   ref={sidebarRef}
-							   className={`hidden sm:flex fixed left-0 top-0 h-screen ${sidebarOpen ? "w-64" : "w-20"} bg-white flex-col py-6 px-2 shadow-xl z-40 sidebar-transition`}
+							   className={`hidden sm:flex fixed left-0 top-0 h-screen ${sidebarOpen ? "w-64" : "w-20"} flex-col py-6 px-2 shadow-xl z-40 sidebar-transition`}
 							   aria-label="Menu lateral"
 							   style={{
+								   backgroundColor: '#003153',
 								   boxShadow: sidebarOpen ? "4px 0 32px 0 rgba(0,0,0,0.13)" : undefined,
 								   height: '100vh',
 								   maxHeight: '100vh',
@@ -130,18 +131,18 @@ function LayoutContent({ children }: { children: React.ReactNode }) {
 							   }}
 						   >
 							   {/* Barra de destaque */}
-							   <div className="absolute left-0 top-0 h-full w-1.5 rounded-r-lg" style={{ opacity: 0.85, backgroundColor: '#003153' }} />
+							   <div className="absolute left-0 top-0 h-full w-1.5 rounded-r-lg" style={{ opacity: 0.85, backgroundColor: 'rgba(255,255,255,0.2)' }} />
 							   {/* Logo e avatar */}
 							   <div className="flex flex-col items-center gap-6 mb-10 relative">
 								   <div className="flex items-center justify-center w-full">
 									   <Logo
 										   type={sidebarOpen ? 'full' : 'square'}
 										   className="block mx-auto"
-										   width={sidebarOpen ? 140 : 36}
-										   height={sidebarOpen ? 48 : 36}
+										   width={sidebarOpen ? 180 : 36}
+										   height={sidebarOpen ? 64 : 36}
 										   style={{ 
-											   height: sidebarOpen ? 48 : 36, 
-											   maxWidth: sidebarOpen ? 140 : 36, 
+											   height: sidebarOpen ? 64 : 36, 
+											   maxWidth: sidebarOpen ? 180 : 36, 
 											   marginBottom: 0,
 											   transition: 'all 0.2s cubic-bezier(0.4, 0, 0.2, 1)',
 											   willChange: 'width, height'
@@ -161,13 +162,13 @@ function LayoutContent({ children }: { children: React.ReactNode }) {
 												   onClick={toggleSidebar}
 												   className="flex items-center justify-center w-full h-12 rounded-lg focus:outline-none mb-2 hover:cursor-pointer"
 												   style={{ 
-													   backgroundColor: 'rgba(0, 49, 83, 0.05)', 
-													   color: '#003153',
+													   backgroundColor: 'rgba(255, 255, 255, 0.1)', 
+													   color: 'white',
 													   transition: 'background-color 0.15s ease-out'
 												   }}
-												   onMouseEnter={(e) => e.currentTarget.style.backgroundColor = 'rgba(0, 49, 83, 0.1)'}
-												   onMouseLeave={(e) => e.currentTarget.style.backgroundColor = 'rgba(0, 49, 83, 0.05)'}
-												   onFocus={(e) => e.currentTarget.style.boxShadow = '0 0 0 2px #003153'}
+												   onMouseEnter={(e) => { e.currentTarget.style.backgroundColor = 'white'; e.currentTarget.style.color = '#003153'; }}
+												   onMouseLeave={(e) => { e.currentTarget.style.backgroundColor = 'rgba(255, 255, 255, 0.1)'; e.currentTarget.style.color = 'white'; }}
+												   onFocus={(e) => e.currentTarget.style.boxShadow = '0 0 0 2px white'}
 												   onBlur={(e) => e.currentTarget.style.boxShadow = 'none'}
 												   aria-label="Alternar menu lateral"
 											   >
@@ -189,31 +190,35 @@ function LayoutContent({ children }: { children: React.ReactNode }) {
 											   href={link.href}
 											   className={`group flex items-center gap-3 rounded-lg px-3 py-3 font-medium pl-5 hover:cursor-pointer`}
 											   style={isActive ? { 
-												   backgroundColor: '#003153',
-												   color: 'white',
+												   backgroundColor: 'white',
+												   color: '#003153',
 												   fontWeight: '600',
-												   boxShadow: "0 2px 16px 0 rgba(0,49,83,0.15)",
+												   boxShadow: "0 2px 16px 0 rgba(255,255,255,0.15)",
 												   transition: 'all 0.15s cubic-bezier(0.4, 0, 0.2, 1)'
 											   } : { 
-												   color: '#003153',
+												   color: 'white',
 												   transition: 'all 0.15s cubic-bezier(0.4, 0, 0.2, 1)'
 											   }}
 											   onMouseEnter={(e) => {
 												   if (!isActive) {
-													   e.currentTarget.style.backgroundColor = '#003153';
-													   e.currentTarget.style.color = 'white';
+													   e.currentTarget.style.backgroundColor = 'white';
+													   e.currentTarget.style.color = '#003153';
+													   const icon = e.currentTarget.querySelector('svg');
+													   if (icon) icon.style.color = '#003153';
 												   }
 											   }}
 											   onMouseLeave={(e) => {
 												   if (!isActive) {
 													   e.currentTarget.style.backgroundColor = '';
-													   e.currentTarget.style.color = '#003153';
+													   e.currentTarget.style.color = 'white';
+													   const icon = e.currentTarget.querySelector('svg');
+													   if (icon) icon.style.color = 'white';
 												   }
 											   }}
 											   aria-current={isActive ? "page" : undefined}
 										   >
 											   <Icon className={`w-5 h-5 flex-shrink-0 transition-colors`}
-												   style={{ color: isActive ? 'white' : '#003153' }}
+												   style={{ color: isActive ? '#003153' : 'white' }}
 											   />
 											   <span 
 												   className="origin-left ml-2" 
@@ -233,7 +238,7 @@ function LayoutContent({ children }: { children: React.ReactNode }) {
 							   </nav>
 							   {/* Divider */}
 							   {/* Divider */}
-							   <div className="my-4 border-t" style={{ borderColor: 'rgba(0, 49, 83, 0.2)' }} />
+							   <div className="my-4 border-t" style={{ borderColor: 'rgba(255, 255, 255, 0.2)' }} />
 						   </aside>
 					   )}
 
@@ -272,20 +277,20 @@ function LayoutContent({ children }: { children: React.ReactNode }) {
 										onClick={() => setSidebarOpen(false)}
 									/>
 									{/* Menu lateral */}
-									   <div className="fixed left-0 top-0 h-full w-80 max-w-[85vw] bg-white shadow-2xl flex flex-col py-4 px-3 animate-fade-in z-50 overflow-y-auto" style={{ borderRight: '4px solid #003153' }}>
+									   <div className="fixed left-0 top-0 h-full w-80 max-w-[85vw] shadow-2xl flex flex-col py-4 px-3 animate-fade-in z-50 overflow-y-auto" style={{ backgroundColor: '#003153', borderRight: '4px solid #003153' }}>
 										<div className="flex items-center justify-between mb-4 px-2">
 											<Logo
 												type="full"
 												className=""
-												width={120}
-												height={42}
-												style={{ height: 42, maxWidth: 120 }}
+												width={160}
+												height={56}
+												style={{ height: 56, maxWidth: 160 }}
 											/>
 											<button
-												className="text-gray-400 p-2 rounded-lg hover:bg-gray-100 transition-colors hover:cursor-pointer"
-												style={{ color: 'rgb(156 163 175)' }}
-												onMouseEnter={(e) => e.currentTarget.style.color = '#003153'}
-												onMouseLeave={(e) => e.currentTarget.style.color = 'rgb(156 163 175)'}
+												className="p-2 rounded-lg transition-colors hover:cursor-pointer"
+												style={{ color: 'white' }}
+												onMouseEnter={(e) => { e.currentTarget.style.backgroundColor = 'white'; e.currentTarget.style.color = '#003153'; }}
+												onMouseLeave={(e) => { e.currentTarget.style.backgroundColor = ''; e.currentTarget.style.color = 'white'; }}
 												onClick={() => setSidebarOpen(false)}
 												aria-label="Fechar menu"
 												type="button"
@@ -295,17 +300,18 @@ function LayoutContent({ children }: { children: React.ReactNode }) {
 										</div>
 										{/* Bloco do usuário */}
 										<div className="flex items-center gap-3 px-4 py-4 border rounded-xl mb-4" style={{ 
-											borderColor: 'rgba(0, 49, 83, 0.1)',
-											background: 'linear-gradient(to right, rgba(0, 49, 83, 0.05), rgba(0, 49, 83, 0.08))'
+											borderColor: 'rgba(255, 255, 255, 0.2)',
+											background: 'linear-gradient(to right, rgba(255, 255, 255, 0.1), rgba(255, 255, 255, 0.15))'
 										}}>
-											<div className="w-12 h-12 rounded-full flex items-center justify-center text-white font-bold text-lg shadow-lg" style={{
-												background: 'linear-gradient(to bottom right, #003153, #002d4a)'
+											<div className="w-12 h-12 rounded-full flex items-center justify-center font-bold text-lg shadow-lg" style={{
+												background: 'linear-gradient(to bottom right, white, #f0f0f0)',
+												color: '#003153'
 											}}>
 												{userName ? userName.split(' ').map((n) => n[0]).join('').toUpperCase().slice(0, 2) : 'U'}
 											</div>
 											<div className="flex-1 min-w-0">
-												<span className="font-semibold text-base block truncate" style={{ color: '#003153' }}>{userName || 'Usuário'}</span>
-												<span className="text-xs" style={{ color: 'rgba(0, 49, 83, 0.7)' }}>Conectado</span>
+												<span className="font-semibold text-base block truncate" style={{ color: 'white' }}>{userName || 'Usuário'}</span>
+												<span className="text-xs" style={{ color: 'rgba(255, 255, 255, 0.7)' }}>Conectado</span>
 											</div>
 										</div>
 										{/* Links de navegação principais */}
@@ -330,30 +336,34 @@ function LayoutContent({ children }: { children: React.ReactNode }) {
 															href={link.href}
 															   className={`group flex items-center gap-4 rounded-xl px-4 py-3 font-medium transition-all duration-200 hover:cursor-pointer`}
 															   style={isActive ? { 
-																   backgroundColor: '#003153',
-																   color: 'white',
+																   backgroundColor: 'white',
+																   color: '#003153',
 																   fontWeight: '600',
-																   boxShadow: '0 4px 12px 0 rgba(0,49,83,0.15)' 
+																   boxShadow: '0 4px 12px 0 rgba(255,255,255,0.15)' 
 															   } : { 
-																   color: '#003153'
+																   color: 'white'
 															   }}
 															   onMouseEnter={(e) => {
 																   if (!isActive) {
-																	   e.currentTarget.style.backgroundColor = '#003153';
-																	   e.currentTarget.style.color = 'white';
+																	   e.currentTarget.style.backgroundColor = 'white';
+																	   e.currentTarget.style.color = '#003153';
+																	   const icon = e.currentTarget.querySelector('svg');
+																	   if (icon) icon.style.color = '#003153';
 																   }
 															   }}
 															   onMouseLeave={(e) => {
 																   if (!isActive) {
 																	   e.currentTarget.style.backgroundColor = '';
-																	   e.currentTarget.style.color = '#003153';
+																	   e.currentTarget.style.color = 'white';
+																	   const icon = e.currentTarget.querySelector('svg');
+																	   if (icon) icon.style.color = 'white';
 																   }
 															   }}
 															   aria-current={isActive ? "page" : undefined}
 															   onClick={() => setSidebarOpen(false)}
 														   >
 															   <Icon className={`w-5 h-5 flex-shrink-0 transition-colors`}
-																   style={{ color: isActive ? 'white' : '#003153' }}
+																   style={{ color: isActive ? '#003153' : 'white' }}
 															   />
 															   <span className="text-base">{link.label}</span>
 														   </a>
@@ -361,27 +371,27 @@ function LayoutContent({ children }: { children: React.ReactNode }) {
 												})}
 										</nav>
 										{/* Opções extras do usuário */}
-										<div className="mt-auto border-t pt-4 flex flex-col gap-1" style={{ borderColor: 'rgba(0, 49, 83, 0.1)' }}>
-											   <a href="/configuracoes" className="flex items-center gap-3 px-4 py-3 text-sm text-gray-700 rounded-lg hover:bg-blue-50 transition-colors hover:cursor-pointer" onClick={() => setSidebarOpen(false)}>
+										<div className="mt-auto border-t pt-4 flex flex-col gap-1" style={{ borderColor: 'rgba(255, 255, 255, 0.2)' }}>
+											   <a href="/configuracoes" className="flex items-center gap-3 px-4 py-3 text-sm rounded-lg transition-colors hover:cursor-pointer" style={{ color: 'white' }} onMouseEnter={(e) => { e.currentTarget.style.backgroundColor = 'white'; e.currentTarget.style.color = '#003153'; const icon = e.currentTarget.querySelector('svg'); if (icon) icon.style.color = '#003153'; }} onMouseLeave={(e) => { e.currentTarget.style.backgroundColor = ''; e.currentTarget.style.color = 'white'; const icon = e.currentTarget.querySelector('svg'); if (icon) icon.style.color = 'white'; }} onClick={() => setSidebarOpen(false)}>
 												   <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
 													   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" />
 													   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
 												   </svg>
 												   Configurações
 											   </a>
-											<a href="/ajuda" className="flex items-center gap-3 px-4 py-3 text-sm text-gray-700 rounded-lg hover:bg-blue-50 transition-colors hover:cursor-pointer" onClick={() => setSidebarOpen(false)}>
+											<a href="/ajuda" className="flex items-center gap-3 px-4 py-3 text-sm rounded-lg transition-colors hover:cursor-pointer" style={{ color: 'white' }} onMouseEnter={(e) => { e.currentTarget.style.backgroundColor = 'white'; e.currentTarget.style.color = '#003153'; const icon = e.currentTarget.querySelector('svg'); if (icon) icon.style.color = '#003153'; }} onMouseLeave={(e) => { e.currentTarget.style.backgroundColor = ''; e.currentTarget.style.color = 'white'; const icon = e.currentTarget.querySelector('svg'); if (icon) icon.style.color = 'white'; }} onClick={() => setSidebarOpen(false)}>
 												<svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
 													<path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8.228 9c.549-1.165 2.03-2 3.772-2 2.21 0 4 1.343 4 3 0 1.4-1.278 2.575-3.006 2.907-.542.104-.994.54-.994 1.093m0 3h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
 												</svg>
 												Ajuda
 											</a>
-											<a href="/feedback" className="flex items-center gap-3 px-4 py-3 text-sm text-gray-700 hover:bg-blue-50  transition-colors hover:cursor-pointer" onClick={() => setSidebarOpen(false)}>
+											<a href="/feedback" className="flex items-center gap-3 px-4 py-3 text-sm rounded-lg transition-colors hover:cursor-pointer" style={{ color: 'white' }} onMouseEnter={(e) => { e.currentTarget.style.backgroundColor = 'white'; e.currentTarget.style.color = '#003153'; const icon = e.currentTarget.querySelector('svg'); if (icon) icon.style.color = '#003153'; }} onMouseLeave={(e) => { e.currentTarget.style.backgroundColor = ''; e.currentTarget.style.color = 'white'; const icon = e.currentTarget.querySelector('svg'); if (icon) icon.style.color = 'white'; }} onClick={() => setSidebarOpen(false)}>
 												<svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
 													<path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 8h10M7 12h4m1 8l-4-4H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-3l-4 4z" />
 												</svg>
 												Feedback
 											</a>
-											<button onClick={() => { localStorage.removeItem('user'); window.location.href = '/login'; }} className="flex items-center gap-3 w-full text-left px-4 py-3 text-sm text-red-600 rounded-lg hover:bg-red-50 transition-colors hover:cursor-pointer mt-2">
+											<button onClick={() => { localStorage.removeItem('user'); window.location.href = '/login'; }} className="flex items-center gap-3 w-full text-left px-4 py-3 text-sm rounded-lg transition-colors hover:cursor-pointer mt-2" style={{ color: '#ff6b6b' }} onMouseEnter={(e) => { e.currentTarget.style.backgroundColor = '#ff6b6b'; e.currentTarget.style.color = 'white'; const icon = e.currentTarget.querySelector('svg'); if (icon) icon.style.color = 'white'; }} onMouseLeave={(e) => { e.currentTarget.style.backgroundColor = ''; e.currentTarget.style.color = '#ff6b6b'; const icon = e.currentTarget.querySelector('svg'); if (icon) icon.style.color = '#ff6b6b'; }}>
 												<svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
 													<path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
 												</svg>

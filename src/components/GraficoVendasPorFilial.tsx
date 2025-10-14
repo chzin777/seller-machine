@@ -72,7 +72,7 @@ export default function GraficoVendasPorFilial() {
         </div>
       </div>
       <CardContent className="p-4 sm:p-6">
-        <div className="h-72 sm:h-96 w-full chart-container">
+        <div className="h-56 sm:h-72 w-full chart-container">
           {data.vendasPorFilial.length > 0 && (
             <ResponsiveContainer width="100%" height="100%">
               <BarChart 
@@ -81,7 +81,7 @@ export default function GraficoVendasPorFilial() {
                   receita: Number(f.receitaTotal),
                   quantidadeNotas: f.quantidadeNotas
                 }))}
-                margin={{ top: 20, right: 15, left: 10, bottom: 40 }}
+                margin={{ top: 5, right: 10, left: 5, bottom: 20 }}
               >
                 <defs>
                   <linearGradient id="receita-filial-gradient" x1="0" y1="0" x2="0" y2="1">
@@ -104,7 +104,7 @@ export default function GraficoVendasPorFilial() {
                   tick={{ fontSize: 12, fill: '#6b7280', fontWeight: '500' }}
                   tickLine={false}
                   axisLine={false}
-                  dy={10}
+                  dy={5}
                   interval={0}
                 />
                 <YAxis
@@ -156,7 +156,7 @@ export default function GraficoVendasPorFilial() {
                   fill="url(#notas-gradient)"
                   name="Notas Fiscais"
                   radius={[6, 6, 0, 0]}
-                  maxBarSize={35}
+                  maxBarSize={80}
                 />
                 <Bar
                   yAxisId="left"
@@ -164,7 +164,7 @@ export default function GraficoVendasPorFilial() {
                   fill="url(#receita-filial-gradient)"
                   name="Receita"
                   radius={[6, 6, 0, 0]}
-                  maxBarSize={35}
+                  maxBarSize={80}
                 />
                 <Legend 
                   wrapperStyle={{ 
