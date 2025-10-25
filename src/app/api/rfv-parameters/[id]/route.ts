@@ -5,7 +5,7 @@ import { requirePermission } from '../../../../../lib/permissions';
 // GET /api/rfv-parameters/[id] - Busca um parameter set específico
 export async function GET(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   // 🔒 Verificação de Segurança - Adicionado automaticamente
-  const authResult = requirePermission('MANAGE_RFV')(req);
+  const authResult = requirePermission('MANAGE_RFV_PARAMETERS')(req);
   if (!authResult.allowed) {
     return NextResponse.json(
       { error: authResult.error || 'Acesso não autorizado' },
@@ -43,7 +43,7 @@ export async function GET(req: NextRequest, { params }: { params: Promise<{ id: 
 // PUT /api/rfv-parameters/[id] - Atualiza um parameter set específico
 export async function PUT(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   // 🔒 Verificação de Segurança - Adicionado automaticamente
-  const authResult = requirePermission('MANAGE_RFV')(req);
+  const authResult = requirePermission('MANAGE_RFV_PARAMETERS')(req);
   if (!authResult.allowed) {
     return NextResponse.json(
       { error: authResult.error || 'Acesso não autorizado' },
@@ -119,7 +119,7 @@ export async function PUT(req: NextRequest, { params }: { params: Promise<{ id: 
 // DELETE /api/rfv-parameters/[id] - Remove um parameter set específico
 export async function DELETE(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   // 🔒 Verificação de Segurança - Adicionado automaticamente
-  const authResult = requirePermission('MANAGE_RFV')(req);
+  const authResult = requirePermission('MANAGE_RFV_PARAMETERS')(req);
   if (!authResult.allowed) {
     return NextResponse.json(
       { error: authResult.error || 'Acesso não autorizado' },

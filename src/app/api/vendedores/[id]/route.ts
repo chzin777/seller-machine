@@ -27,7 +27,7 @@ export async function GET(request: NextRequest, { params }: RouteParams) {
       )
     }
 
-    const scope = deriveScopeFromRequest(request)
+    const scope = deriveScopeFromRequest(request);
 
     // Restrição: vendedor só pode acessar seus próprios dados
     if (scope.role === 'VENDEDOR' && scope.userId && scope.userId !== vendedorId) {
@@ -195,7 +195,7 @@ export async function GET(request: NextRequest, { params }: RouteParams) {
 
 export async function PUT(request: NextRequest, { params }: RouteParams) {
   try {
-    const scope = deriveScopeFromRequest(request)
+    const scope = deriveScopeFromRequest(request);
     if (scope.role === 'VENDEDOR') {
       return NextResponse.json({ error: 'Acesso negado: vendedores não podem atualizar registros de vendedores.' }, { status: 403 })
     }
@@ -243,7 +243,7 @@ export async function PUT(request: NextRequest, { params }: RouteParams) {
 
 export async function DELETE(request: NextRequest, { params }: RouteParams) {
   try {
-    const scope = deriveScopeFromRequest(request)
+    const scope = deriveScopeFromRequest(request);
     if (scope.role === 'VENDEDOR') {
       return NextResponse.json({ error: 'Acesso negado: vendedores não podem remover registros de vendedores.' }, { status: 403 })
     }

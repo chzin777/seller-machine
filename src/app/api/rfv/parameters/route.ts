@@ -6,7 +6,7 @@ import { requirePermission } from '../../../../../lib/permissions';
 // GET /api/rfv/parameters - Buscar parâmetros RFV
 export async function GET(req: NextRequest) {
   // 🔒 Verificação de Segurança - Adicionado automaticamente
-  const authResult = requirePermission('MANAGE_RFV')(req);
+  const authResult = requirePermission('MANAGE_RFV_PARAMETERS')(req);
   if (!authResult.allowed) {
     return NextResponse.json(
       { error: authResult.error || 'Acesso não autorizado' },
@@ -68,7 +68,7 @@ export async function GET(req: NextRequest) {
 // POST /api/rfv/parameters - Criar novos parâmetros RFV
 export async function POST(req: NextRequest) {
   // 🔒 Verificação de Segurança - Adicionado automaticamente
-  const authResult = requirePermission('MANAGE_RFV')(req);
+  const authResult = requirePermission('MANAGE_RFV_PARAMETERS')(req);
   if (!authResult.allowed) {
     return NextResponse.json(
       { error: authResult.error || 'Acesso não autorizado' },
@@ -225,7 +225,7 @@ export async function POST(req: NextRequest) {
 // PUT /api/rfv/parameters - Atualizar parâmetros RFV existentes
 export async function PUT(req: NextRequest) {
   // 🔒 Verificação de Segurança - Adicionado automaticamente
-  const authResult = requirePermission('MANAGE_RFV')(req);
+  const authResult = requirePermission('MANAGE_RFV_PARAMETERS')(req);
   if (!authResult.allowed) {
     return NextResponse.json(
       { error: authResult.error || 'Acesso não autorizado' },
@@ -296,7 +296,7 @@ export async function PUT(req: NextRequest) {
 // DELETE /api/rfv/parameters - Remover parâmetros RFV
 export async function DELETE(req: NextRequest) {
   // 🔒 Verificação de Segurança - Adicionado automaticamente
-  const authResult = requirePermission('MANAGE_RFV')(req);
+  const authResult = requirePermission('MANAGE_RFV_PARAMETERS')(req);
   if (!authResult.allowed) {
     return NextResponse.json(
       { error: authResult.error || 'Acesso não autorizado' },

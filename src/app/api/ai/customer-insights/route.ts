@@ -5,7 +5,7 @@ import { requirePermission } from '../../../../../lib/permissions';
 
 export async function GET(request: NextRequest) {
   // 🔒 Verificação de Segurança - Adicionado automaticamente
-  const authResult = requirePermission('VIEW_AI_DASHBOARD')(req);
+  const authResult = requirePermission('ACCESS_AI_INSIGHTS')(request);
   if (!authResult.allowed) {
     return NextResponse.json(
       { error: authResult.error || 'Acesso não autorizado' },
@@ -29,7 +29,7 @@ export async function GET(request: NextRequest) {
     let pedidos: any[] = [];
 
     const prisma = new PrismaClient();
-    const scope = deriveScopeFromRequest(req);
+    const scope = deriveScopeFromRequest(request);
     try {
       let whereClause: any = {};
       whereClause = applyBasicScopeToWhere(whereClause, scope, { filialKey: 'filialId' });

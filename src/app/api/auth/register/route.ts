@@ -5,7 +5,7 @@ import { requirePermission } from '../../../../../lib/permissions';
 
 export async function POST(request: NextRequest) {
   // 🔒 Verificação de Segurança - Adicionado automaticamente
-  const authResult = requirePermission('MANAGE_USERS')(req);
+  const authResult = requirePermission('CREATE_USERS')(request);
   if (!authResult.allowed) {
     return NextResponse.json(
       { error: authResult.error || 'Acesso não autorizado' },

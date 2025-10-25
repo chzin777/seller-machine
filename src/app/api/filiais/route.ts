@@ -5,7 +5,7 @@ import { requirePermission } from '../../../../lib/permissions';
 
 export async function GET(request: NextRequest) {
   // 🔒 Verificação de Segurança - Adicionado automaticamente
-  const authResult = requirePermission('MANAGE_BRANCHES')(req);
+  const authResult = requirePermission('VIEW_FILIAL_SELLERS')(request);
   if (!authResult.allowed) {
     return NextResponse.json(
       { error: authResult.error || 'Acesso não autorizado' },
@@ -17,7 +17,7 @@ export async function GET(request: NextRequest) {
     const { searchParams } = new URL(request.url);
     const regionalId = searchParams.get('regionalId');
 
-    const scope = deriveScopeFromRequest(req);
+    const scope = deriveScopeFromRequest(request);
 
     let whereClause: any = {};
     if (regionalId) {
@@ -74,7 +74,7 @@ export async function GET(request: NextRequest) {
 
 export async function POST(request: NextRequest) {
   // 🔒 Verificação de Segurança - Adicionado automaticamente
-  const authResult = requirePermission('MANAGE_BRANCHES')(req);
+  const authResult = requirePermission('MANAGE_FILIAL_SELLERS')(request);
   if (!authResult.allowed) {
     return NextResponse.json(
       { error: authResult.error || 'Acesso não autorizado' },

@@ -1,13 +1,13 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { requirePermission } from '../../../../lib/permissions';
+import { requirePermission } from '../../../../../../lib/permissions';
 
 export async function GET(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   // 🔒 Verificação de Segurança - Adicionado automaticamente
-  const authResult = requirePermission('VIEW_CLIENTS')(request);
+  const authResult = requirePermission('VIEW_ALL_CLIENTS')(req);
   if (!authResult.allowed) {
     return NextResponse.json(
       { error: authResult.error || 'Acesso não autorizado' },
-      { status: authResult.status || 401 }
+      { status: 403 }
     );
   }
 

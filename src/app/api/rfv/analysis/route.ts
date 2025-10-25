@@ -4,9 +4,9 @@ import { deriveScopeFromRequest, applyBasicScopeToWhere } from '../../../../../l
 import { requirePermission } from '../../../../../lib/permissions';
 
 // GET /api/rfv/analysis - Executar análise RFV dos clientes
-export async function GET(req: NextRequest) {
+export async function GET(request: NextRequest) {
   // 🔒 Verificação de Segurança - Adicionado automaticamente
-  const authResult = requirePermission('VIEW_AI_DASHBOARD')(req);
+  const authResult = requirePermission('VIEW_RFV_ANALYSIS')(request);
   if (!authResult.allowed) {
     return NextResponse.json(
       { error: authResult.error || 'Acesso não autorizado' },
@@ -14,11 +14,11 @@ export async function GET(req: NextRequest) {
     );
   }
 
-  const { searchParams } = new URL(req.url);
+  const { searchParams } = new URL(request.url);
   const filialId = searchParams.get('filialId');
   const parameterSetId = searchParams.get('parameterSetId');
 
-  const scope = deriveScopeFromRequest(req);
+  const scope = deriveScopeFromRequest(request);
 
   try {
     // Buscar parâmetros RFV ativos

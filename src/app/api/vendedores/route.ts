@@ -143,7 +143,7 @@ export async function GET(req: NextRequest) {
 
 export async function POST(request: NextRequest) {
   try {
-    const scope = deriveScopeFromRequest(request)
+    const scope = deriveScopeFromRequest(request);
     
     // Vendedores não podem criar novos vendedores
     if (scope.role === 'VENDEDOR') {

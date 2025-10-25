@@ -12,7 +12,7 @@ const categoryToType: Record<string, string> = {
 
 export async function GET(request: NextRequest) {
   // 🔒 Verificação de Segurança - Adicionado automaticamente
-  const authResult = requirePermission('MANAGE_ASSOCIATIONS')(req);
+  const authResult = requirePermission('ACCESS_AI_INSIGHTS')(request);
   if (!authResult.allowed) {
     return NextResponse.json(
       { error: authResult.error || 'Acesso não autorizado' },
@@ -21,7 +21,7 @@ export async function GET(request: NextRequest) {
   }
 
   try {
-    const scope = deriveScopeFromRequest(req)
+    const scope = deriveScopeFromRequest(request)
     // Buscar associações reais do banco de dados
     let realAssociations: any[] = []
     try {

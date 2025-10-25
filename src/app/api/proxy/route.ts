@@ -5,7 +5,7 @@ const API_BASE = process.env.NEXT_PUBLIC_API_URL || 'https://api-dev-production-
 
 export async function GET(req: NextRequest) {
   // 🛡️ Verificar permissão - usuários autenticados podem usar proxy para dados básicos
-  const authCheck = requirePermission('VIEW_DASHBOARD')(req);
+  const authCheck = requirePermission('VIEW_OWN_DASHBOARD')(req);
   if (!authCheck.allowed) {
     return NextResponse.json(
       { 
@@ -49,7 +49,7 @@ export async function GET(req: NextRequest) {
 
 export async function POST(req: NextRequest) {
   // 🛡️ Verificar permissão para operações de escrita
-  const authCheck = requirePermission('VIEW_DASHBOARD')(req);
+  const authCheck = requirePermission('VIEW_OWN_DASHBOARD')(req);
   if (!authCheck.allowed) {
     return NextResponse.json(
       { 
@@ -98,7 +98,7 @@ export async function POST(req: NextRequest) {
 
 export async function PUT(req: NextRequest) {
   // 🛡️ Verificar permissão para operações de escrita
-  const authCheck = requirePermission('VIEW_DASHBOARD')(req);
+  const authCheck = requirePermission('VIEW_OWN_DASHBOARD')(req);
   if (!authCheck.allowed) {
     return NextResponse.json(
       { 

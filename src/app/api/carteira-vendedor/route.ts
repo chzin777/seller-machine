@@ -47,7 +47,7 @@ interface VendedorCarteira {
 
 export async function GET(request: NextRequest) {
   // 🔒 Verificação de Segurança - Adicionado automaticamente
-  const authResult = requirePermission('VIEW_SELLER_PORTFOLIO')(req);
+  const authResult = requirePermission('VIEW_OWN_PORTFOLIO')(request);
   if (!authResult.allowed) {
     return NextResponse.json(
       { error: authResult.error || 'Acesso não autorizado' },
@@ -61,7 +61,7 @@ export async function GET(request: NextRequest) {
     const filialId = searchParams.get('filialId');
     const periodoMeses = parseInt(searchParams.get('periodoMeses') || '6'); // Padrão: últimos 6 meses
 
-    const scope = deriveScopeFromRequest(req);
+    const scope = deriveScopeFromRequest(request);
     
     // Calcular data limite baseada no período
     const dataLimite = new Date();

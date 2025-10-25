@@ -19,7 +19,7 @@ export async function GET(request: NextRequest, { params }: RouteParams) {
       )
     }
 
-    const scope = deriveScopeFromRequest(request)
+    const scope = deriveScopeFromRequest(request);
 
     // Restringir por escopo
     if (scope.role === 'VENDEDOR' || scope.role === 'GESTOR_I') {

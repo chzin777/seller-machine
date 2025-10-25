@@ -13,7 +13,7 @@ export async function GET(request: NextRequest, { params }: RouteParams) {
   if (!authResult.allowed) {
     return NextResponse.json(
       { error: authResult.error || 'Acesso não autorizado' },
-      { status: authResult.status || 401 }
+      { status: 403 }
     );
   }
 

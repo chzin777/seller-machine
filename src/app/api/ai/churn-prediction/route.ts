@@ -16,7 +16,7 @@ interface ChurnPrediction {
 
 export async function GET(req: NextRequest) {
   // 🔒 Verificação de Segurança - Adicionado automaticamente
-  const authResult = requirePermission('VIEW_AI_DASHBOARD')(req);
+  const authResult = requirePermission('ACCESS_AI_INSIGHTS')(req);
   if (!authResult.allowed) {
     return NextResponse.json(
       { error: authResult.error || 'Acesso não autorizado' },
