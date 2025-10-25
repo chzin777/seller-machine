@@ -13,19 +13,19 @@ const typeIcons = {
 };
 
 const typeColors = {
-  success: 'border-green-500 bg-green-50 text-green-800',
-  error: 'border-red-500 bg-red-50 text-red-800',
-  warning: 'border-yellow-500 bg-yellow-50 text-yellow-800',
-  info: 'border-blue-500 bg-blue-50 text-blue-800',
-  'ai-insight': 'border-purple-500 bg-purple-50 text-purple-800'
+  success: 'border-[#003153] bg-white text-[#003153]',
+  error: 'border-[#003153] bg-white text-[#003153]',
+  warning: 'border-[#003153] bg-white text-[#003153]',
+  info: 'border-[#003153] bg-white text-[#003153]',
+  'ai-insight': 'border-[#003153] bg-white text-[#003153]'
 };
 
 const iconColors = {
-  success: 'text-green-500',
-  error: 'text-red-500',
-  warning: 'text-yellow-500',
-  info: 'text-blue-500',
-  'ai-insight': 'text-purple-500'
+  success: 'text-[#003153]',
+  error: 'text-[#003153]',
+  warning: 'text-[#003153]',
+  info: 'text-[#003153]',
+  'ai-insight': 'text-[#003153]'
 };
 
 interface ToastProps {
@@ -96,9 +96,9 @@ function Toast({ notification, onClose, onMarkAsRead }: ToastProps) {
       `}>
         {/* Barra de progresso */}
         {notification.autoClose && (
-          <div className="absolute top-0 left-0 h-1 bg-black/10 w-full">
+          <div className="absolute top-0 left-0 h-1 bg-[#003153]/10 w-full">
             <div 
-              className="h-full bg-gradient-to-r from-blue-500 to-purple-500 transition-all duration-100 ease-linear"
+              className="h-full bg-[#003153] transition-all duration-100 ease-linear"
               style={{ width: `${progress}%` }}
             />
           </div>
@@ -116,7 +116,7 @@ function Toast({ notification, onClose, onMarkAsRead }: ToastProps) {
               </h4>
               <div className="flex items-center space-x-1 sm:space-x-2 ml-2">
                 {notification.priority === 'high' && (
-                  <span className="w-1.5 h-1.5 sm:w-2 sm:h-2 bg-red-500 rounded-full animate-pulse" />
+                  <span className="w-1.5 h-1.5 sm:w-2 sm:h-2 bg-[#003153] rounded-full animate-pulse" />
                 )}
                 <button
                   onClick={handleClose}
@@ -127,12 +127,12 @@ function Toast({ notification, onClose, onMarkAsRead }: ToastProps) {
               </div>
             </div>
 
-            <p className="text-xs leading-relaxed text-gray-600 mb-2 sm:mb-3">
+            <p className="text-xs leading-relaxed text-[#003153]/80 mb-2 sm:mb-3">
               {notification.message}
             </p>
 
             <div className="flex items-center justify-between">
-              <span className="text-xs text-gray-500">
+              <span className="text-xs text-[#003153]/60">
                 {new Date(notification.timestamp).toLocaleTimeString('pt-BR', {
                   hour: '2-digit',
                   minute: '2-digit'
@@ -142,7 +142,7 @@ function Toast({ notification, onClose, onMarkAsRead }: ToastProps) {
               {notification.actionLabel && (
                 <button
                   onClick={handleAction}
-                  className="text-xs font-medium text-blue-600 hover:text-blue-800 transition-colors px-2 py-1 rounded"
+                  className="text-xs font-medium text-[#003153] hover:text-[#003153]/80 transition-colors px-2 py-1 rounded bg-[#003153]/5 hover:bg-[#003153]/10"
                 >
                   {notification.actionLabel}
                 </button>
@@ -156,27 +156,19 @@ function Toast({ notification, onClose, onMarkAsRead }: ToastProps) {
 }
 
 export default function GlobalToastContainer() {
-  const { notifications, removeNotification, markAsRead } = useGlobalNotifications();
-  const [visibleNotifications, setVisibleNotifications] = useState<Notification[]>([]);
+  const { toastNotifications, dismissToast, markAsRead } = useGlobalNotifications();
 
-  useEffect(() => {
-    // Mostrar apenas as 4 notificações mais recentes como toast
-    const recentNotifications = notifications
-      .filter(n => !n.read)
-      .slice(0, 4);
-    
-    setVisibleNotifications(recentNotifications);
-  }, [notifications]);
+  // Usar diretamente toastNotifications que já está filtrado no provider
 
-  if (visibleNotifications.length === 0) return null;
+  if (toastNotifications.length === 0) return null;
 
   return (
     <div className="fixed top-4 right-2 sm:right-4 z-50 space-y-2 pointer-events-none max-w-[calc(100vw-1rem)] sm:max-w-none">
-      {visibleNotifications.map(notification => (
+      {toastNotifications.map(notification => (
         <Toast
           key={notification.id}
           notification={notification}
-          onClose={() => removeNotification(notification.id)}
+          onClose={() => dismissToast(notification.id)}
           onMarkAsRead={() => markAsRead(notification.id)}
         />
       ))}

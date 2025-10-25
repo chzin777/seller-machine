@@ -1,8 +1,18 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '../../../../../lib/prisma';
+import { requirePermission } from '../../../../../lib/permissions';
 
 // GET /api/rfv-parameters/[id] - Busca um parameter set específico
 export async function GET(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
+  // 🔒 Verificação de Segurança - Adicionado automaticamente
+  const authResult = requirePermission('MANAGE_RFV')(req);
+  if (!authResult.allowed) {
+    return NextResponse.json(
+      { error: authResult.error || 'Acesso não autorizado' },
+      { status: 401 }
+    );
+  }
+
   const { id } = await params;
 
   try {
@@ -32,6 +42,15 @@ export async function GET(req: NextRequest, { params }: { params: Promise<{ id: 
 
 // PUT /api/rfv-parameters/[id] - Atualiza um parameter set específico
 export async function PUT(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
+  // 🔒 Verificação de Segurança - Adicionado automaticamente
+  const authResult = requirePermission('MANAGE_RFV')(req);
+  if (!authResult.allowed) {
+    return NextResponse.json(
+      { error: authResult.error || 'Acesso não autorizado' },
+      { status: 401 }
+    );
+  }
+
   const { id } = await params;
 
   try {
@@ -99,6 +118,15 @@ export async function PUT(req: NextRequest, { params }: { params: Promise<{ id: 
 
 // DELETE /api/rfv-parameters/[id] - Remove um parameter set específico
 export async function DELETE(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
+  // 🔒 Verificação de Segurança - Adicionado automaticamente
+  const authResult = requirePermission('MANAGE_RFV')(req);
+  if (!authResult.allowed) {
+    return NextResponse.json(
+      { error: authResult.error || 'Acesso não autorizado' },
+      { status: 401 }
+    );
+  }
+
   const { id } = await params;
 
   if (!id) {

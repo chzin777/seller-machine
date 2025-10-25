@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { PrismaClient } from '@prisma/client';
 import { deriveScopeFromRequest, applyBasicScopeToWhere } from '../../../../lib/scope';
+import { requirePermission } from '../../../../lib/permissions';
 
 const prisma = new PrismaClient();
 
@@ -45,13 +46,22 @@ interface VendedorCarteira {
 }
 
 export async function GET(request: NextRequest) {
+  // 🔒 Verificação de Segurança - Adicionado automaticamente
+  const authResult = requirePermission('VIEW_SELLER_PORTFOLIO')(req);
+  if (!authResult.allowed) {
+    return NextResponse.json(
+      { error: authResult.error || 'Acesso não autorizado' },
+      { status: 401 }
+    );
+  }
+
   try {
     const { searchParams } = new URL(request.url);
     const vendedorId = searchParams.get('vendedorId');
     const filialId = searchParams.get('filialId');
     const periodoMeses = parseInt(searchParams.get('periodoMeses') || '6'); // Padrão: últimos 6 meses
 
-    const scope = deriveScopeFromRequest(request);
+    const scope = deriveScopeFromRequest(req);
     
     // Calcular data limite baseada no período
     const dataLimite = new Date();

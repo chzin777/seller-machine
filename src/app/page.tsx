@@ -42,12 +42,12 @@ export default function Home() {
       {/* Cabeçalho */}
       <DashboardHeader />
       
-      <div className="flex flex-col gap-6 sm:gap-8 px-6 sm:px-8 lg:px-12 xl:px-16 overflow-x-hidden w-full">
-        {/* KPI Cards */}
-        <div className="mt-6">
-          <KpiCards />
-        </div>
+      {/* KPI Cards */}
+      <div className="px-6 sm:px-8 lg:px-12 xl:px-16 pt-6 pb-0 mb-0">
+        <KpiCards />
+      </div>
 
+      <div className="flex flex-col gap-6 sm:gap-8 px-6 sm:px-8 lg:px-12 xl:px-16 overflow-x-hidden w-full pt-6">
         {/* Primeira linha - Receita Mensal e Vendas por Filial (2 colunas) */}
         <div className="grid grid-cols-1 xl:grid-cols-2 gap-8 lg:gap-10 xl:gap-12 w-full min-w-0">
           <div className="w-full min-w-0">

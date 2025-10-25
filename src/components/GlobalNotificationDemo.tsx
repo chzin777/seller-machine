@@ -91,11 +91,12 @@ export default function GlobalNotificationDemo() {
           </Button>
         </div>
 
-        <div className="text-xs text-gray-500 space-y-1">
-          <p>• As notificações aparecem globalmente no canto superior direito</p>
-          <p>• Use o sino na header para ver todas as notificações</p>
-          <p>• Notificações são automaticamente geradas na primeira visita do dia</p>
-          <p>• Sistema funciona em todas as páginas da aplicação</p>
+        <div className="text-xs text-[#003153]/70 space-y-1">
+          <p>• <strong>Design unificado:</strong> Todas as notificações usam fundo branco com bordas/destaques na cor da sidebar (#003153)</p>
+          <p>• <strong>Toasts temporários:</strong> Aparecem no canto superior direito por até 30 segundos</p>
+          <p>• <strong>Histórico persistente:</strong> Fechar um toast não remove do histórico - use o sino para ver tudo</p>
+          <p>• <strong>Dados reais:</strong> Sistema integrado com APIs de churn, vendas, alertas e clientes inativos</p>
+          <p>• <strong>Multiplataforma:</strong> Funciona em todas as páginas com design consistente</p>
         </div>
       </CardContent>
     </Card>

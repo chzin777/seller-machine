@@ -1,8 +1,21 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { requirePermission } from '../../../../lib/permissions';
 
 const API_BASE = process.env.NEXT_PUBLIC_API_URL || 'https://api-dev-production-6bb5.up.railway.app';
 
 export async function GET(req: NextRequest) {
+  // 🛡️ Verificar permissão - usuários autenticados podem usar proxy para dados básicos
+  const authCheck = requirePermission('VIEW_DASHBOARD')(req);
+  if (!authCheck.allowed) {
+    return NextResponse.json(
+      { 
+        error: 'Acesso negado', 
+        message: authCheck.error,
+        code: 'INSUFFICIENT_PERMISSIONS'
+      }, 
+      { status: 403 }
+    );
+  }
   const url = req.nextUrl.searchParams.get('url');
   if (!url) {
     return NextResponse.json({ error: 'Missing url param' }, { status: 400 });
@@ -35,6 +48,19 @@ export async function GET(req: NextRequest) {
 }
 
 export async function POST(req: NextRequest) {
+  // 🛡️ Verificar permissão para operações de escrita
+  const authCheck = requirePermission('VIEW_DASHBOARD')(req);
+  if (!authCheck.allowed) {
+    return NextResponse.json(
+      { 
+        error: 'Acesso negado', 
+        message: authCheck.error,
+        code: 'INSUFFICIENT_PERMISSIONS'
+      }, 
+      { status: 403 }
+    );
+  }
+  
   try {
     const body = await req.json();
     const { url, method = 'POST', data } = body;
@@ -71,6 +97,19 @@ export async function POST(req: NextRequest) {
 }
 
 export async function PUT(req: NextRequest) {
+  // 🛡️ Verificar permissão para operações de escrita
+  const authCheck = requirePermission('VIEW_DASHBOARD')(req);
+  if (!authCheck.allowed) {
+    return NextResponse.json(
+      { 
+        error: 'Acesso negado', 
+        message: authCheck.error,
+        code: 'INSUFFICIENT_PERMISSIONS'
+      }, 
+      { status: 403 }
+    );
+  }
+  
   const url = req.nextUrl.searchParams.get('url');
   if (!url) {
     return NextResponse.json({ error: 'Missing url param' }, { status: 400 });

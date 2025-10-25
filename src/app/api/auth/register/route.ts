@@ -1,8 +1,18 @@
 import { NextRequest, NextResponse } from 'next/server';
 import bcrypt from 'bcryptjs';
 import { prisma } from '../../../../../lib/prisma';
+import { requirePermission } from '../../../../../lib/permissions';
 
 export async function POST(request: NextRequest) {
+  // 🔒 Verificação de Segurança - Adicionado automaticamente
+  const authResult = requirePermission('MANAGE_USERS')(req);
+  if (!authResult.allowed) {
+    return NextResponse.json(
+      { error: authResult.error || 'Acesso não autorizado' },
+      { status: 401 }
+    );
+  }
+
   try {
     const { email, password, name, role, empresaId, diretoriaId, regionalId, filialId, area } = await request.json();
 

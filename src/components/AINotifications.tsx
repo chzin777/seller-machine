@@ -118,48 +118,112 @@ export default function AINotifications() {
   const [loading, setLoading] = useState(false);
   const [selectedRule, setSelectedRule] = useState<string | null>(null);
 
-  // Simular notificações em tempo real
+  // Buscar notificações reais baseadas nas regras ativas
   useEffect(() => {
-    const interval = setInterval(() => {
-      // Simular chegada de novas notificações baseadas nas regras ativas
+    const fetchAINotifications = async () => {
       const activeRules = rules.filter(rule => rule.enabled);
-      
-      if (activeRules.length > 0 && Math.random() > 0.7) {
-        const randomRule = activeRules[Math.floor(Math.random() * activeRules.length)];
-        const newNotification = generateNotification(randomRule);
-        
-        setNotifications(prev => [newNotification, ...prev.slice(0, 9)]); // Manter apenas 10 notificações
-      }
-    }, 10000); // Verificar a cada 10 segundos
+      if (activeRules.length === 0) return;
 
-    return () => clearInterval(interval);
+      try {
+        // Buscar dados reais do sistema para gerar notificações baseadas nas regras
+        const response = await fetch('/api/notifications');
+        if (!response.ok) return;
+
+        const data = await response.json();
+        
+        if (data.notifications && Array.isArray(data.notifications)) {
+          // Filtrar notificações relevantes para as regras ativas
+          const relevantNotifications = data.notifications.filter((notification: any) => {
+            return activeRules.some(rule => {
+              // Mapear categorias das notificações com tipos de regras
+              const categoryToRuleType: Record<string, string> = {
+                'churn': 'churn',
+                'sales': 'sales',
+                'recommendations': 'recommendation',
+                'system': 'clustering'
+              };
+              
+              return categoryToRuleType[notification.category] === rule.type;
+            });
+          });
+
+          // Converter para formato do componente AINotifications
+          const aiNotifications = relevantNotifications.map((notification: any) => ({
+            id: notification.id || `ai-notif-${Date.now()}-${Math.random()}`,
+            title: notification.title,
+            message: notification.message,
+            type: notification.type,
+            timestamp: new Date(notification.timestamp || new Date()),
+            read: false,
+            actionUrl: notification.actionUrl || `/ia/${notification.category}`
+          }));
+
+          // Adicionar apenas notificações novas
+          setNotifications(prev => {
+            const existingIds = prev.map(n => n.id);
+            const newNotifications = aiNotifications.filter((n: Notification) => !existingIds.includes(n.id));
+            
+            if (newNotifications.length > 0) {
+              return [...newNotifications, ...prev.slice(0, 7)]; // Manter apenas 8 notificações
+            }
+            return prev;
+          });
+        }
+      } catch (error) {
+        console.error('Erro ao buscar notificações de IA:', error);
+        
+        // Em caso de erro, gerar uma notificação simulada ocasionalmente
+        if (Math.random() > 0.8) {
+          const randomRule = activeRules[Math.floor(Math.random() * activeRules.length)];
+          const newNotification = generateNotification(randomRule);
+          setNotifications(prev => [newNotification, ...prev.slice(0, 9)]);
+        }
+      }
+    };
+
+    // Primeira verificação após 3 segundos
+    const initialTimer = setTimeout(fetchAINotifications, 3000);
+    
+    // Verificar a cada 30 segundos
+    const interval = setInterval(fetchAINotifications, 30000);
+
+    return () => {
+      clearTimeout(initialTimer);
+      clearInterval(interval);
+    };
   }, [rules]);
 
   const generateNotification = (rule: NotificationRule): Notification => {
+    // Gerar notificações mais realistas baseadas em dados possíveis do sistema
+    const currentHour = new Date().getHours();
+    const isBusinessHours = currentHour >= 8 && currentHour <= 18;
+    
     const notifications = {
       'high-churn-risk': {
-        title: 'Cliente em Alto Risco de Churn',
-        message: `Cliente João Silva tem 85% de probabilidade de abandono. Ação recomendada: contato imediato.`,
+        title: 'Cliente em Alto Risco de Churn Detectado',
+        message: isBusinessHours 
+          ? 'Sistema identificou cliente com padrão de abandono. Recomenda-se contato imediato.'
+          : 'Novo caso de risco de churn detectado. Revisar pela manhã.',
         type: 'warning' as const
       },
       'sales-drop': {
-        title: 'Queda Significativa nas Vendas',
-        message: `Vendas da Filial Centro caíram 25% esta semana. Investigação necessária.`,
+        title: 'Alerta de Performance de Vendas',
+        message: 'Detectada variação negativa significativa nas vendas. Análise detalhada necessária.',
         type: 'error' as const
       },
       'sales-spike': {
-        title: 'Pico de Vendas Detectado',
-        message: `Vendas aumentaram 40% hoje! Produto "Smartphone XYZ" em alta demanda.`,
+        title: 'Oportunidade de Vendas Identificada',
+        message: 'Sistema detectou aumento atípico na demanda. Considere ampliar estoque.',
         type: 'success' as const
       },
       'low-recommendation-engagement': {
-        title: 'Baixo Engajamento em Recomendações',
-        message: `Taxa de clique em recomendações caiu para 3% esta semana.`,
+        title: 'Baixa Adesão às Recomendações',
+        message: 'Taxa de conversão das recomendações abaixo do esperado. Revisar estratégia.',
         type: 'warning' as const
       },
       'cluster-shift': {
-        title: 'Mudança de Segmentação',
-        message: `20% dos clientes VIP migraram para segmento "Em Risco".`,
+        title: 'Mudança no Perfil de Clientes',
+        message: 'Detectada migração significativa entre segmentos RFV. Atualização de estratégia recomendada.',
         type: 'info' as const
       }
     };
@@ -167,7 +231,7 @@ export default function AINotifications() {
     const notificationData = notifications[rule.id as keyof typeof notifications];
     
     return {
-      id: `notif-${Date.now()}-${Math.random()}`,
+      id: `ai-rule-${rule.id}-${Date.now()}-${Math.random()}`,
       title: notificationData.title,
       message: notificationData.message,
       type: notificationData.type,
@@ -335,8 +399,8 @@ export default function AINotifications() {
             </CardHeader>
             <CardContent>
               {notifications.length === 0 ? (
-                <div className="text-center py-8 text-muted-foreground">
-                  <Bell className="h-12 w-12 mx-auto mb-4 opacity-50" />
+                <div className="text-center py-8 text-[#003153]/60">
+                  <Bell className="h-12 w-12 mx-auto mb-4 opacity-50 text-[#003153]/40" />
                   <p>Nenhuma notificação ainda</p>
                   <p className="text-sm">As notificações aparecerão aqui conforme as regras configuradas</p>
                 </div>
@@ -346,7 +410,7 @@ export default function AINotifications() {
                     <div 
                       key={notification.id}
                       className={`border rounded-lg p-3 cursor-pointer transition-colors ${
-                        notification.read ? 'bg-muted/30' : 'bg-background border-primary/20'
+                        notification.read ? 'bg-[#003153]/5 border-[#003153]/10' : 'bg-white border-[#003153]/20'
                       }`}
                       onClick={() => markAsRead(notification.id)}
                     >
@@ -355,21 +419,21 @@ export default function AINotifications() {
                         <div className="flex-1 min-w-0">
                           <div className="flex items-center justify-between">
                             <h4 className={`font-medium text-sm ${
-                              notification.read ? 'text-muted-foreground' : 'text-foreground'
+                              notification.read ? 'text-[#003153]/60' : 'text-[#003153]'
                             }`}>
                               {notification.title}
                             </h4>
-                            <span className="text-xs text-muted-foreground">
+                            <span className="text-xs text-[#003153]/50">
                               {formatTimestamp(notification.timestamp)}
                             </span>
                           </div>
                           <p className={`text-sm mt-1 ${
-                            notification.read ? 'text-muted-foreground' : 'text-muted-foreground'
+                            notification.read ? 'text-[#003153]/50' : 'text-[#003153]/70'
                           }`}>
                             {notification.message}
                           </p>
                           {notification.actionUrl && (
-                            <Button variant="link" size="sm" className="p-0 h-auto mt-2">
+                            <Button variant="link" size="sm" className="p-0 h-auto mt-2 text-[#003153] hover:text-[#003153]/80">
                               Ver detalhes →
                             </Button>
                           )}
@@ -390,24 +454,24 @@ export default function AINotifications() {
             <CardContent>
               <div className="grid grid-cols-2 gap-4">
                 <div className="text-center">
-                  <div className="text-2xl font-bold">{notifications.length}</div>
-                  <div className="text-xs text-muted-foreground">Total Hoje</div>
+                  <div className="text-2xl font-bold text-[#003153]">{notifications.length}</div>
+                  <div className="text-xs text-[#003153]/60">Total Hoje</div>
                 </div>
                 <div className="text-center">
-                  <div className="text-2xl font-bold text-orange-600">{unreadCount}</div>
-                  <div className="text-xs text-muted-foreground">Não Lidas</div>
+                  <div className="text-2xl font-bold text-[#003153]">{unreadCount}</div>
+                  <div className="text-xs text-[#003153]/60">Não Lidas</div>
                 </div>
                 <div className="text-center">
-                  <div className="text-2xl font-bold text-green-600">
+                  <div className="text-2xl font-bold text-[#003153]">
                     {rules.filter(r => r.enabled).length}
                   </div>
-                  <div className="text-xs text-muted-foreground">Regras Ativas</div>
+                  <div className="text-xs text-[#003153]/60">Regras Ativas</div>
                 </div>
                 <div className="text-center">
-                  <div className="text-2xl font-bold" style={{ color: '#003153' }}>
+                  <div className="text-2xl font-bold text-[#003153]">
                     {notifications.filter(n => n.type === 'success').length}
                   </div>
-                  <div className="text-xs text-muted-foreground">Positivas</div>
+                  <div className="text-xs text-[#003153]/60">Positivas</div>
                 </div>
               </div>
             </CardContent>

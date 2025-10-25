@@ -1,9 +1,19 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '../../../../../lib/prisma';
 import { deriveScopeFromRequest, applyBasicScopeToWhere } from '../../../../../lib/scope';
+import { requirePermission } from '../../../../../lib/permissions';
 
 // GET /api/rfv/analysis - Executar análise RFV dos clientes
 export async function GET(req: NextRequest) {
+  // 🔒 Verificação de Segurança - Adicionado automaticamente
+  const authResult = requirePermission('VIEW_AI_DASHBOARD')(req);
+  if (!authResult.allowed) {
+    return NextResponse.json(
+      { error: authResult.error || 'Acesso não autorizado' },
+      { status: 401 }
+    );
+  }
+
   const { searchParams } = new URL(req.url);
   const filialId = searchParams.get('filialId');
   const parameterSetId = searchParams.get('parameterSetId');

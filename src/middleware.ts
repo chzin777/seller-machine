@@ -1,31 +1,9 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { jwtVerify } from 'jose';
 
-// Definir as rotas protegidas e seus níveis de acesso
-const PROTECTED_ROUTES = {
-  // Rotas administrativas - apenas GESTOR_MASTER
-  '/api/hierarchy': ['GESTOR_MASTER'],
-  '/api/users': ['GESTOR_MASTER'],
-  '/usuarios': ['GESTOR_MASTER'],
-  
-  // Rotas de gestão - GESTOR_III e acima
-  '/dashboard-graphql': ['GESTOR_III', 'GESTOR_MASTER'],
-  '/configurar-rfv': ['GESTOR_III', 'GESTOR_MASTER'],
-  
-  // Rotas regionais - GESTOR_II e acima
-  '/api/rfv': ['GESTOR_II', 'GESTOR_III', 'GESTOR_MASTER'],
-  '/clientes': ['GESTOR_II', 'GESTOR_III', 'GESTOR_MASTER'],
-  
-  // Rotas de filial - GESTOR_I e acima
-  '/carteira-vendedor': ['GESTOR_I', 'GESTOR_II', 'GESTOR_III', 'GESTOR_MASTER'],
-  '/vendedores': ['GESTOR_I', 'GESTOR_II', 'GESTOR_III', 'GESTOR_MASTER'],
-  
-  // Rotas básicas - todos os usuários autenticados
-  '/dashboard': ['VENDEDOR', 'GESTOR_I', 'GESTOR_II', 'GESTOR_III', 'GESTOR_MASTER'],
-  '/configuracoes': ['VENDEDOR', 'GESTOR_I', 'GESTOR_II', 'GESTOR_III', 'GESTOR_MASTER'],
-};
+// 🔒 SISTEMA DE AUTORIZAÇÃO SEGURO - POR PADRÃO TUDO É PROTEGIDO
 
-// Rotas públicas que não precisam de autenticação
+// Rotas PÚBLICAS (únicas que não precisam de autenticação)
 const PUBLIC_ROUTES = [
   '/login',
   '/api/auth/login',
@@ -33,115 +11,142 @@ const PUBLIC_ROUTES = [
   '/api/nova-senha',
   '/_next',
   '/favicon.ico',
+  '/manifest.json',
+  '/sw.js',
 ];
+
+// Definir rotas com permissões específicas (além da autenticação básica)
+const ROLE_RESTRICTED_ROUTES = {
+  // 🔴 APENAS GESTOR_MASTER
+  '/api/hierarchy': ['GESTOR_MASTER'],
+  '/api/users': ['GESTOR_MASTER'],
+  '/usuarios': ['GESTOR_MASTER'],
+  '/api/seed': ['GESTOR_MASTER'], // Perigoso - apenas master
+  
+  // 🟠 GESTOR_III e acima (Diretoria)
+  '/dashboard-graphql': ['GESTOR_III', 'GESTOR_MASTER'],
+  '/configurar-rfv': ['GESTOR_III', 'GESTOR_MASTER'],
+  '/api/rfv-parameters': ['GESTOR_III', 'GESTOR_MASTER'],
+  
+  // 🟡 GESTOR_II e acima (Regional)  
+  '/api/rfv': ['GESTOR_II', 'GESTOR_III', 'GESTOR_MASTER'],
+  '/clientes': ['GESTOR_II', 'GESTOR_III', 'GESTOR_MASTER'],
+  '/api/clientes': ['GESTOR_II', 'GESTOR_III', 'GESTOR_MASTER'],
+  
+  // 🟢 GESTOR_I e acima (Filial)
+  '/carteira-vendedor': ['GESTOR_I', 'GESTOR_II', 'GESTOR_III', 'GESTOR_MASTER'],
+  '/vendedores': ['GESTOR_I', 'GESTOR_II', 'GESTOR_III', 'GESTOR_MASTER'],
+  '/api/vendedores': ['GESTOR_I', 'GESTOR_II', 'GESTOR_III', 'GESTOR_MASTER'],
+  '/api/carteira-vendedor': ['GESTOR_I', 'GESTOR_II', 'GESTOR_III', 'GESTOR_MASTER'],
+  
+  // 🔵 Todos os usuários autenticados têm acesso (mas devem estar logados)
+  // Essas rotas não aparecem aqui - são protegidas apenas por autenticação básica
+};
 
 export async function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl;
   
-  // Verificar se é uma rota pública
+  // 🔓 STEP 1: Verificar se é uma rota PÚBLICA (não precisa de autenticação)
   if (PUBLIC_ROUTES.some(route => pathname.startsWith(route))) {
     return NextResponse.next();
   }
 
-  // Verificar se é uma rota protegida
-  const protectedRoute = Object.keys(PROTECTED_ROUTES).find(route => 
-    pathname.startsWith(route)
-  );
-
-  if (!protectedRoute) {
-    // Para rotas não protegidas, tentar injetar cabeçalhos de escopo se houver token
-    const token = request.cookies.get('auth-token')?.value || 
-                  request.headers.get('authorization')?.replace('Bearer ', '');
-
-    if (token) {
-      try {
-        const secret = new TextEncoder().encode(process.env.JWT_SECRET || 'fallback-secret');
-        const { payload } = await jwtVerify(token, secret);
-
-        const requestHeaders = new Headers(request.headers);
-        requestHeaders.set('x-user-id', String(payload.userId || ''));
-        requestHeaders.set('x-user-role', String(payload.role || 'VENDEDOR'));
-        requestHeaders.set('x-user-empresa-id', String(payload.empresaId || ''));
-        requestHeaders.set('x-user-diretoria-id', String(payload.diretoriaId || ''));
-        requestHeaders.set('x-user-regional-id', String(payload.regionalId || ''));
-        requestHeaders.set('x-user-filial-id', String(payload.filialId || ''));
-
-        return NextResponse.next({
-          request: {
-            headers: requestHeaders,
-          },
-        });
-      } catch {
-        // Se token inválido, permitir acesso sem injeção
-        return NextResponse.next();
-      }
-    }
-
-    // Se não há token, seguir normalmente
-    return NextResponse.next();
-  }
-
-  // Obter token do cookie ou header
+  // 🔒 STEP 2: Por padrão, TODAS as outras rotas precisam de autenticação
+  
+  // Obter token do cookie ou header Authorization
   const token = request.cookies.get('auth-token')?.value || 
                 request.headers.get('authorization')?.replace('Bearer ', '');
 
+  // Se não há token, bloquear acesso
   if (!token) {
-    // Redirecionar para login se não há token
     if (pathname.startsWith('/api/')) {
       return NextResponse.json(
-        { error: 'Token de autenticação necessário' },
+        { 
+          error: 'Acesso negado',
+          message: 'Token de autenticação obrigatório',
+          code: 'AUTHENTICATION_REQUIRED'
+        },
+        { status: 401 }
+      );
+    }
+    // Para páginas web, redirecionar para login
+    return NextResponse.redirect(new URL('/login', request.url));
+  }
+
+  // 🔍 STEP 3: Validar e decodificar o token JWT
+  let payload: any;
+  try {
+    const secret = new TextEncoder().encode(process.env.JWT_SECRET || 'fallback-secret');
+    const result = await jwtVerify(token, secret);
+    payload = result.payload;
+  } catch (error) {
+    console.error('Token JWT inválido:', error);
+    
+    if (pathname.startsWith('/api/')) {
+      return NextResponse.json(
+        { 
+          error: 'Token inválido',
+          message: 'Token JWT expirado ou malformado',
+          code: 'INVALID_TOKEN'
+        },
         { status: 401 }
       );
     }
     return NextResponse.redirect(new URL('/login', request.url));
   }
 
-  try {
-    // Verificar e decodificar o token JWT
-    const secret = new TextEncoder().encode(process.env.JWT_SECRET || 'fallback-secret');
-    const { payload } = await jwtVerify(token, secret);
-    
-    const userRole = payload.role as string;
-    const allowedRoles = PROTECTED_ROUTES[protectedRoute as keyof typeof PROTECTED_ROUTES];
+  // 🎭 STEP 4: Verificar se usuário está ativo (se campo existir)
+  // if (payload.active === false) {
+  //   return NextResponse.json(
+  //     { error: 'Usuário inativo', code: 'USER_INACTIVE' },
+  //     { status: 403 }
+  //   );
+  // }
 
-    // Verificar se o usuário tem permissão para acessar a rota
+  const userRole = payload.role as string;
+
+  // 🛡️ STEP 5: Verificar permissões específicas por role (se aplicável)
+  const roleRestrictedRoute = Object.keys(ROLE_RESTRICTED_ROUTES).find(route => 
+    pathname.startsWith(route)
+  );
+
+  
+  // Se há rota com restrição de role específica, verificar permissão
+  if (roleRestrictedRoute) {
+    const allowedRoles = ROLE_RESTRICTED_ROUTES[roleRestrictedRoute as keyof typeof ROLE_RESTRICTED_ROUTES];
+    
     if (!allowedRoles.includes(userRole)) {
       if (pathname.startsWith('/api/')) {
         return NextResponse.json(
-          { error: 'Acesso negado. Permissões insuficientes.' },
+          { 
+            error: 'Acesso negado',
+            message: `Role '${userRole}' não tem permissão para acessar esta rota`,
+            code: 'INSUFFICIENT_PERMISSIONS',
+            requiredRoles: allowedRoles
+          },
           { status: 403 }
         );
       }
-      // Redirecionar para página inicial se não tem permissão
-      return NextResponse.redirect(new URL('/', request.url));
+      // Para páginas web, redirecionar para dashboard
+      return NextResponse.redirect(new URL('/dashboard', request.url));
     }
-
-    // Adicionar informações do usuário aos headers para uso nas rotas
-    const requestHeaders = new Headers(request.headers);
-    requestHeaders.set('x-user-id', payload.userId as string);
-    requestHeaders.set('x-user-role', userRole);
-    requestHeaders.set('x-user-empresa-id', payload.empresaId as string || '');
-    requestHeaders.set('x-user-diretoria-id', payload.diretoriaId as string || '');
-    requestHeaders.set('x-user-regional-id', payload.regionalId as string || '');
-    requestHeaders.set('x-user-filial-id', payload.filialId as string || '');
-
-    return NextResponse.next({
-      request: {
-        headers: requestHeaders,
-      },
-    });
-
-  } catch (error) {
-    console.error('Erro na verificação do token:', error);
-    
-    if (pathname.startsWith('/api/')) {
-      return NextResponse.json(
-        { error: 'Token inválido' },
-        { status: 401 }
-      );
-    }
-    return NextResponse.redirect(new URL('/login', request.url));
   }
+
+  // 🎯 STEP 6: SUCESSO - Usuário autenticado e autorizado
+  // Injetar informações do usuário nos headers para uso nas APIs
+  const requestHeaders = new Headers(request.headers);
+  requestHeaders.set('x-user-id', String(payload.userId || ''));
+  requestHeaders.set('x-user-role', String(userRole));
+  requestHeaders.set('x-user-empresa-id', String(payload.empresaId || ''));
+  requestHeaders.set('x-user-diretoria-id', String(payload.diretoriaId || ''));
+  requestHeaders.set('x-user-regional-id', String(payload.regionalId || ''));
+  requestHeaders.set('x-user-filial-id', String(payload.filialId || ''));
+
+  return NextResponse.next({
+    request: {
+      headers: requestHeaders,
+    },
+  });
 }
 
 export const config = {

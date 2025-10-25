@@ -49,27 +49,19 @@ export const ToastProvider = ({ children }: { children: ReactNode }) => {
   const getToastIcon = (type: ToastType) => {
     switch (type) {
       case 'success':
-        return <CheckCircle className="w-5 h-5 text-green-600" />;
+        return <CheckCircle className="w-5 h-5 text-[#003153]" />;
       case 'error':
-        return <XCircle className="w-5 h-5 text-red-600" />;
+        return <XCircle className="w-5 h-5 text-[#003153]" />;
       case 'warning':
-        return <AlertCircle className="w-5 h-5 text-yellow-600" />;
+        return <AlertCircle className="w-5 h-5 text-[#003153]" />;
       case 'info':
-        return <Info className="w-5 h-5 text-blue-600" />;
+        return <Info className="w-5 h-5 text-[#003153]" />;
     }
   };
 
   const getToastColors = (type: ToastType) => {
-    switch (type) {
-      case 'success':
-        return 'bg-green-50 border-green-200 text-green-800';
-      case 'error':
-        return 'bg-red-50 border-red-200 text-red-800';
-      case 'warning':
-        return 'bg-yellow-50 border-yellow-200 text-yellow-800';
-      case 'info':
-        return 'bg-blue-50 border-blue-200 text-blue-800';
-    }
+    // Usar sempre fundo branco com borda na cor da sidebar
+    return 'bg-white border-[#003153]/20 text-[#003153]';
   };
 
   return (

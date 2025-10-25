@@ -1,4 +1,5 @@
 import { NextResponse } from 'next/server';
+import { requirePermission } from '../../../../../lib/permissions';
 
 export async function GET() {
   try {

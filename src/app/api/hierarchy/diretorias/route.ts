@@ -1,9 +1,19 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '../../../../../lib/prisma';
 import { deriveScopeFromRequest, applyBasicScopeToWhere } from '../../../../../lib/scope';
+import { requirePermission } from '../../../../../lib/permissions';
 
 // GET /api/hierarchy/diretorias - Lista todas as diretorias
 export async function GET(req: NextRequest) {
+  // 🔒 Verificação de Segurança - Adicionado automaticamente
+  const authResult = requirePermission('MANAGE_HIERARCHY')(req);
+  if (!authResult.allowed) {
+    return NextResponse.json(
+      { error: authResult.error || 'Acesso não autorizado' },
+      { status: 401 }
+    );
+  }
+
   try {
     const { searchParams } = new URL(req.url);
     const empresaId = searchParams.get('empresaId');
@@ -53,6 +63,15 @@ export async function GET(req: NextRequest) {
 
 // POST /api/hierarchy/diretorias - Cria uma nova diretoria
 export async function POST(req: NextRequest) {
+  // 🔒 Verificação de Segurança - Adicionado automaticamente
+  const authResult = requirePermission('MANAGE_HIERARCHY')(req);
+  if (!authResult.allowed) {
+    return NextResponse.json(
+      { error: authResult.error || 'Acesso não autorizado' },
+      { status: 401 }
+    );
+  }
+
   try {
     const { nome, empresaId } = await req.json();
     

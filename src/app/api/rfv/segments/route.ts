@@ -1,8 +1,18 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '../../../../../lib/prisma';
+import { requirePermission } from '../../../../../lib/permissions';
 
 // GET /api/rfv/segments - Listar segmentos RFV
 export async function GET(req: NextRequest) {
+  // 🔒 Verificação de Segurança - Adicionado automaticamente
+  const authResult = requirePermission('MANAGE_RFV')(req);
+  if (!authResult.allowed) {
+    return NextResponse.json(
+      { error: authResult.error || 'Acesso não autorizado' },
+      { status: 401 }
+    );
+  }
+
   const { searchParams } = new URL(req.url);
   const parameterSetId = searchParams.get('parameterSetId');
 
@@ -34,6 +44,15 @@ export async function GET(req: NextRequest) {
 
 // POST /api/rfv/segments - Criar novo segmento RFV
 export async function POST(req: NextRequest) {
+  // 🔒 Verificação de Segurança - Adicionado automaticamente
+  const authResult = requirePermission('MANAGE_RFV')(req);
+  if (!authResult.allowed) {
+    return NextResponse.json(
+      { error: authResult.error || 'Acesso não autorizado' },
+      { status: 401 }
+    );
+  }
+
   try {
     const body = await req.json();
     const {
@@ -90,6 +109,15 @@ export async function POST(req: NextRequest) {
 
 // PUT /api/rfv/segments - Atualizar segmento RFV existente
 export async function PUT(req: NextRequest) {
+  // 🔒 Verificação de Segurança - Adicionado automaticamente
+  const authResult = requirePermission('MANAGE_RFV')(req);
+  if (!authResult.allowed) {
+    return NextResponse.json(
+      { error: authResult.error || 'Acesso não autorizado' },
+      { status: 401 }
+    );
+  }
+
   try {
     const body = await req.json();
     const {
@@ -143,6 +171,15 @@ export async function PUT(req: NextRequest) {
 
 // DELETE /api/rfv/segments - Deletar segmento RFV
 export async function DELETE(req: NextRequest) {
+  // 🔒 Verificação de Segurança - Adicionado automaticamente
+  const authResult = requirePermission('MANAGE_RFV')(req);
+  if (!authResult.allowed) {
+    return NextResponse.json(
+      { error: authResult.error || 'Acesso não autorizado' },
+      { status: 401 }
+    );
+  }
+
   const { searchParams } = new URL(req.url);
   const segmentId = searchParams.get('id');
 

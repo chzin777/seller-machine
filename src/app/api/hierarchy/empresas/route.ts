@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '../../../../../lib/prisma';
+import { requirePermission } from '../../../../../lib/permissions';
 
 // GET /api/hierarchy/empresas - Lista todas as empresas
 export async function GET() {
@@ -30,6 +31,15 @@ export async function GET() {
 
 // POST /api/hierarchy/empresas - Cria uma nova empresa
 export async function POST(req: NextRequest) {
+  // 🔒 Verificação de Segurança - Adicionado automaticamente
+  const authResult = requirePermission('MANAGE_HIERARCHY')(req);
+  if (!authResult.allowed) {
+    return NextResponse.json(
+      { error: authResult.error || 'Acesso não autorizado' },
+      { status: 401 }
+    );
+  }
+
   try {
     const { razaoSocial, cnpjMatriz } = await req.json();
     

@@ -1,8 +1,18 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { PrismaClient } from '@prisma/client';
 import { deriveScopeFromRequest, applyBasicScopeToWhere } from '../../../../../lib/scope';
+import { requirePermission } from '../../../../../lib/permissions';
 
 export async function GET(request: NextRequest) {
+  // 🔒 Verificação de Segurança - Adicionado automaticamente
+  const authResult = requirePermission('VIEW_AI_DASHBOARD')(req);
+  if (!authResult.allowed) {
+    return NextResponse.json(
+      { error: authResult.error || 'Acesso não autorizado' },
+      { status: 401 }
+    );
+  }
+
   try {
     const { searchParams } = new URL(request.url);
     const clienteId = searchParams.get('clienteId');
@@ -19,7 +29,7 @@ export async function GET(request: NextRequest) {
     let pedidos: any[] = [];
 
     const prisma = new PrismaClient();
-    const scope = deriveScopeFromRequest(request);
+    const scope = deriveScopeFromRequest(req);
     try {
       let whereClause: any = {};
       whereClause = applyBasicScopeToWhere(whereClause, scope, { filialKey: 'filialId' });

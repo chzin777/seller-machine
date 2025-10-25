@@ -17,13 +17,16 @@ export interface Notification {
   duration?: number; // em ms
   category?: 'churn' | 'sales' | 'recommendations' | 'system' | 'training' | 'daily' | 'welcome';
   priority?: 'low' | 'medium' | 'high';
+  dismissed?: boolean; // Para controlar se foi fechada do toast mas ainda está no histórico
 }
 
 interface GlobalNotificationContextType {
-  notifications: Notification[];
+  notifications: Notification[]; // Todas as notificações (histórico completo)
+  toastNotifications: Notification[]; // Apenas notificações visíveis como toast
   unreadCount: number;
   addNotification: (notification: Omit<Notification, 'id' | 'timestamp' | 'read'>) => void;
   removeNotification: (id: string) => void;
+  dismissToast: (id: string) => void; // Fecha o toast mas mantém no histórico
   markAsRead: (id: string) => void;
   markAllAsRead: () => void;
   clearAll: () => void;
@@ -36,25 +39,76 @@ export function GlobalNotificationProvider({ children }: { children: ReactNode }
   const [notifications, setNotifications] = useState<Notification[]>([]);
   const [isFirstVisitToday, setIsFirstVisitToday] = useState(false);
 
+  // Carregar notificações persistentes do localStorage
+  useEffect(() => {
+    try {
+      const savedNotifications = localStorage.getItem('notification-history');
+      if (savedNotifications) {
+        const parsed = JSON.parse(savedNotifications);
+        // Converter timestamps de string para Date
+        const notificationsWithDates = parsed.map((n: any) => ({
+          ...n,
+          timestamp: new Date(n.timestamp)
+        }));
+        setNotifications(notificationsWithDates);
+      }
+    } catch (error) {
+      console.error('Erro ao carregar notificações do localStorage:', error);
+    }
+  }, []);
+
+  // Salvar notificações no localStorage sempre que mudarem
+  useEffect(() => {
+    try {
+      localStorage.setItem('notification-history', JSON.stringify(notifications));
+    } catch (error) {
+      console.error('Erro ao salvar notificações no localStorage:', error);
+    }
+  }, [notifications]);
+
+  // Filtrar toasts (notificações não dismissadas, independente de serem lidas)
+  const toastNotifications = notifications.filter(n => 
+    !n.dismissed && 
+    (Date.now() - n.timestamp.getTime()) < 30000 // Mostrar por até 30 segundos
+  ).slice(0, 4); // Limitar a 4 toasts simultâneos
+
   const addNotification = useCallback((notificationData: Omit<Notification, 'id' | 'timestamp' | 'read'>) => {
     const notification: Notification = {
       ...notificationData,
       id: Math.random().toString(36).substr(2, 9),
       timestamp: new Date(),
       read: false,
+      dismissed: false,
       autoClose: notificationData.autoClose ?? true,
       duration: notificationData.duration ?? (notificationData.priority === 'high' ? 8000 : 5000),
       priority: notificationData.priority ?? 'medium'
     };
 
-    setNotifications(prev => [notification, ...prev]);
+    setNotifications(prev => {
+      // Verificar se já existe uma notificação similar (mesmo título)
+      const existingIndex = prev.findIndex(n => n.title === notification.title);
+      if (existingIndex !== -1) {
+        // Atualizar notificação existente
+        const updated = [...prev];
+        updated[existingIndex] = { ...notification, id: prev[existingIndex].id };
+        return updated;
+      }
+      // Adicionar nova notificação
+      return [notification, ...prev];
+    });
 
-    // Auto-remove se especificado
+    // Auto-dismiss toast se especificado (mas mantém no histórico)
     if (notification.autoClose) {
       setTimeout(() => {
-        removeNotification(notification.id);
+        dismissToast(notification.id);
       }, notification.duration);
     }
+  }, []);
+
+  const dismissToast = useCallback((id: string) => {
+    setNotifications(prev => 
+      prev.map(n => n.id === id ? { ...n, dismissed: true } : n)
+    );
   }, []);
 
   const removeNotification = useCallback((id: string) => {
@@ -73,6 +127,12 @@ export function GlobalNotificationProvider({ children }: { children: ReactNode }
 
   const clearAll = useCallback(() => {
     setNotifications([]);
+    // Também limpar do localStorage
+    try {
+      localStorage.removeItem('notification-history');
+    } catch (error) {
+      console.error('Erro ao limpar histórico de notificações:', error);
+    }
   }, []);
 
   const unreadCount = notifications.filter(n => !n.read).length;
@@ -119,66 +179,61 @@ export function GlobalNotificationProvider({ children }: { children: ReactNode }
     checkFirstVisitToday();
   }, [addNotification]);
 
-  // Sistema de notificações periódicas
+  // Sistema de notificações baseado em dados reais
   useEffect(() => {
-    const generatePeriodicNotifications = () => {
-      const notifications = [
-        {
-          type: 'ai-insight' as NotificationType,
-          title: '🧠 Novo Insight Detectado',
-          message: 'Cliente "Maria Silva" com 90% probabilidade de churn detectada',
-          category: 'churn' as const,
-          priority: 'high' as const,
-          actionLabel: 'Revisar Cliente',
-          actionFn: () => console.log('Navigate to customer analysis')
-        },
-        {
-          type: 'warning' as NotificationType,
-          title: '📉 Alerta de Performance',
-          message: 'Vendas da filial Sul caíram 18% esta semana',
-          category: 'sales' as const,
-          priority: 'high' as const,
-          actionLabel: 'Analisar Vendas',
-          actionFn: () => console.log('Navigate to sales analysis')
-        },
-        {
-          type: 'success' as NotificationType,
-          title: '✅ Modelo Atualizado',
-          message: 'Sistema de recomendações retreinado com 95% de precisão',
-          category: 'training' as const,
-          priority: 'medium' as const,
-          actionLabel: 'Ver Métricas',
-          actionFn: () => console.log('Navigate to model metrics')
-        },
-        {
-          type: 'info' as NotificationType,
-          title: '📈 Oportunidade Identificada',
-          message: '12 clientes prontos para upgrade de plano detectados',
-          category: 'recommendations' as const,
-          priority: 'medium' as const,
-          actionLabel: 'Ver Lista',
-          actionFn: () => console.log('Navigate to opportunities')
-        },
-        {
-          type: 'warning' as NotificationType,
-          title: '⏰ Ação Requerida',
-          message: '8 clientes sem contato há mais de 30 dias',
-          category: 'system' as const,
-          priority: 'medium' as const,
-          actionLabel: 'Revisar',
-          actionFn: () => console.log('Navigate to inactive customers')
+    const fetchRealNotifications = async () => {
+      try {
+        const response = await fetch('/api/notifications');
+        if (!response.ok) {
+          console.error('Erro ao buscar notificações:', response.status);
+          return;
         }
-      ];
 
-      const randomNotification = notifications[Math.floor(Math.random() * notifications.length)];
-      addNotification(randomNotification);
+        const data = await response.json();
+        
+        // Adicionar notificações reais do sistema
+        if (data.notifications && Array.isArray(data.notifications)) {
+          // Limitar a 3 notificações por vez para não sobrecarregar
+          const newNotifications = data.notifications.slice(0, 3);
+          
+          newNotifications.forEach((notification: any, index: number) => {
+            // Adicionar com delay escalonado para melhor UX
+            setTimeout(() => {
+              addNotification({
+                type: notification.type,
+                title: notification.title,
+                message: notification.message,
+                category: notification.category,
+                priority: notification.priority,
+                actionLabel: notification.actionLabel,
+                actionFn: notification.actionUrl ? () => {
+                  window.location.href = notification.actionUrl;
+                } : undefined,
+                duration: notification.priority === 'high' ? 10000 : 8000
+              });
+            }, index * 2000); // 2 segundos entre cada notificação
+          });
+        }
+      } catch (error) {
+        console.error('Erro ao buscar notificações reais:', error);
+        
+        // Fallback: uma notificação de erro
+        addNotification({
+          type: 'warning',
+          title: '⚠️ Sistema de Notificações',
+          message: 'Não foi possível carregar notificações em tempo real',
+          category: 'system',
+          priority: 'low',
+          duration: 5000
+        });
+      }
     };
 
-    // Primeira notificação após 10 segundos
-    const initialTimer = setTimeout(generatePeriodicNotifications, 10000);
+    // Primeira verificação após 5 segundos
+    const initialTimer = setTimeout(fetchRealNotifications, 5000);
     
-    // Notificações periódicas a cada 2 minutos
-    const interval = setInterval(generatePeriodicNotifications, 120000);
+    // Verificar notificações reais a cada 5 minutos
+    const interval = setInterval(fetchRealNotifications, 300000);
 
     return () => {
       clearTimeout(initialTimer);
@@ -204,9 +259,11 @@ export function GlobalNotificationProvider({ children }: { children: ReactNode }
   return (
     <GlobalNotificationContext.Provider value={{
       notifications,
+      toastNotifications,
       unreadCount,
       addNotification,
       removeNotification,
+      dismissToast,
       markAsRead,
       markAllAsRead,
       clearAll,

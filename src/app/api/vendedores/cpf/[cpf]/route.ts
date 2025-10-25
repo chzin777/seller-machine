@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { requirePermission } from '../../../../../../lib/permissions';
 
 interface RouteParams {
   params: Promise<{
@@ -7,6 +8,15 @@ interface RouteParams {
 }
 
 export async function GET(request: NextRequest, { params }: RouteParams) {
+  // 🔒 Verificação de Segurança - Adicionado automaticamente
+  const authResult = requirePermission('VIEW_FILIAL_SELLERS')(request);
+  if (!authResult.allowed) {
+    return NextResponse.json(
+      { error: authResult.error || 'Acesso não autorizado' },
+      { status: authResult.status || 401 }
+    );
+  }
+
   try {
     const { cpf } = await params;
     

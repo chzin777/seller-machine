@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { prisma } from '../../../../lib/prisma'
 import { deriveScopeFromRequest, applyBasicScopeToWhere } from '../../../../lib/scope'
+import { requirePermission } from '../../../../lib/permissions';
 
 // Mapeamento de categorias para tipos
 const categoryToType: Record<string, string> = {
@@ -10,8 +11,17 @@ const categoryToType: Record<string, string> = {
 };
 
 export async function GET(request: NextRequest) {
+  // 🔒 Verificação de Segurança - Adicionado automaticamente
+  const authResult = requirePermission('MANAGE_ASSOCIATIONS')(req);
+  if (!authResult.allowed) {
+    return NextResponse.json(
+      { error: authResult.error || 'Acesso não autorizado' },
+      { status: 401 }
+    );
+  }
+
   try {
-    const scope = deriveScopeFromRequest(request)
+    const scope = deriveScopeFromRequest(req)
     // Buscar associações reais do banco de dados
     let realAssociations: any[] = []
     try {

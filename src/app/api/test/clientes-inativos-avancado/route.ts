@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { requirePermission } from '../../../../../lib/permissions';
 
 // Tipo para cliente baseado na interface existente
 interface Cliente {
@@ -58,6 +59,15 @@ interface ClienteAtivo {
  * - empresaId: ID da empresa (default: 1)
  */
 export async function GET(req: NextRequest) {
+  // 🔒 Verificação de Segurança - Adicionado automaticamente
+  const authResult = requirePermission('EXECUTE_SEED_OPERATIONS')(req);
+  if (!authResult.allowed) {
+    return NextResponse.json(
+      { error: authResult.error || 'Acesso não autorizado' },
+      { status: 401 }
+    );
+  }
+
   try {
     const searchParams = req.nextUrl.searchParams;
     

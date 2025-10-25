@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { PrismaClient } from '@prisma/client'
 import { deriveScopeFromRequest, applyBasicScopeToWhere } from '../../../../../lib/scope';
+import { requirePermission } from '../../../../../lib/permissions';
 
 interface Pedido {
   id: number;
@@ -22,9 +23,18 @@ interface Cliente {
 }
 
 export async function GET(request: NextRequest) {
+  // 🔒 Verificação de Segurança - Adicionado automaticamente
+  const authResult = requirePermission('VIEW_AI_DASHBOARD')(req);
+  if (!authResult.allowed) {
+    return NextResponse.json(
+      { error: authResult.error || 'Acesso não autorizado' },
+      { status: 401 }
+    );
+  }
+
   try {
     const prisma = new PrismaClient()
-    const scope = deriveScopeFromRequest(request)
+    const scope = deriveScopeFromRequest(req)
 
     let clientes: Cliente[] = []
     let vendas: Vendas = { pedidos: [] }

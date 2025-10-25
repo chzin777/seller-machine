@@ -53,8 +53,8 @@ export default function GlobalNotificationBell() {
         <Bell className="w-5 h-5" />
         {unreadCount > 0 && (
           <Badge 
-            variant="destructive" 
-            className="absolute -top-1 -right-1 h-5 w-5 flex items-center justify-center text-xs p-0 bg-red-500 hover:bg-red-500"
+            className="absolute -top-1 -right-1 h-5 w-5 flex items-center justify-center text-xs p-0 bg-[#003153] hover:bg-[#003153]/90 border-[#003153]"
+            style={{ color: '#ffffff' }}
           >
             {unreadCount > 99 ? '99+' : unreadCount}
           </Badge>
@@ -65,10 +65,10 @@ export default function GlobalNotificationBell() {
       {isOpen && (
         <div className="absolute right-0 top-full mt-2 w-80 sm:w-96 max-w-[calc(100vw-1rem)] bg-white rounded-xl shadow-xl border border-gray-200 z-50 max-h-80 sm:max-h-96 overflow-hidden">
           {/* Header */}
-          <div className="flex items-center justify-between p-3 sm:p-4 border-b border-gray-100 bg-gradient-to-r from-blue-50 to-purple-50">
+          <div className="flex items-center justify-between p-3 sm:p-4 border-b border-[#003153]/10 bg-[#003153]/5">
             <div>
-              <h3 className="font-semibold text-sm sm:text-base text-gray-900">Notificações</h3>
-              <p className="text-xs text-gray-500">
+              <h3 className="font-semibold text-sm sm:text-base text-[#003153]">Notificações</h3>
+              <p className="text-xs text-[#003153]/60">
                 {unreadCount} não lidas de {notifications.length} total
               </p>
             </div>
@@ -99,19 +99,21 @@ export default function GlobalNotificationBell() {
           <div className="max-h-64 sm:max-h-80 overflow-y-auto">
             {recentNotifications.length === 0 ? (
               <div className="p-6 sm:p-8 text-center">
-                <Bell className="w-10 h-10 sm:w-12 sm:h-12 text-gray-300 mx-auto mb-3" />
-                <p className="text-gray-500 text-sm">Nenhuma notificação</p>
+                <Bell className="w-10 h-10 sm:w-12 sm:h-12 text-[#003153]/30 mx-auto mb-3" />
+                <p className="text-[#003153]/60 text-sm">Nenhuma notificação</p>
               </div>
             ) : (
               <div className="divide-y divide-gray-100">
                 {recentNotifications.map(notification => (
                   <div
                     key={notification.id}
-                    className="p-3 sm:p-4 hover:bg-gray-50 transition-colors cursor-pointer"
+                    className="p-3 sm:p-4 hover:bg-[#003153]/5 transition-colors cursor-pointer"
                     style={!notification.read ? { 
                       backgroundColor: 'rgba(0, 49, 83, 0.05)',
-                      borderLeft: '2px solid #003153'
-                    } : {}}
+                      borderLeft: '3px solid #003153'
+                    } : {
+                      borderLeft: '3px solid transparent'
+                    }}
                     onClick={() => {
                       if (!notification.read) markAsRead(notification.id);
                       if (notification.actionFn) notification.actionFn();
@@ -125,12 +127,12 @@ export default function GlobalNotificationBell() {
                       <div className="flex-1 min-w-0">
                         <div className="flex items-center justify-between mb-1">
                           <h4 className={`text-sm font-medium truncate ${
-                            !notification.read ? 'text-gray-900' : 'text-gray-600'
+                            !notification.read ? 'text-[#003153]' : 'text-[#003153]/70'
                           }`}>
                             {notification.title}
                           </h4>
                           <div className="flex items-center space-x-2">
-                            <span className="text-xs text-gray-400">
+                            <span className="text-xs text-[#003153]/50">
                               {formatTime(notification.timestamp)}
                             </span>
                             {!notification.read && (
@@ -139,13 +141,13 @@ export default function GlobalNotificationBell() {
                           </div>
                         </div>
                         
-                        <p className="text-xs text-gray-500 mb-2 leading-relaxed">
+                        <p className="text-xs text-[#003153]/70 mb-2 leading-relaxed">
                           {notification.message}
                         </p>
 
                         <div className="flex items-center justify-between">
                           {notification.category && (
-                            <Badge variant="secondary" className="text-xs">
+                            <Badge variant="secondary" className="text-xs bg-[#003153]/10 text-[#003153] border-[#003153]/20">
                               {notification.category}
                             </Badge>
                           )}
@@ -155,7 +157,8 @@ export default function GlobalNotificationBell() {
                               e.stopPropagation();
                               removeNotification(notification.id);
                             }}
-                            className="text-gray-400 hover:text-red-500 transition-colors p-1"
+                            className="text-[#003153]/40 hover:text-[#003153] transition-colors p-1"
+                            title="Remover notificação"
                           >
                             <X className="w-3 h-3" />
                           </button>
@@ -170,12 +173,12 @@ export default function GlobalNotificationBell() {
 
           {/* Footer */}
           {notifications.length > 0 && (
-            <div className="p-2 sm:p-3 border-t border-gray-100 bg-gray-50 flex flex-col sm:flex-row justify-between gap-2 sm:gap-0">
+            <div className="p-2 sm:p-3 border-t border-[#003153]/10 bg-[#003153]/5 flex flex-col sm:flex-row justify-between gap-2 sm:gap-0">
               <Button
                 variant="ghost"
                 size="sm"
                 onClick={clearAll}
-                className="text-xs text-red-600 hover:text-red-700 h-7 w-full sm:w-auto justify-center sm:justify-start"
+                className="text-xs text-[#003153]/70 hover:text-[#003153] h-7 w-full sm:w-auto justify-center sm:justify-start hover:bg-[#003153]/10"
               >
                 <Trash2 className="w-3 h-3 mr-1" />
                 Limpar todas
@@ -188,8 +191,7 @@ export default function GlobalNotificationBell() {
                   setIsOpen(false);
                   window.location.href = '/ia';
                 }}
-                className="text-xs h-7 w-full sm:w-auto justify-center sm:justify-start hover:text-[#002d4a]" 
-                style={{ color: '#003153' }}
+                className="text-xs h-7 w-full sm:w-auto justify-center sm:justify-start text-[#003153] hover:text-[#003153]/80 hover:bg-[#003153]/10"
               >
                 <Eye className="w-3 h-3 mr-1" />
                 Ver todas

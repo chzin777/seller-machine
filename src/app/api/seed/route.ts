@@ -1,4 +1,5 @@
-import { NextResponse } from 'next/server';
+import { NextRequest, NextResponse } from 'next/server';
+import { requirePermission } from '../../../../lib/permissions';
 import { recomputeStats, recomputeAssociations, generateRecommendations, runRecompraAlerts } from '../../../../lib/rules';
 import { prisma } from '../../../../lib/prisma';
 
@@ -9,7 +10,19 @@ function randomInt(min: number, max: number) {
 const categories = ['Descartáveis', 'Limpeza', 'Copa'];
 const basket = ['Garfo', 'Prato', 'Faca', 'Copo', 'Máquina de Lavar', 'Serviço de Limpeza', 'Equipamento Industrial', 'Manutenção'];
 
-export async function POST() {
+export async function POST(request: NextRequest) {
+  // 🚨 OPERAÇÃO PERIGOSA - Apenas GESTOR_MASTER pode executar seed
+  const authCheck = requirePermission('EXECUTE_SEED_OPERATIONS')(request);
+  if (!authCheck.allowed) {
+    return NextResponse.json(
+      { 
+        error: 'Acesso negado', 
+        message: 'Apenas GESTOR_MASTER pode executar operações de seed',
+        code: 'SEED_OPERATION_DENIED'
+      }, 
+      { status: 403 }
+    );
+  }
   try {
     // Verifica se já tem dados
     const existingCustomers = await prisma.cliente.findMany({

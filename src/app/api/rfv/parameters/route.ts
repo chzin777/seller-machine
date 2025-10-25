@@ -1,9 +1,19 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '../../../../../lib/prisma';
 import { deriveScopeFromRequest, applyBasicScopeToWhere } from '../../../../../lib/scope';
+import { requirePermission } from '../../../../../lib/permissions';
 
 // GET /api/rfv/parameters - Buscar parâmetros RFV
 export async function GET(req: NextRequest) {
+  // 🔒 Verificação de Segurança - Adicionado automaticamente
+  const authResult = requirePermission('MANAGE_RFV')(req);
+  if (!authResult.allowed) {
+    return NextResponse.json(
+      { error: authResult.error || 'Acesso não autorizado' },
+      { status: 401 }
+    );
+  }
+
   const { searchParams } = new URL(req.url);
   const active = searchParams.get('active');
   const filialId = searchParams.get('filialId');
@@ -57,6 +67,15 @@ export async function GET(req: NextRequest) {
 
 // POST /api/rfv/parameters - Criar novos parâmetros RFV
 export async function POST(req: NextRequest) {
+  // 🔒 Verificação de Segurança - Adicionado automaticamente
+  const authResult = requirePermission('MANAGE_RFV')(req);
+  if (!authResult.allowed) {
+    return NextResponse.json(
+      { error: authResult.error || 'Acesso não autorizado' },
+      { status: 401 }
+    );
+  }
+
   try {
     const body = await req.json();
     const {
@@ -205,6 +224,15 @@ export async function POST(req: NextRequest) {
 
 // PUT /api/rfv/parameters - Atualizar parâmetros RFV existentes
 export async function PUT(req: NextRequest) {
+  // 🔒 Verificação de Segurança - Adicionado automaticamente
+  const authResult = requirePermission('MANAGE_RFV')(req);
+  if (!authResult.allowed) {
+    return NextResponse.json(
+      { error: authResult.error || 'Acesso não autorizado' },
+      { status: 401 }
+    );
+  }
+
   try {
     const body = await req.json();
     const { id, segments, ...updateData } = body;
@@ -267,6 +295,15 @@ export async function PUT(req: NextRequest) {
 
 // DELETE /api/rfv/parameters - Remover parâmetros RFV
 export async function DELETE(req: NextRequest) {
+  // 🔒 Verificação de Segurança - Adicionado automaticamente
+  const authResult = requirePermission('MANAGE_RFV')(req);
+  if (!authResult.allowed) {
+    return NextResponse.json(
+      { error: authResult.error || 'Acesso não autorizado' },
+      { status: 401 }
+    );
+  }
+
   const { searchParams } = new URL(req.url);
   const id = searchParams.get('id');
 

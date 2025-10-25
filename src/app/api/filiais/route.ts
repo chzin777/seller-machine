@@ -1,13 +1,23 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '../../../../lib/prisma';
 import { deriveScopeFromRequest, applyBasicScopeToWhere } from '../../../../lib/scope';
+import { requirePermission } from '../../../../lib/permissions';
 
 export async function GET(request: NextRequest) {
+  // 🔒 Verificação de Segurança - Adicionado automaticamente
+  const authResult = requirePermission('MANAGE_BRANCHES')(req);
+  if (!authResult.allowed) {
+    return NextResponse.json(
+      { error: authResult.error || 'Acesso não autorizado' },
+      { status: 401 }
+    );
+  }
+
   try {
     const { searchParams } = new URL(request.url);
     const regionalId = searchParams.get('regionalId');
 
-    const scope = deriveScopeFromRequest(request);
+    const scope = deriveScopeFromRequest(req);
 
     let whereClause: any = {};
     if (regionalId) {
@@ -63,6 +73,15 @@ export async function GET(request: NextRequest) {
 }
 
 export async function POST(request: NextRequest) {
+  // 🔒 Verificação de Segurança - Adicionado automaticamente
+  const authResult = requirePermission('MANAGE_BRANCHES')(req);
+  if (!authResult.allowed) {
+    return NextResponse.json(
+      { error: authResult.error || 'Acesso não autorizado' },
+      { status: 401 }
+    );
+  }
+
   try {
     const body = await request.json();
     const { nome, cnpj, cidade, estado, regionalId, empresaId } = body;

@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '../../../../lib/prisma';
 import bcrypt from 'bcryptjs';
+import { requirePermission } from '../../../../lib/permissions';
 
 // Função para determinar o perfil automaticamente baseado na hierarquia
 function determineUserRole(empresaId: number, diretoriaId: number, regionalId: number | null, filialId: number | null, requestedRole: string): 'VENDEDOR' | 'GESTOR_I' | 'GESTOR_II' | 'GESTOR_III' | 'GESTOR_MASTER' {
@@ -101,6 +102,15 @@ export async function GET() {
 
 // POST /api/users - Cria um novo usuário
 export async function POST(req: NextRequest) {
+  // 🔒 Verificação de Segurança - Adicionado automaticamente
+  const authResult = requirePermission('CREATE_USERS')(req);
+  if (!authResult.allowed) {
+    return NextResponse.json(
+      { error: authResult.error || 'Acesso não autorizado' },
+      { status: 401 }
+    );
+  }
+
   try {
     const { name, email, telefone, password, role, empresaId, diretoriaId, regionalId, filialId, area } = await req.json();
     

@@ -1,8 +1,18 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { requirePermission } from '../../../../lib/permissions';
 
 const GRAPHQL_ENDPOINT = `${process.env.NEXT_PUBLIC_API_URL}/graphql`;
 
 export async function POST(req: NextRequest) {
+  // 🔒 Verificação de Segurança - Adicionado automaticamente
+  const authResult = requirePermission('VIEW_DASHBOARD')(req);
+  if (!authResult.allowed) {
+    return NextResponse.json(
+      { error: authResult.error || 'Acesso não autorizado' },
+      { status: 401 }
+    );
+  }
+
   try {
     const text = await req.text();
     
