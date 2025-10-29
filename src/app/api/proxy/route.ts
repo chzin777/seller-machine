@@ -1,11 +1,17 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { requirePermission } from '../../../../lib/permissions';
+import { deriveScopeFromRequest } from '../../../../lib/scope';
+import { applyHierarchicalFiltersToUrl, createHierarchicalQueryParams } from '../../../../lib/hierarchical-filters';
 
 const API_BASE = process.env.NEXT_PUBLIC_API_URL || 'https://api-dev-production-6bb5.up.railway.app';
 
 export async function GET(req: NextRequest) {
   // 🛡️ Verificar headers disponíveis para debug
   console.log('[PROXY] Available headers:', Array.from(req.headers.entries()).map(([k, v]) => `${k}: ${k.includes('auth') || k.includes('user') ? v : '[HIDDEN]'}`));
+  
+  // Obter escopo do usuário
+  const userScope = deriveScopeFromRequest(req);
+  console.log('[PROXY] User scope:', { role: userScope.role, empresaId: userScope.empresaId, filialId: userScope.filialId });
   
   // Temporariamente mais permissivo - TODO: implementar autenticação adequada
   try {
@@ -17,12 +23,24 @@ export async function GET(req: NextRequest) {
   } catch (error) {
     console.log('[PROXY] Permission check failed, allowing temporarily:', error);
   }
+  
   const url = req.nextUrl.searchParams.get('url');
   if (!url) {
     return NextResponse.json({ error: 'Missing url param' }, { status: 400 });
   }
+  
+  // 🎯 Aplicar filtros hierárquicos na URL
+  let filteredUrl = url;
   try {
-    console.log(`[PROXY] Fetching: ${API_BASE}${url}`);
+    filteredUrl = applyHierarchicalFiltersToUrl(url, userScope);
+    console.log('[PROXY] Original URL:', url);
+    console.log('[PROXY] Filtered URL:', filteredUrl);
+  } catch (error) {
+    console.warn('[PROXY] Error applying hierarchical filters:', error);
+    // Continue com URL original se falhar
+  }
+  try {
+    console.log(`[PROXY] Fetching: ${API_BASE}${filteredUrl}`);
     
     // Verificar se há headers de autenticação para passar adiante
     const authHeaders: HeadersInit = {};
@@ -37,9 +55,29 @@ export async function GET(req: NextRequest) {
       authHeaders['user-agent'] = userAgent;
     }
     
+    // 🔐 Incluir informações de escopo nos headers
+    if (userScope.role) {
+      authHeaders['x-user-role'] = userScope.role;
+    }
+    if (userScope.userId) {
+      authHeaders['x-user-id'] = userScope.userId.toString();
+    }
+    if (userScope.empresaId) {
+      authHeaders['x-user-empresa-id'] = userScope.empresaId.toString();
+    }
+    if (userScope.filialId) {
+      authHeaders['x-user-filial-id'] = userScope.filialId.toString();
+    }
+    if (userScope.regionalId) {
+      authHeaders['x-user-regional-id'] = userScope.regionalId.toString();
+    }
+    if (userScope.diretoriaId) {
+      authHeaders['x-user-diretoria-id'] = userScope.diretoriaId.toString();
+    }
+    
     console.log(`[PROXY] Using headers:`, Object.keys(authHeaders));
     
-    const res = await fetch(`${API_BASE}${url}`, {
+    const res = await fetch(`${API_BASE}${filteredUrl}`, {
       headers: authHeaders
     });
     

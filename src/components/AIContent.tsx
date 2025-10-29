@@ -53,7 +53,7 @@ export default function AIContent({ activeTab, onNavigate }: AIContentProps) {
         return (
           <div>
             <AIConsolidatedDashboard />
-            <GlobalNotificationDemo />
+            {/* <GlobalNotificationDemo /> */}
           </div>
         );
     }

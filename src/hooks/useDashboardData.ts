@@ -1,6 +1,7 @@
 // hooks/useDashboardData.ts
 import { useState, useEffect } from 'react'
 import { useGraphQL } from './useGraphql'
+import { getUserScopeFromStorage, createScopeHeaders } from '../../lib/hierarchical-filters'
 import {
   GET_DASHBOARD_STATS,
   GET_CLIENTES,
@@ -58,7 +59,16 @@ export function useClientes(limit = 50, offset = 0, search = '') {
           params.append('offset', offset.toString());
           if (search) params.append('search', search);
           
-          const response = await fetch(`/api/proxy?url=/api/clientes?${params.toString()}`);
+          // Obter escopo do usuário e incluir nos headers
+          const userScope = getUserScopeFromStorage();
+          const scopeHeaders = userScope ? createScopeHeaders(userScope) : {};
+          
+          const response = await fetch(`/api/proxy?url=/api/clientes?${params.toString()}`, {
+            headers: {
+              'Content-Type': 'application/json',
+              ...scopeHeaders
+            }
+          });
           if (!response.ok) {
             throw new Error(`REST API Error: ${response.status}`);
           }

@@ -730,6 +730,7 @@ model users {
   password         String      @db.VarChar(255)
   name             String?     @db.VarChar(255)
   telefone         String?     @db.VarChar(20)
+  cpf              String?     @db.VarChar(14)
   role             users_role  @default(VENDEDOR)
   active           Boolean     @default(true)
   lastLogin        DateTime?

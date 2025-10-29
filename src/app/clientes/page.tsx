@@ -5,6 +5,7 @@ import HistoricoComprasModal from '../../components/HistoricoComprasModal';
 import { useClientes } from '../../hooks/useDashboardData';
 import { GRAPHQL_CONFIG } from '../../config/graphql';
 import { CardLoader } from '../../components/LoadingSpinner';
+import ScopeIndicator from '../../components/ScopeIndicator';
 
 // Função para formatar CPF
 function formatarCPF(cpf: string) {
@@ -199,7 +200,10 @@ export default function ClientesPage() {
     setClienteSelecionado(null);
   };
   return (
-    <main className="max-w-6xl mx-auto py-6 px-3 sm:px-6">
+    <main className="max-w-6xl mx-auto py-6 px-3 sm:px-6 relative">
+      {/* Indicador de escopo hierárquico */}
+      <ScopeIndicator />
+      
       <div className="flex items-center gap-3 mb-6 sm:mb-8">
         <div className="flex items-center justify-center w-10 h-10 sm:w-12 sm:h-12 rounded-xl shadow flex-shrink-0" style={{ backgroundColor: '#003153', color: '#ffffff' }}>
           <Users className="w-5 h-5 sm:w-7 sm:h-7" />

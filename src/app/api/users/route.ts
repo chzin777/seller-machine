@@ -55,9 +55,14 @@ export async function GET() {
         name: true,
         email: true,
         telefone: true,
+        cpf: true,
         role: true,
         area: true,
         active: true,
+        empresaId: true,
+        diretoriaId: true,
+        regionalId: true,
+        filialId: true,
         Empresas: {
           select: {
             id: true,
@@ -112,7 +117,7 @@ export async function POST(req: NextRequest) {
   }
 
   try {
-    const { name, email, telefone, password, role, empresaId, diretoriaId, regionalId, filialId, area } = await req.json();
+    const { name, email, telefone, cpf, password, role, empresaId, diretoriaId, regionalId, filialId, area } = await req.json();
     
     if (!name || !email || !password || !role || !empresaId || !diretoriaId) {
       return NextResponse.json({ 
@@ -205,6 +210,7 @@ export async function POST(req: NextRequest) {
         name,
         email,
         telefone: telefone || null,
+        cpf: cpf || null,
         password: hashedPassword,
         role: finalRole,
         empresaId,
@@ -255,6 +261,198 @@ export async function POST(req: NextRequest) {
     return NextResponse.json(user, { status: 201 });
   } catch (error) {
     console.error('Erro ao criar usuário:', error);
+    return NextResponse.json(
+      { error: 'Erro interno do servidor' },
+      { status: 500 }
+    );
+  }
+}
+
+// PATCH /api/users - Atualiza um usuário existente
+export async function PATCH(req: NextRequest) {
+  // 🔒 Verificação de Segurança - Adicionado automaticamente
+  const authResult = requirePermission('EDIT_USERS')(req);
+  if (!authResult.allowed) {
+    return NextResponse.json(
+      { error: authResult.error || 'Acesso não autorizado' },
+      { status: 401 }
+    );
+  }
+
+  try {
+    const { id, name, email, telefone, cpf, role, active, empresaId, diretoriaId, regionalId, filialId, area } = await req.json();
+    
+    if (!id || !name || !email || !role) {
+      return NextResponse.json({ 
+        error: 'ID, nome, email e perfil são obrigatórios.' 
+      }, { status: 400 });
+    }
+
+    // Validação de email
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(email)) {
+      return NextResponse.json({ error: 'Email inválido.' }, { status: 400 });
+    }
+
+    // Verifica se o usuário existe
+    const existingUser = await prisma.users.findUnique({
+      where: { id: parseInt(id) }
+    });
+
+    if (!existingUser) {
+      return NextResponse.json({ error: 'Usuário não encontrado.' }, { status: 404 });
+    }
+
+    // Verifica se já existe outro usuário com o mesmo email (exceto o atual)
+    const emailConflict = await prisma.users.findFirst({
+      where: { 
+        email,
+        id: { not: parseInt(id) }
+      }
+    });
+
+    if (emailConflict) {
+      return NextResponse.json({ error: 'Email já está sendo usado por outro usuário.' }, { status: 409 });
+    }
+
+    // Preparar dados para atualização
+    const updateData: any = {
+      name,
+      email,
+      telefone: telefone || null,
+      cpf: cpf || null,
+      role,
+      active: active !== undefined ? active : true,
+      area: area || null,
+      updatedAt: new Date()
+    };
+
+    // Se informações hierárquicas foram fornecidas, validar e incluir
+    if (empresaId !== undefined) {
+      if (empresaId) {
+        // Validação de hierarquia - verifica se empresa existe
+        const empresa = await prisma.empresa.findUnique({
+          where: { id: empresaId }
+        });
+
+        if (!empresa) {
+          return NextResponse.json({ error: 'Empresa não encontrada.' }, { status: 400 });
+        }
+        
+        updateData.empresaId = empresaId;
+      } else {
+        updateData.empresaId = null;
+      }
+    }
+
+    if (diretoriaId !== undefined) {
+      if (diretoriaId && (updateData.empresaId || existingUser.empresaId)) {
+        // Validação de hierarquia - verifica se diretoria existe e pertence à empresa
+        const diretoria = await prisma.diretorias.findFirst({
+          where: { 
+            id: diretoriaId,
+            empresaId: updateData.empresaId || existingUser.empresaId
+          }
+        });
+
+        if (!diretoria) {
+          return NextResponse.json({ error: 'Diretoria não encontrada ou não pertence à empresa selecionada.' }, { status: 400 });
+        }
+        
+        updateData.diretoriaId = diretoriaId;
+      } else {
+        updateData.diretoriaId = null;
+      }
+    }
+
+    if (regionalId !== undefined) {
+      if (regionalId && (updateData.diretoriaId || existingUser.diretoriaId)) {
+        // Se regional foi informada, valida se existe e pertence à diretoria
+        const regional = await prisma.regionais.findFirst({
+          where: { 
+            id: regionalId,
+            diretoriaId: updateData.diretoriaId || existingUser.diretoriaId
+          }
+        });
+
+        if (!regional) {
+          return NextResponse.json({ error: 'Regional não encontrada ou não pertence à diretoria selecionada.' }, { status: 400 });
+        }
+        
+        updateData.regionalId = regionalId;
+      } else {
+        updateData.regionalId = null;
+      }
+    }
+
+    if (filialId !== undefined) {
+      if (filialId && (updateData.regionalId || existingUser.regionalId)) {
+        // Se filial foi informada, valida se existe e pertence à regional
+        const filial = await prisma.filial.findFirst({
+          where: { 
+            id: filialId,
+            regionalId: updateData.regionalId || existingUser.regionalId
+          }
+        });
+
+        if (!filial) {
+          return NextResponse.json({ error: 'Filial não encontrada ou não pertence à regional selecionada.' }, { status: 400 });
+        }
+        
+        updateData.filialId = filialId;
+      } else {
+        updateData.filialId = null;
+      }
+    }
+
+    // Atualiza usuário
+    const updatedUser = await prisma.users.update({
+      where: { id: parseInt(id) },
+      data: updateData,
+      select: {
+        id: true,
+        name: true,
+        email: true,
+        telefone: true,
+        role: true,
+        active: true,
+        area: true,
+        empresaId: true,
+        diretoriaId: true,
+        regionalId: true,
+        filialId: true,
+        Empresas: {
+          select: {
+            id: true,
+            razaoSocial: true
+          }
+        },
+        diretorias: {
+          select: {
+            id: true,
+            nome: true
+          }
+        },
+        regionais: {
+          select: {
+            id: true,
+            nome: true
+          }
+        },
+        Filiais: {
+          select: {
+            id: true,
+            nome: true
+          }
+        },
+        createdAt: true,
+        updatedAt: true
+      }
+    });
+
+    return NextResponse.json(updatedUser);
+  } catch (error) {
+    console.error('Erro ao atualizar usuário:', error);
     return NextResponse.json(
       { error: 'Erro interno do servidor' },
       { status: 500 }

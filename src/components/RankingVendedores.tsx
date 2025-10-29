@@ -2,8 +2,10 @@
 
 import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader } from './ui/card';
-import { TrendingUp, TrendingDown, Award, Target, Calendar, BarChart3, ChevronLeft, ChevronRight } from 'lucide-react';
+import { TrendingUp, TrendingDown, Award, Target, Calendar, BarChart3, ChevronLeft, ChevronRight, Lock } from 'lucide-react';
 import { CardLoader } from './LoadingSpinner';
+import { getUserScopeFromStorage, createScopeHeaders } from '../../lib/hierarchical-filters';
+import { hasPermission } from '../../lib/permissions';
 
 interface Vendedor {
   id: number;
@@ -84,6 +86,7 @@ export default function RankingVendedores() {
   const [error, setError] = useState<string | null>(null);
   const [currentPage, setCurrentPage] = useState(1);
   const [itemsPerPage] = useState(3); // 3 vendedores por página
+  const [hasViewPermission, setHasViewPermission] = useState(false);
 
   // Calcular dados de paginação
   const totalItems = vendedores.length;
@@ -103,16 +106,66 @@ export default function RankingVendedores() {
   const goToNext = () => goToPage(currentPage + 1);
 
   useEffect(() => {
+    // Verificar permissão antes de carregar dados
+    const userScope = getUserScopeFromStorage();
+    const canViewRanking = userScope ? hasPermission(userScope.role, 'VIEW_SELLER_RANKING') : false;
+    setHasViewPermission(canViewRanking);
+
+    if (!canViewRanking) {
+      setLoading(false);
+      return;
+    }
+
     async function fetchVendedores() {
       try {
         setLoading(true);
-        const response = await fetch('/api/vendedores');
+        
+        // Obter escopo do usuário e incluir nos headers
+        const userScope = getUserScopeFromStorage();
+        const scopeHeaders = userScope ? createScopeHeaders(userScope) : {};
+        
+        const response = await fetch('/api/vendedores', {
+          headers: {
+            'Content-Type': 'application/json',
+            ...scopeHeaders
+          }
+        });
         
         if (!response.ok) {
           throw new Error('Erro ao carregar dados dos vendedores');
         }
         
-        const data = await response.json();
+        let data = await response.json();
+        
+        // 🔍 Aplicar filtros hierárquicos no frontend
+        if (userScope && Array.isArray(data)) {
+          console.log('🔍 Ranking - Filtrando vendedores. Role:', userScope.role);
+          console.log('🔍 Ranking - UserScope:', userScope);
+          console.log('🔍 Ranking - Total vendedores recebidos:', data.length);
+          
+          if (userScope.role === 'VENDEDOR') {
+            // Vendedor só vê a si mesmo
+            // Usar vendedorId (ID_Vendedor da tabela) se disponível, caso contrário userId
+            const vendedorIdToFilter = userScope.vendedorId || userScope.userId;
+            // Tentar múltiplos campos de ID para compatibilidade
+            data = data.filter(v => v.id === vendedorIdToFilter || v.ID_Vendedor === vendedorIdToFilter);
+            console.log(`🔍 Vendedor (ID: ${vendedorIdToFilter}) - Mostrando apenas o próprio: ${data.length} vendedor(es)`);
+          } else if (userScope.role === 'GESTOR_I') {
+            // Gestor I vê vendedores da sua filial
+            data = data.filter(v => v.filialId === userScope.filialId);
+            console.log(`🔍 Gestor I - Vendedores da filial ${userScope.filialId}: ${data.length}`);
+          } else if (userScope.role === 'GESTOR_II') {
+            // Gestor II vê vendedores da sua regional
+            data = data.filter(v => v.regionalId === userScope.regionalId);
+            console.log(`🔍 Gestor II - Vendedores da regional ${userScope.regionalId}: ${data.length}`);
+          } else if (userScope.role === 'GESTOR_III') {
+            // Gestor III vê vendedores da sua diretoria
+            data = data.filter(v => v.diretoriaId === userScope.diretoriaId);
+            console.log(`🔍 Gestor III - Vendedores da diretoria ${userScope.diretoriaId}: ${data.length}`);
+          }
+          // GESTOR_MASTER vê todos
+        }
+        
         setVendedores(data);
         setCurrentPage(1); // Reset para primeira página quando dados mudam
       } catch (err) {
@@ -127,6 +180,25 @@ export default function RankingVendedores() {
 
   if (loading) {
     return <CardLoader text="Carregando ranking..." />;
+  }
+
+  // Se não tem permissão, não exibir o componente
+  if (!hasViewPermission) {
+    return (
+      <Card className="shadow-xl border border-gray-200/30 bg-white rounded-2xl overflow-hidden h-full">
+        <CardContent className="p-6">
+          <div className="flex justify-center items-center h-64">
+            <div className="text-center">
+              <div className="w-12 h-12 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                <Lock className="w-6 h-6 text-gray-400" />
+              </div>
+              <p className="text-gray-600 font-medium">Acesso Restrito</p>
+              <p className="text-gray-500 text-sm mt-1">Você não tem permissão para visualizar o ranking de vendedores</p>
+            </div>
+          </div>
+        </CardContent>
+      </Card>
+    );
   }
 
   if (error) {

@@ -35,6 +35,7 @@ export type Permission =
   | 'VIEW_FILIAL_SELLERS'    // Ver vendedores da filial
   | 'VIEW_REGIONAL_SELLERS'  // Ver vendedores da regional
   | 'VIEW_ALL_SELLERS'       // Ver todos os vendedores
+  | 'VIEW_SELLER_RANKING'    // Ver ranking de vendedores
   | 'MANAGE_FILIAL_SELLERS'  // Gerenciar vendedores da filial
   | 'MANAGE_REGIONAL_SELLERS'// Gerenciar vendedores da regional
   | 'MANAGE_ALL_SELLERS'     // Gerenciar todos os vendedores
@@ -83,6 +84,122 @@ export type Permission =
   | 'VIEW_REGIONAL_FUNNEL'   // Ver funil da regional
   | 'VIEW_ALL_FUNNEL'        // Ver todos os funis;
 
+// Traduções amigáveis para permissões
+const PERMISSION_TRANSLATIONS: Record<Permission, string> = {
+  // Gestão de Usuários
+  'VIEW_USERS': 'visualizar usuários',
+  'CREATE_USERS': 'criar novos usuários',
+  'EDIT_USERS': 'editar usuários',
+  'DELETE_USERS': 'excluir usuários',
+  'MANAGE_HIERARCHY': 'gerenciar hierarquia organizacional',
+  
+  // Carteira & Vendas
+  'VIEW_OWN_PORTFOLIO': 'visualizar sua carteira',
+  'VIEW_FILIAL_PORTFOLIO': 'visualizar carteiras da filial',
+  'VIEW_REGIONAL_PORTFOLIO': 'visualizar carteiras da regional',
+  'VIEW_ALL_PORTFOLIO': 'visualizar todas as carteiras',
+  'EDIT_OWN_PORTFOLIO': 'editar sua carteira',
+  'EDIT_FILIAL_PORTFOLIO': 'editar carteiras da filial',
+  'EDIT_REGIONAL_PORTFOLIO': 'editar carteiras da regional',
+  'EDIT_ALL_PORTFOLIO': 'editar todas as carteiras',
+  
+  // Clientes
+  'VIEW_OWN_CLIENTS': 'visualizar seus clientes',
+  'VIEW_FILIAL_CLIENTS': 'visualizar clientes da filial',
+  'VIEW_REGIONAL_CLIENTS': 'visualizar clientes da regional',
+  'VIEW_ALL_CLIENTS': 'visualizar todos os clientes',
+  'EDIT_OWN_CLIENTS': 'editar seus clientes',
+  'EDIT_FILIAL_CLIENTS': 'editar clientes da filial',
+  'EDIT_REGIONAL_CLIENTS': 'editar clientes da regional',
+  'EDIT_ALL_CLIENTS': 'editar todos os clientes',
+  
+  // Vendedores
+  'VIEW_OWN_PROFILE': 'visualizar seu perfil',
+  'VIEW_FILIAL_SELLERS': 'visualizar vendedores da filial',
+  'VIEW_REGIONAL_SELLERS': 'visualizar vendedores da regional',
+  'VIEW_ALL_SELLERS': 'visualizar todos os vendedores',
+  'VIEW_SELLER_RANKING': 'visualizar ranking de vendedores',
+  'MANAGE_FILIAL_SELLERS': 'gerenciar vendedores da filial',
+  'MANAGE_REGIONAL_SELLERS': 'gerenciar vendedores da regional',
+  'MANAGE_ALL_SELLERS': 'gerenciar todos os vendedores',
+  
+  // Dashboards & Analytics
+  'VIEW_OWN_DASHBOARD': 'acessar seu dashboard',
+  'VIEW_FILIAL_DASHBOARD': 'acessar dashboard da filial',
+  'VIEW_REGIONAL_DASHBOARD': 'acessar dashboard da regional',
+  'VIEW_GLOBAL_DASHBOARD': 'acessar dashboard global',
+  'VIEW_OWN_ANALYTICS': 'visualizar suas análises',
+  'VIEW_FILIAL_ANALYTICS': 'visualizar análises da filial',
+  'VIEW_REGIONAL_ANALYTICS': 'visualizar análises da regional',
+  'VIEW_GLOBAL_ANALYTICS': 'visualizar análises globais',
+  
+  // RFV & Segmentação
+  'VIEW_RFV_ANALYSIS': 'visualizar análises RFV',
+  'CONFIGURE_RFV': 'configurar parâmetros RFV',
+  'MANAGE_RFV_PARAMETERS': 'gerenciar parâmetros RFV',
+  
+  // Inteligência Artificial
+  'ACCESS_AI_INSIGHTS': 'acessar insights de IA',
+  'CONFIGURE_AI_MODELS': 'configurar modelos de IA',
+  'MANAGE_AI_TRAINING': 'gerenciar treinamento de IA',
+  
+  // Sistema & Admin
+  'VIEW_SYSTEM_LOGS': 'visualizar logs do sistema',
+  'MANAGE_NOTIFICATIONS': 'gerenciar notificações',
+  'EXECUTE_SEED_OPERATIONS': 'executar operações de seed',
+  'MANAGE_SYSTEM_CONFIG': 'gerenciar configurações do sistema',
+  'VIEW_API_USAGE': 'visualizar uso da API',
+  
+  // Relatórios
+  'GENERATE_OWN_REPORTS': 'gerar seus relatórios',
+  'GENERATE_FILIAL_REPORTS': 'gerar relatórios da filial',
+  'GENERATE_REGIONAL_REPORTS': 'gerar relatórios da regional',
+  'GENERATE_GLOBAL_REPORTS': 'gerar relatórios globais',
+  'EXPORT_DATA': 'exportar dados',
+  
+  // Agenda & Funil
+  'VIEW_OWN_AGENDA': 'visualizar sua agenda',
+  'VIEW_FILIAL_AGENDA': 'visualizar agenda da filial',
+  'VIEW_REGIONAL_AGENDA': 'visualizar agenda da regional',
+  'VIEW_ALL_AGENDA': 'visualizar todas as agendas',
+  'MANAGE_OWN_FUNNEL': 'gerenciar seu funil de vendas',
+  'VIEW_FILIAL_FUNNEL': 'visualizar funil da filial',
+  'VIEW_REGIONAL_FUNNEL': 'visualizar funil da regional',
+  'VIEW_ALL_FUNNEL': 'visualizar todos os funis'
+};
+
+// Traduções amigáveis para roles
+const ROLE_TRANSLATIONS: Record<string, string> = {
+  'VENDEDOR': 'Vendedor',
+  'GESTOR_I': 'Gestor de Filial',
+  'GESTOR_II': 'Gestor Regional',
+  'GESTOR_III': 'Gestor de Diretoria',
+  'GESTOR_MASTER': 'Gestor Master'
+};
+
+// Função para gerar mensagem de erro amigável
+function getFriendlyPermissionError(permission: Permission, role: string): string {
+  const permissionName = PERMISSION_TRANSLATIONS[permission] || permission.toLowerCase().replace(/_/g, ' ');
+  const roleName = ROLE_TRANSLATIONS[role] || role;
+  
+  return `Você não tem permissão para ${permissionName}. Seu nível de acesso atual é: ${roleName}`;
+}
+
+// Função para gerar mensagem de erro amigável para múltiplas permissões
+function getFriendlyMultiplePermissionsError(permissions: Permission[], role: string): string {
+  const permissionNames = permissions.map(p => PERMISSION_TRANSLATIONS[p] || p.toLowerCase().replace(/_/g, ' '));
+  const roleName = ROLE_TRANSLATIONS[role] || role;
+  
+  if (permissionNames.length === 1) {
+    return `Você não tem permissão para ${permissionNames[0]}. Seu nível de acesso atual é: ${roleName}`;
+  }
+  
+  const lastPermission = permissionNames.pop();
+  const permissionList = permissionNames.join(', ') + ` ou ${lastPermission}`;
+  
+  return `Você precisa de permissão para ${permissionList}. Seu nível de acesso atual é: ${roleName}`;
+}
+
 // Mapa de permissões por role - Estruturado por hierarquia
 const ROLE_PERMISSIONS: Record<string, Permission[]> = {
   /**
@@ -130,6 +247,7 @@ const ROLE_PERMISSIONS: Record<string, Permission[]> = {
     'VIEW_FILIAL_CLIENTS',
     'EDIT_FILIAL_CLIENTS',
     'VIEW_FILIAL_SELLERS',
+    'VIEW_SELLER_RANKING',
     'MANAGE_FILIAL_SELLERS',
     'VIEW_FILIAL_DASHBOARD',
     'VIEW_FILIAL_ANALYTICS',
@@ -165,6 +283,7 @@ const ROLE_PERMISSIONS: Record<string, Permission[]> = {
     'VIEW_FILIAL_CLIENTS',
     'EDIT_FILIAL_CLIENTS',
     'VIEW_FILIAL_SELLERS',
+    'VIEW_SELLER_RANKING',
     'MANAGE_FILIAL_SELLERS',
     'VIEW_FILIAL_DASHBOARD',
     'VIEW_FILIAL_ANALYTICS',
@@ -213,6 +332,7 @@ const ROLE_PERMISSIONS: Record<string, Permission[]> = {
     'VIEW_FILIAL_CLIENTS',
     'EDIT_FILIAL_CLIENTS',
     'VIEW_FILIAL_SELLERS',
+    'VIEW_SELLER_RANKING',
     'MANAGE_FILIAL_SELLERS',
     'VIEW_FILIAL_DASHBOARD',
     'VIEW_FILIAL_ANALYTICS',
@@ -268,6 +388,7 @@ const ROLE_PERMISSIONS: Record<string, Permission[]> = {
     'VIEW_FILIAL_CLIENTS',
     'EDIT_FILIAL_CLIENTS',
     'VIEW_FILIAL_SELLERS',
+    'VIEW_SELLER_RANKING',
     'MANAGE_FILIAL_SELLERS',
     'VIEW_FILIAL_DASHBOARD',
     'VIEW_FILIAL_ANALYTICS',
@@ -367,7 +488,7 @@ export function requirePermission(permission: Permission) {
       return {
         allowed: false,
         scope,
-        error: 'Role do usuário não encontrada nos headers'
+        error: 'Usuário não autenticado ou informações de perfil não encontradas'
       };
     }
     
@@ -375,7 +496,7 @@ export function requirePermission(permission: Permission) {
       return {
         allowed: false,
         scope,
-        error: `Permissão '${permission}' necessária. Role atual: '${scope.role}'`
+        error: getFriendlyPermissionError(permission, scope.role)
       };
     }
     
@@ -394,7 +515,7 @@ export function requireAnyPermission(permissions: Permission[]) {
       return {
         allowed: false,
         scope,
-        error: 'Role do usuário não encontrada nos headers'
+        error: 'Usuário não autenticado ou informações de perfil não encontradas'
       };
     }
     
@@ -402,7 +523,7 @@ export function requireAnyPermission(permissions: Permission[]) {
       return {
         allowed: false,
         scope,
-        error: `Uma das permissões necessária: [${permissions.join(', ')}]. Role atual: '${scope.role}'`
+        error: getFriendlyMultiplePermissionsError(permissions, scope.role)
       };
     }
     

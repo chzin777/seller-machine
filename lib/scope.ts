@@ -7,6 +7,7 @@ export type UserScope = {
   regionalId?: number;
   filialId?: number;
   userId?: number;
+  vendedorId?: number; // ID_Vendedor da tabela Vendedores (vinculado via CPF do usuário)
 };
 
 function parseNum(value: string | null): number | undefined {

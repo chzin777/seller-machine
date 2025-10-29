@@ -23,12 +23,38 @@ export default function LoginPage() {
     const data = await res.json();
     if (res.ok) {
       setMsg("Login realizado!");
-      if (lembrar) {
-        localStorage.setItem("user", JSON.stringify(data));
-      } else {
-        sessionStorage.setItem("user", JSON.stringify(data));
+      // Salvar apenas os dados do usuário, não a resposta completa
+      const userData = data.user || data;
+      
+      // Se o usuário tem CPF, buscar vendedor correspondente
+      if (userData.cpf) {
+        try {
+          const vendedorRes = await fetch(`/api/vendedor-by-cpf?cpf=${encodeURIComponent(userData.cpf)}`);
+          if (vendedorRes.ok) {
+            const vendedorData = await vendedorRes.json();
+            if (vendedorData.found) {
+              // Adicionar vendedorId ao userData
+              userData.vendedorId = vendedorData.vendedorId;
+              userData.vendedorNome = vendedorData.nome;
+              console.log('Vendedor vinculado ao usuário:', {
+                cpf: userData.cpf,
+                vendedorId: vendedorData.vendedorId,
+                nome: vendedorData.nome
+              });
+            }
+          }
+        } catch (error) {
+          console.error('Erro ao buscar vendedor por CPF:', error);
+          // Continua o login mesmo se não encontrar o vendedor
+        }
       }
-      if (data.precisa_trocar_senha) {
+      
+      if (lembrar) {
+        localStorage.setItem("user", JSON.stringify(userData));
+      } else {
+        sessionStorage.setItem("user", JSON.stringify(userData));
+      }
+      if (data.precisa_trocar_senha || userData.precisa_trocar_senha) {
         router.push("/nova-senha");
       } else {
         router.push("/");

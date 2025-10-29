@@ -300,13 +300,65 @@ html {
   }
 
   .kpi-number-uniform {
-    font-size: clamp(0.95rem, 1.8vw, 1.4rem);
+    font-size: clamp(1.25rem, 2.5vw, 1.8rem);
     line-height: 1.1;
     font-weight: 800;
     letter-spacing: -0.025em;
     white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
+    overflow: visible;
+    text-overflow: clip;
+    word-break: keep-all;
+  }
+
+  /* Títulos dos KPI cards também maiores e responsivos */
+  .kpi-header h3 {
+    font-size: clamp(0.875rem, 1.5vw, 1rem) !important;
+    line-height: 1.2 !important;
+    font-weight: 700 !important;
+    white-space: normal !important;
+    overflow: visible !important;
+    text-overflow: clip !important;
+  }
+
+  /* Garantir boa legibilidade em telas pequenas */
+  @media (max-width: 640px) {
+    .kpi-number-uniform {
+      font-size: clamp(1rem, 3.5vw, 1.3rem);
+    }
+    .kpi-header h3 {
+      font-size: clamp(0.75rem, 2.8vw, 0.9rem) !important;
+    }
+  }
+
+  /* Otimizar para telas médias */
+  @media (min-width: 768px) and (max-width: 1024px) {
+    .kpi-number-uniform {
+      font-size: clamp(1.1rem, 2vw, 1.5rem);
+      white-space: normal;
+      word-break: break-word;
+    }
+    .kpi-header h3 {
+      font-size: clamp(0.85rem, 1.3vw, 0.95rem) !important;
+    }
+  }
+
+  /* Regra especial para valores muito grandes - permitir quebra quando necessário */
+  .kpi-content .kpi-number-uniform {
+    max-width: 100%;
+    display: block;
+    text-align: center;
+  }
+
+  /* Para notebooks - otimização específica para evitar truncamento */
+  @media (min-width: 1200px) and (max-width: 1500px) and (max-height: 900px) {
+    .kpi-number-uniform {
+      font-size: clamp(0.85rem, 1.1vw, 1.1rem) !important;
+      letter-spacing: -0.03em !important;
+    }
+    
+    .kpi-header h3 {
+      font-size: clamp(0.65rem, 0.9vw, 0.75rem) !important;
+    }
   }
 
   /* Garantir que GenericTiltedCard funcione bem com cards quadrados */
@@ -475,7 +527,7 @@ html {
       .kpi-container .card-header h3,
       .kpi-container h3,
       .kpi-container [class*="CardTitle"] { 
-        font-size: clamp(0.6rem, 1.1vw, 0.75rem) !important; 
+        font-size: clamp(0.7rem, 1.2vw, 0.85rem) !important; 
         line-height: 1.2 !important;
       }
 
@@ -488,7 +540,7 @@ html {
       }
     }
 
-    /* Notebooks menores (1024px - 1366px): ainda menores */
+    /* Notebooks menores (1024px - 1366px): otimizar para evitar truncamento */
     @media (min-width: 1024px) and (max-width: 1366px) {
       .kpi-grid-container { 
         grid-template-columns: repeat(6, minmax(0, 1fr)) !important;
@@ -499,16 +551,46 @@ html {
         aspect-ratio: 1;
         min-height: 115px; 
         max-height: 130px;
+        padding: 0.5rem !important;
       }
       
       .kpi-number-uniform { 
-        font-size: clamp(0.8rem, 1.3vw, 1.1rem) !important; 
+        font-size: clamp(0.85rem, 1.2vw, 1.1rem) !important;
+        line-height: 1.1 !important;
       }
 
       .kpi-container .card-header h3,
       .kpi-container h3,
       .kpi-container [class*="CardTitle"] { 
-        font-size: clamp(0.55rem, 1vw, 0.7rem) !important; 
+        font-size: clamp(0.65rem, 1vw, 0.75rem) !important;
+        line-height: 1.15 !important;
+      }
+    }
+
+    /* Notebooks padrão (1366px - 1600px): foco em evitar truncamento */
+    @media (min-width: 1366px) and (max-width: 1600px) {
+      .kpi-grid-container {
+        gap: 0.75rem !important;
+      }
+      
+      .kpi-uniform {
+        aspect-ratio: 1;
+        min-height: 120px;
+        max-height: 140px;
+        padding: 0.6rem !important;
+      }
+      
+      .kpi-number-uniform {
+        font-size: clamp(0.9rem, 1.3vw, 1.2rem) !important;
+        line-height: 1.1 !important;
+        letter-spacing: -0.02em !important;
+      }
+
+      .kpi-container .card-header h3,
+      .kpi-container h3,
+      .kpi-container [class*="CardTitle"] { 
+        font-size: clamp(0.7rem, 1.1vw, 0.8rem) !important;
+        line-height: 1.15 !important;
       }
     }
 
@@ -527,13 +609,13 @@ html {
       }
       
       .kpi-number-uniform {
-        font-size: clamp(1rem, 1.4vw, 1.5rem) !important;
+        font-size: clamp(1.2rem, 1.6vw, 1.7rem) !important;
       }
       
       .kpi-container .card-header h3,
       .kpi-container h3,
       .kpi-container [class*="CardTitle"] { 
-        font-size: clamp(0.7rem, 1.1vw, 0.85rem) !important; 
+        font-size: clamp(0.85rem, 1.3vw, 1rem) !important; 
       }
     }
 
@@ -564,7 +646,7 @@ html {
     }
     
     .kpi-number-responsive {
-      font-size: clamp(1.1rem, 3.5vw, 1.8rem) !important;
+      font-size: clamp(1.15rem, 3.5vw, 1.8rem) !important;
       line-height: 1.2 !important;
       word-break: break-all;
       hyphens: auto;
@@ -582,7 +664,7 @@ html {
     .kpi-container .card-header h3,
     .kpi-container h3,
     .kpi-container [class*="CardTitle"] {
-      font-size: 0.7rem !important;
+      font-size: 0.8rem !important;
       line-height: 1.2 !important;
       white-space: normal !important;
       overflow: visible !important;

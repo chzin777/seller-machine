@@ -9,6 +9,8 @@ const PUBLIC_ROUTES = [
   '/api/auth/login',
   '/api/auth/password-reset',
   '/api/nova-senha',
+  '/api/vendedor-by-cpf',
+  '/api/debug', // 🔧 Rotas de debug (remover em produção)
   '/_next',
   '/favicon.ico',
   '/manifest.json',
@@ -36,10 +38,12 @@ const ROLE_RESTRICTED_ROUTES = {
   // 🟢 GESTOR_I e acima (Filial)
   '/carteira-vendedor': ['GESTOR_I', 'GESTOR_II', 'GESTOR_III', 'GESTOR_MASTER'],
   '/vendedores': ['GESTOR_I', 'GESTOR_II', 'GESTOR_III', 'GESTOR_MASTER'],
-  '/api/vendedores': ['GESTOR_I', 'GESTOR_II', 'GESTOR_III', 'GESTOR_MASTER'],
   '/api/carteira-vendedor': ['GESTOR_I', 'GESTOR_II', 'GESTOR_III', 'GESTOR_MASTER'],
   
   // 🔵 Todos os usuários autenticados têm acesso (mas devem estar logados)
+  // /api/vendedores - todos podem acessar (filtro hierárquico no código protege os dados)
+  // /dashboard - todos podem acessar
+  // /mapa-vendas - todos podem acessar
   // Essas rotas não aparecem aqui - são protegidas apenas por autenticação básica
 };
 

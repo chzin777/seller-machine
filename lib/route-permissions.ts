@@ -47,12 +47,12 @@ export const ROUTE_PERMISSIONS: RoutePermission[] = [
   {
     path: '/vendedores',
     permissions: ['VIEW_OWN_PROFILE', 'VIEW_FILIAL_SELLERS', 'VIEW_REGIONAL_SELLERS', 'VIEW_ALL_SELLERS'],
-    description: 'Visualizar vendedores - escopo baseado no perfil'
+    description: 'Visualizar vendedores - GESTOR_I e acima'
   },
   {
     path: '/api/vendedores',
     permissions: ['VIEW_OWN_PROFILE', 'VIEW_FILIAL_SELLERS', 'VIEW_REGIONAL_SELLERS', 'VIEW_ALL_SELLERS'],
-    description: 'API de vendedores - escopo baseado no perfil'
+    description: 'API de vendedores - todos podem acessar (filtrado por hierarquia)'
   },
 
   // ====== CLIENTES ======

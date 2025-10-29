@@ -52,10 +52,11 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
 					<LoadingProvider>
 						<DataProvider>
 							<ToastProvider>
-								<GlobalNotificationProvider>
+								{/* GlobalNotificationProvider temporariamente desabilitado */}
+								{/* <GlobalNotificationProvider> */}
 									<LayoutContent>{children}</LayoutContent>
-									<GlobalToastContainer />
-								</GlobalNotificationProvider>
+									{/* <GlobalToastContainer /> */}
+								{/* </GlobalNotificationProvider> */}
 								<PerformanceMonitor />
 							</ToastProvider>
 						</DataProvider>
@@ -264,9 +265,9 @@ function LayoutContent({ children }: { children: React.ReactNode }) {
 									height={40}
 									style={{ height: 40, maxWidth: 110 }}
 								/>
-								{/* Sino de notificações mobile */}
+								{/* Sino de notificações mobile - temporariamente desabilitado */}
 								<div className="flex items-center">
-									<GlobalNotificationBell />
+									{/* <GlobalNotificationBell /> */}
 								</div>
 							</div>
 							{sidebarOpen && (

@@ -45,8 +45,8 @@ export default function Header({ userName }: HeaderProps) {
       <div className="font-semibold text-lg ml-16 sm:ml-20">
       </div>
       <div className="flex items-center gap-4 relative">
-        {/* Sino de Notificações Globais */}
-        <GlobalNotificationBell />
+        {/* Sino de Notificações Globais - temporariamente desabilitado */}
+        {/* <GlobalNotificationBell /> */}
         
         {/* Botão só mostra avatar no mobile, nome/avatar no desktop */}
         <button

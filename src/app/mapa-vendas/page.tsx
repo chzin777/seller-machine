@@ -4,12 +4,16 @@ import { useData } from '../../components/DataProvider';
 import MapaCalorVendas from '../../components/MapaCalorVendas';
 import { Map } from 'lucide-react';
 import { SkeletonLoader } from '../../components/LoadingSpinner';
+import ScopeIndicator from '../../components/ScopeIndicator';
 
 export default function MapaCalorPage() {
   const data = useData();
 
   return (
-    <main className="max-w-7xl mx-auto py-6 px-3 sm:px-6">
+    <main className="max-w-7xl mx-auto py-6 px-3 sm:px-6 relative">
+      {/* Indicador de escopo hierárquico */}
+      <ScopeIndicator />
+      
       {/* Cabeçalho */}
       <div className="flex items-center gap-3 mb-6 sm:mb-8">
         <div className="flex items-center justify-center w-10 h-10 sm:w-12 sm:h-12 rounded-xl bg-blue-100 text-blue-700 shadow flex-shrink-0">

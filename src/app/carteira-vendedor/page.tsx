@@ -21,6 +21,7 @@ import MetricasCarteira, { ResumoExecutivoCarteira } from '../../components/Metr
 import LoadingSpinner from '../../components/LoadingSpinner';
 import ClientesCarteira from '../../components/ClientesCarteira';
 import ResumoCarteira from '../../components/ResumoCarteira';
+import ScopeIndicator from '../../components/ScopeIndicator';
 
 interface FilterState {
   search: string;
@@ -206,7 +207,10 @@ export default function CarteiraVendedorPage() {
   const filialSelecionada = filiais.find(f => f.id === filters.filialId);
   
   return (
-    <div className="min-h-screen bg-gray-50 p-6">
+    <div className="min-h-screen bg-gray-50 p-6 relative">
+      {/* Indicador de escopo hierárquico */}
+      <ScopeIndicator />
+      
       {/* Header */}
       <div className="mb-8">
         <div className="flex items-center justify-between mb-4">

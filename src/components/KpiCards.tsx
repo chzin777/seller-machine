@@ -58,10 +58,10 @@ export default function KpiCards() {
             onClick={() => handleCardClick('receita-total')}
           >
             <div className="kpi-header">
-              <h3 className="text-sm font-bold text-white text-center leading-tight">Receita Total</h3>
+              <h3 className="text-base font-bold text-white text-center leading-tight">Receita Total</h3>
             </div>
             <div className="kpi-content">
-              <div className="text-xl font-extrabold text-white text-center">
+              <div className="text-2xl font-extrabold text-white text-center kpi-number-uniform">
                 {data.loading ? (
                   <Skeleton className="h-6 w-20 bg-white/20" />
                 ) : data.receitaTotal !== null ? (
@@ -81,10 +81,10 @@ export default function KpiCards() {
             onClick={() => handleCardClick('ticket-medio')}
           >
             <div className="kpi-header">
-              <h3 className="text-sm font-bold text-white text-center leading-tight">Ticket Médio</h3>
+              <h3 className="text-base font-bold text-white text-center leading-tight">Ticket Médio</h3>
             </div>
             <div className="kpi-content">
-              <div className="text-xl font-extrabold text-white text-center">
+              <div className="text-2xl font-extrabold text-white text-center kpi-number-uniform">
                 {data.ticketMedio !== null ? `R$ ${formatCompact(data.ticketMedio)}` : '--'}
               </div>
             </div>
@@ -100,10 +100,10 @@ export default function KpiCards() {
             onClick={() => handleCardClick('itens-vendidos')}
           >
             <div className="kpi-header">
-              <h3 className="text-sm font-bold text-white text-center leading-tight">Itens Vendidos</h3>
+              <h3 className="text-base font-bold text-white text-center leading-tight">Itens Vendidos</h3>
             </div>
             <div className="kpi-content">
-              <div className="text-xl font-extrabold text-white text-center">
+              <div className="text-2xl font-extrabold text-white text-center kpi-number-uniform">
                 {data.itensVendidos !== null ? formatCompact(data.itensVendidos) : '--'}
               </div>
             </div>
@@ -119,10 +119,10 @@ export default function KpiCards() {
             onClick={() => handleCardClick('notas-fiscais')}
           >
             <div className="kpi-header">
-              <h3 className="text-sm font-bold text-white text-center leading-tight">Notas Fiscais</h3>
+              <h3 className="text-base font-bold text-white text-center leading-tight">Notas Fiscais</h3>
             </div>
             <div className="kpi-content">
-              <div className="text-xl font-extrabold text-white text-center">
+              <div className="text-2xl font-extrabold text-white text-center kpi-number-uniform">
                 {data.numeroNotas !== null ? formatCompact(data.numeroNotas) : '--'}
               </div>
             </div>
@@ -139,10 +139,10 @@ export default function KpiCards() {
             title="Percentil 95 de itens por nota fiscal - 95% das notas têm até este número de itens"
           >
             <div className="kpi-header">
-              <h3 className="text-sm font-bold text-white text-center leading-tight">Itens por NF</h3>
+              <h3 className="text-base font-bold text-white text-center leading-tight">Itens por NF</h3>
             </div>
             <div className="kpi-content">
-              <div className="text-xl font-extrabold text-white text-center">
+              <div className="text-2xl font-extrabold text-white text-center kpi-number-uniform">
                 {data.itensP95PorNota !== null ? formatCompact(data.itensP95PorNota) : '--'}
               </div>
             </div>
@@ -158,10 +158,10 @@ export default function KpiCards() {
             onClick={() => handleCardClick('filiais-ativas')}
           >
             <div className="kpi-header">
-              <h3 className="text-sm font-bold text-white text-center leading-tight">Filiais Ativas</h3>
+              <h3 className="text-base font-bold text-white text-center leading-tight">Filiais Ativas</h3>
             </div>
             <div className="kpi-content">
-              <div className="text-xl font-extrabold text-white text-center">
+              <div className="text-2xl font-extrabold text-white text-center kpi-number-uniform">
                 {data.vendasPorFilial.length > 0 ? data.vendasPorFilial.length : '--'}
               </div>
             </div>
@@ -177,10 +177,10 @@ export default function KpiCards() {
             onClick={() => handleCardClick('clientes-ativos')}
           >
             <div className="kpi-header">
-              <h3 className="text-sm font-bold text-white text-center leading-tight">Clientes Ativos</h3>
+              <h3 className="text-base font-bold text-white text-center leading-tight">Clientes Ativos</h3>
             </div>
             <div className="kpi-content">
-              <div className="text-xl font-extrabold text-white text-center">
+              <div className="text-2xl font-extrabold text-white text-center kpi-number-uniform">
                 {data.clientesAtivos !== null ? formatCompact(data.clientesAtivos) : '--'}
               </div>
             </div>
@@ -196,10 +196,10 @@ export default function KpiCards() {
             onClick={() => handleCardClick('clientes-inativos')}
           >
             <div className="kpi-header">
-              <h3 className="text-sm font-bold text-white text-center leading-tight">Clientes Inativos</h3>
+              <h3 className="text-base font-bold text-white text-center leading-tight">Clientes Inativos</h3>
             </div>
             <div className="kpi-content">
-              <div className="text-xl font-extrabold text-white text-center">
+              <div className="text-2xl font-extrabold text-white text-center kpi-number-uniform">
                 {data.clientesInativos !== null ? formatCompact(data.clientesInativos) : '--'}
               </div>
             </div>

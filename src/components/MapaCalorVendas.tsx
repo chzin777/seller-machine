@@ -6,6 +6,7 @@ import { Card, CardContent, CardHeader, CardTitle } from './ui/card';
 import { MapPin } from 'lucide-react';
 import GenericTiltedCard from '../blocks/Components/GenericTiltedCard';
 import { CardLoader } from './LoadingSpinner';
+import { getUserScopeFromStorage, createScopeHeaders } from '../../lib/hierarchical-filters';
 
 // Importação dinâmica do mapa para evitar problemas de SSR
 const MapaComponent = dynamic(() => import('../components/MapaComponente'), {
@@ -66,9 +67,46 @@ export default function MapaCalorVendas({ vendasPorFilial = [] }: MapaCalorVenda
     const buscarDadosVendas = async () => {
       setLoading(true);
       try {
+        // Aplicar filtro hierárquico
+        const userScope = getUserScopeFromStorage();
+        if (!userScope) {
+          setLoading(false);
+          return;
+        }
+        const scopeHeaders = createScopeHeaders(userScope);
+        
         // Buscar dados de clientes para obter informações de localização
-        const resClientes = await fetch('/api/proxy?url=/api/clientes');
-        const clientes = await resClientes.json();
+        const resClientes = await fetch('/api/proxy?url=/api/clientes', {
+          headers: scopeHeaders,
+        });
+        let clientes = await resClientes.json();
+        
+        // Filtrar clientes no frontend baseado na role
+        if (Array.isArray(clientes) && userScope) {
+          const clientesAntesFiltro = clientes.length;
+          
+          switch (userScope.role) {
+            case 'VENDEDOR':
+              // Usar vendedorId (ID_Vendedor da tabela) se disponível
+              const vendedorIdToFilter = userScope.vendedorId || userScope.userId;
+              clientes = clientes.filter((c: any) => c.vendedorId === vendedorIdToFilter);
+              break;
+            case 'GESTOR_I':
+              clientes = clientes.filter((c: any) => c.filialId === userScope.filialId);
+              break;
+            case 'GESTOR_II':
+              clientes = clientes.filter((c: any) => c.regionalId === userScope.regionalId);
+              break;
+            case 'GESTOR_III':
+              clientes = clientes.filter((c: any) => c.diretoriaId === userScope.diretoriaId);
+              break;
+            case 'GESTOR_MASTER':
+              // Não filtra, mostra tudo
+              break;
+          }
+          
+          console.log(`MapaCalorVendas - ${userScope.role} - Clientes filtrados: ${clientes.length} de ${clientesAntesFiltro}`);
+        }
 
         // Processar dados por região
         const vendasPorRegiao: Record<string, DadosVendaPorRegiao> = {};
