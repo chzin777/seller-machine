@@ -119,9 +119,9 @@ export async function POST(req: NextRequest) {
   try {
     const { name, email, telefone, cpf, password, role, empresaId, diretoriaId, regionalId, filialId, area } = await req.json();
     
-    if (!name || !email || !password || !role || !empresaId || !diretoriaId) {
+    if (!name || !email || !password || !role) {
       return NextResponse.json({ 
-        error: 'Nome, email, senha, perfil, empresa e diretoria são obrigatórios.' 
+        error: 'Nome, email, senha e perfil são obrigatórios.' 
       }, { status: 400 });
     }
 
@@ -145,54 +145,89 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: 'Email já cadastrado.' }, { status: 409 });
     }
 
-    // Validação de hierarquia - verifica se empresa existe
-    const empresa = await prisma.empresa.findUnique({
-      where: { id: empresaId }
-    });
+    // Derivar hierarquia automaticamente via CPF (se informado) e preencher campos faltantes
+    let dEmpresaId: number | null | undefined = empresaId ?? null;
+    let dDiretoriaId: number | null | undefined = diretoriaId ?? null;
+    let dRegionalId: number | null | undefined = regionalId ?? null;
+    let dFilialId: number | null | undefined = filialId ?? null;
 
+    if (cpf) {
+      const vendedor = await prisma.vendedor.findUnique({
+        where: { cpf },
+        select: { filialId: true }
+      });
+      if (vendedor?.filialId) {
+        const filial = await prisma.filial.findUnique({
+          where: { id: vendedor.filialId },
+          select: { id: true, regionalId: true, empresaId: true }
+        });
+        if (filial) {
+          dFilialId = dFilialId ?? filial.id;
+          dEmpresaId = dEmpresaId ?? filial.empresaId ?? null;
+          if (filial.regionalId) {
+            dRegionalId = dRegionalId ?? filial.regionalId;
+            const regional = await prisma.regionais.findUnique({
+              where: { id: filial.regionalId },
+              select: { diretoriaId: true }
+            });
+            if (regional?.diretoriaId) {
+              dDiretoriaId = dDiretoriaId ?? regional.diretoriaId;
+            }
+          }
+        }
+      }
+    }
+
+    // Se ainda faltar diretoria ou empresa, exigir preenchimento explícito
+    if (!dEmpresaId || !dDiretoriaId) {
+      return NextResponse.json({ 
+        error: 'Empresa e diretoria são obrigatórias (podem ser derivadas via CPF de vendedor ou informadas manualmente).' 
+      }, { status: 400 });
+    }
+
+    // Validar consistência quando houver valores informados manualmente
+    if (empresaId && dEmpresaId && empresaId !== dEmpresaId) {
+      return NextResponse.json({ error: 'Empresa informada não corresponde à empresa derivada pelo CPF.' }, { status: 400 });
+    }
+    if (diretoriaId && dDiretoriaId && diretoriaId !== dDiretoriaId) {
+      return NextResponse.json({ error: 'Diretoria informada não corresponde à diretoria derivada pelo CPF.' }, { status: 400 });
+    }
+    if (regionalId && dRegionalId && regionalId !== dRegionalId) {
+      return NextResponse.json({ error: 'Regional informada não corresponde à regional derivada pelo CPF.' }, { status: 400 });
+    }
+    if (filialId && dFilialId && filialId !== dFilialId) {
+      return NextResponse.json({ error: 'Filial informada não corresponde à filial derivada pelo CPF.' }, { status: 400 });
+    }
+
+    // Validações finais de existência/pertinência com base nos valores derivados
+    const empresa = await prisma.empresa.findUnique({ where: { id: dEmpresaId } });
     if (!empresa) {
       return NextResponse.json({ error: 'Empresa não encontrada.' }, { status: 400 });
     }
 
-    // Validação de hierarquia - verifica se diretoria existe e pertence à empresa
     const diretoria = await prisma.diretorias.findFirst({
-      where: { 
-        id: diretoriaId,
-        empresaId: empresaId
-      }
+      where: { id: dDiretoriaId!, empresaId: dEmpresaId! }
     });
-
     if (!diretoria) {
       return NextResponse.json({ error: 'Diretoria não encontrada ou não pertence à empresa selecionada.' }, { status: 400 });
     }
 
-    // Se regional foi informada, valida se existe e pertence à diretoria
-    if (regionalId) {
+    if (dRegionalId) {
       const regional = await prisma.regionais.findFirst({
-        where: { 
-          id: regionalId,
-          diretoriaId: diretoriaId
-        }
+        where: { id: dRegionalId, diretoriaId: dDiretoriaId! }
       });
-
       if (!regional) {
         return NextResponse.json({ error: 'Regional não encontrada ou não pertence à diretoria selecionada.' }, { status: 400 });
       }
     }
 
-    // Se filial foi informada, valida se existe e pertence à regional
-    if (filialId) {
-      if (!regionalId) {
+    if (dFilialId) {
+      if (!dRegionalId) {
         return NextResponse.json({ error: 'Regional é obrigatória quando filial é informada.' }, { status: 400 });
       }
-
       const filial = await prisma.filial.findFirst({
-        where: { 
-          id: filialId,
-          regionalId: regionalId
-        }
+        where: { id: dFilialId, regionalId: dRegionalId }
       });
-
       if (!filial) {
         return NextResponse.json({ error: 'Filial não encontrada ou não pertence à regional selecionada.' }, { status: 400 });
       }
@@ -202,7 +237,7 @@ export async function POST(req: NextRequest) {
     const hashedPassword = await bcrypt.hash(password, 10);
 
     // Determina o perfil final baseado na hierarquia e solicitação
-    const finalRole = determineUserRole(empresaId, diretoriaId, regionalId, filialId, role);
+    const finalRole = determineUserRole(dEmpresaId!, dDiretoriaId!, dRegionalId || null, dFilialId || null, role);
 
     // Cria usuário
     const user = await prisma.users.create({
@@ -213,10 +248,10 @@ export async function POST(req: NextRequest) {
         cpf: cpf || null,
         password: hashedPassword,
         role: finalRole,
-        empresaId,
-        diretoriaId,
-        regionalId: regionalId || null,
-        filialId: filialId || null,
+        empresaId: dEmpresaId!,
+        diretoriaId: dDiretoriaId!,
+        regionalId: dRegionalId || null,
+        filialId: dFilialId || null,
         area: area || null,
         active: true,
         updatedAt: new Date()
@@ -327,6 +362,39 @@ export async function PATCH(req: NextRequest) {
       updatedAt: new Date()
     };
 
+    // Derivar hierarquia automaticamente via CPF (se informado) e preencher campos faltantes
+    let dEmpresaId: number | null | undefined = empresaId ?? existingUser.empresaId ?? null;
+    let dDiretoriaId: number | null | undefined = diretoriaId ?? existingUser.diretoriaId ?? null;
+    let dRegionalId: number | null | undefined = regionalId ?? existingUser.regionalId ?? null;
+    let dFilialId: number | null | undefined = filialId ?? existingUser.filialId ?? null;
+
+    if (cpf) {
+      const vendedor = await prisma.vendedor.findUnique({
+        where: { cpf },
+        select: { filialId: true }
+      });
+      if (vendedor?.filialId) {
+        const filial = await prisma.filial.findUnique({
+          where: { id: vendedor.filialId },
+          select: { id: true, regionalId: true, empresaId: true }
+        });
+        if (filial) {
+          dFilialId = dFilialId ?? filial.id;
+          dEmpresaId = dEmpresaId ?? filial.empresaId ?? null;
+          if (filial.regionalId) {
+            dRegionalId = dRegionalId ?? filial.regionalId;
+            const regional = await prisma.regionais.findUnique({
+              where: { id: filial.regionalId },
+              select: { diretoriaId: true }
+            });
+            if (regional?.diretoriaId) {
+              dDiretoriaId = dDiretoriaId ?? regional.diretoriaId;
+            }
+          }
+        }
+      }
+    }
+
     // Se informações hierárquicas foram fornecidas, validar e incluir
     if (empresaId !== undefined) {
       if (empresaId) {
@@ -403,6 +471,20 @@ export async function PATCH(req: NextRequest) {
       } else {
         updateData.filialId = null;
       }
+    }
+
+    // Aplicar valores derivados quando faltantes
+    if (updateData.empresaId === undefined) {
+      updateData.empresaId = dEmpresaId ?? null;
+    }
+    if (updateData.diretoriaId === undefined) {
+      updateData.diretoriaId = dDiretoriaId ?? null;
+    }
+    if (updateData.regionalId === undefined) {
+      updateData.regionalId = dRegionalId ?? null;
+    }
+    if (updateData.filialId === undefined) {
+      updateData.filialId = dFilialId ?? null;
     }
 
     // Atualiza usuário

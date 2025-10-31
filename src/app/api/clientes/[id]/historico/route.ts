@@ -1,5 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { requirePermission } from '../../../../../../lib/permissions';
+import { PrismaClient } from '@prisma/client';
+import { deriveScopeFromRequest, applyHierarchicalFilialScope } from '../../../../../../lib/scope';
 
 export async function GET(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   // 🔒 Verificação de Segurança - Adicionado automaticamente
@@ -22,73 +24,35 @@ export async function GET(req: NextRequest, { params }: { params: Promise<{ id: 
   }
 
   try {
-    // Buscar todas as notas fiscais (a API externa não suporta filtro efetivo)
-    const notasEndpoint = `/api/notas-fiscais`;
-    
-    console.log('🔍 Buscando todas as notas fiscais para filtrar localmente');
-    console.log('📡 Endpoint:', notasEndpoint);
-    
-    const notasResponse = await fetch(`${req.nextUrl.origin}/api/proxy?url=${encodeURIComponent(notasEndpoint)}`);
-    
-    if (!notasResponse.ok) {
-      const errorText = await notasResponse.text();
-      return NextResponse.json({
-        error: `Erro ao buscar notas fiscais`,
-        details: {
-          status: notasResponse.status,
-          statusText: notasResponse.statusText,
-          endpoint: notasEndpoint,
-          errorMessage: errorText
-        }
-      }, { status: notasResponse.status });
-    }
-    
-    const notasData = await notasResponse.json();
-    
-    // Debug: verificar o que está sendo retornado
-    console.log('📊 Resposta da API:', {
-      isArray: Array.isArray(notasData),
-      totalItems: Array.isArray(notasData) ? notasData.length : (notasData.data ? notasData.data.length : 'N/A'),
-      hasData: !!notasData.data,
-      firstItemClienteId: Array.isArray(notasData) && notasData.length > 0 ? notasData[0].clienteId : 'N/A'
-    });
-    
-    // Extrair o array de notas da resposta
-    let todasNotas = Array.isArray(notasData) ? notasData : (notasData.data || []);
-    
-    console.log('📋 Total de notas antes do filtro:', todasNotas.length);
-    
-    // Filtrar notas do cliente específico
+    // Buscar notas fiscais via Prisma aplicando escopo hierárquico e cliente
+    const prisma = new PrismaClient();
+    const scope = deriveScopeFromRequest(req);
+
     const clienteIdNum = parseInt(clienteId);
-    let notasCliente = todasNotas.filter((nota: any) => {
-      return nota.clienteId === clienteIdNum || 
-             nota.cliente_id === clienteIdNum || 
-             nota.customer_id === clienteIdNum || 
-             nota.id_cliente === clienteIdNum;
+    let whereClause: any = { clienteId: clienteIdNum };
+    whereClause = applyHierarchicalFilialScope(whereClause, scope, { filialKey: 'filialId' });
+
+    const notas = await prisma.notasFiscalCabecalho.findMany({
+      where: whereClause,
+      select: {
+        id: true,
+        numeroNota: true,
+        clienteId: true,
+        dataEmissao: true,
+        valorTotal: true,
+        filialId: true
+      },
+      orderBy: { dataEmissao: 'desc' }
     });
-    
-    console.log('🎯 Notas encontradas para o cliente', clienteId + ':', notasCliente.length);
-    
-    console.log('✅ Notas fiscais recebidas já filtradas:', {
-      clienteId,
-      totalNotas: notasCliente.length,
-      primeiraNotaId: notasCliente[0]?.id,
-      primeiraNotaClienteId: notasCliente[0]?.clienteId
-    });
-    
-    if (!Array.isArray(notasCliente)) {
-      return NextResponse.json({
-        error: 'Formato de resposta inválido da API',
-        details: {
-          endpoint: notasEndpoint,
-          responseType: typeof notasData,
-          response: notasData
-        }
-      }, { status: 500 });
-    }
-    
-    // Usar as notas fiscais como "pedidos"
-    const pedidos = notasCliente;
+
+    const pedidos = notas.map(n => ({
+      id: n.id,
+      numeroNota: n.numeroNota,
+      clienteId: n.clienteId,
+      dataEmissao: n.dataEmissao,
+      valorTotal: parseFloat(n.valorTotal.toString()),
+      filialId: n.filialId
+    }));
     
     // Se não há pedidos, retornar array vazio
     if (!Array.isArray(pedidos) || pedidos.length === 0) {
@@ -105,13 +69,13 @@ export async function GET(req: NextRequest, { params }: { params: Promise<{ id: 
     
     // Calcular resumo
     const totalPedidos = pedidos.length;
-    const valorTotal = pedidos.reduce((sum, pedido) => sum + parseFloat(pedido.valorTotal || '0'), 0);
+    const valorTotal = pedidos.reduce((sum, pedido) => sum + (typeof pedido.valorTotal === 'number' ? pedido.valorTotal : parseFloat(pedido.valorTotal || '0')), 0);
     const ticketMedio = valorTotal / totalPedidos;
     const ultimaCompra = pedidos.reduce((latest, pedido) => {
       const dataAtual = new Date(pedido.dataEmissao);
-      const dataLatest = latest ? new Date(latest.dataEmissao) : new Date(0);
+      const dataLatest = new Date(latest.dataEmissao);
       return dataAtual > dataLatest ? pedido : latest;
-    }, null);
+    }, pedidos[0]);
     
     // Ordenar pedidos por data (mais recente primeiro)
     const pedidosOrdenados = pedidos.sort((a, b) => 

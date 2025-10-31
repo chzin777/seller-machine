@@ -27,6 +27,7 @@ export function deriveScopeFromHeaders(headers: Headers): UserScope {
     regionalId: parseNum(headers.get('x-user-regional-id')),
     filialId: parseNum(headers.get('x-user-filial-id')),
     userId: parseNum(headers.get('x-user-id')),
+    vendedorId: parseNum(headers.get('x-vendedor-id')),
   };
 }
 
@@ -39,11 +40,15 @@ export function applyBasicScopeToWhere(where: any, scope: UserScope, keys?: {
   regionalKey?: string;
   diretoriaKey?: string;
   userKey?: string;
+  vendedorKey?: string;
 }) {
   const result = { ...(where || {}) };
   switch (scope.role) {
     case 'VENDEDOR': {
-      if (scope.userId && keys?.userKey) {
+      // Preferir escopo por vendedor quando disponível
+      if (scope.vendedorId && keys?.vendedorKey) {
+        (result as any)[keys.vendedorKey] = scope.vendedorId;
+      } else if (scope.userId && keys?.userKey) {
         (result as any)[keys.userKey] = scope.userId;
       } else if (scope.filialId && keys?.filialKey) {
         (result as any)[keys.filialKey] = scope.filialId;
@@ -73,5 +78,52 @@ export function applyBasicScopeToWhere(where: any, scope: UserScope, keys?: {
       // Sem restrição adicional
       break;
   }
+  return result;
+}
+
+// Aplica restrições hierárquicas considerando relações (ex.: filial -> regional -> diretoria)
+// Útil para modelos como notasFiscalCabecalho (tem filialId direto) e notaFiscalItem (precisa aninhar em notaFiscal)
+export function applyHierarchicalFilialScope(where: any, scope: UserScope, options?: {
+  filialKey?: string; // chave direta de filial no modelo (ex.: 'filialId')
+  relationKey?: string; // quando precisar aninhar em uma relação (ex.: 'notaFiscal')
+}) {
+  const result: any = { ...(where || {}) };
+  const filialKey = options?.filialKey || 'filialId';
+  const relationKey = options?.relationKey;
+
+  const setConstraint = (constraint: any) => {
+    if (relationKey) {
+      result[relationKey] = { ...(result[relationKey] || {}), ...constraint };
+    } else {
+      Object.assign(result, constraint);
+    }
+  };
+
+  switch (scope.role) {
+    case 'VENDEDOR':
+    case 'GESTOR_I': {
+      if (scope.filialId) {
+        setConstraint({ [filialKey]: scope.filialId });
+      }
+      break;
+    }
+    case 'GESTOR_II': {
+      if (scope.regionalId) {
+        setConstraint({ filial: { regionalId: scope.regionalId } });
+      }
+      break;
+    }
+    case 'GESTOR_III': {
+      if (scope.diretoriaId) {
+        setConstraint({ filial: { regionais: { diretoriaId: scope.diretoriaId } } });
+      }
+      break;
+    }
+    case 'GESTOR_MASTER':
+    default:
+      // sem restrições adicionais
+      break;
+  }
+
   return result;
 }

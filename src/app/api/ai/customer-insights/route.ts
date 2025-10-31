@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { PrismaClient } from '@prisma/client';
-import { deriveScopeFromRequest, applyBasicScopeToWhere } from '../../../../../lib/scope';
+import { deriveScopeFromRequest, applyHierarchicalFilialScope } from '../../../../../lib/scope';
 import { requirePermission } from '../../../../../lib/permissions';
 
 export async function GET(request: NextRequest) {
@@ -32,8 +32,12 @@ export async function GET(request: NextRequest) {
     const scope = deriveScopeFromRequest(request);
     try {
       let whereClause: any = {};
-      whereClause = applyBasicScopeToWhere(whereClause, scope, { filialKey: 'filialId' });
+      whereClause = applyHierarchicalFilialScope(whereClause, scope, { filialKey: 'filialId' });
       whereClause.clienteId = parseInt(clienteId);
+      // Vendedor só vê seus próprios dados
+      if (scope.role === 'VENDEDOR' && scope.userId) {
+        whereClause.vendedorId = scope.userId;
+      }
 
       const notas = await prisma.notasFiscalCabecalho.findMany({
         where: whereClause,

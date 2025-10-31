@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { PrismaClient } from '@prisma/client';
-import { deriveScopeFromRequest } from '../../../../../lib/scope';
+import { deriveScopeFromRequest, applyHierarchicalFilialScope } from '../../../../../lib/scope';
 
 const prisma = new PrismaClient();
 
@@ -42,6 +42,14 @@ export async function GET(
       );
     }
 
+    // Vendedor só pode acessar a própria carteira
+    if (scope.role === 'VENDEDOR' && scope.userId && scope.userId !== vendedorId) {
+      return NextResponse.json(
+        { error: 'Acesso negado. Vendedor só pode acessar sua própria carteira.' },
+        { status: 403 }
+      );
+    }
+
     // Restringir acesso por escopo básico: vendedor/gestor I só podem ver dados da própria filial
     if ((scope.role === 'VENDEDOR' || scope.role === 'GESTOR_I') && scope.filialId && vendedor.filial?.id && vendedor.filial.id !== scope.filialId) {
       return NextResponse.json(
@@ -57,20 +65,7 @@ export async function GET(
         gte: dataLimite
       }
     };
-
-    if (scope.role === 'VENDEDOR' || scope.role === 'GESTOR_I') {
-      if (scope.filialId) {
-        notasWhere.filialId = scope.filialId;
-      }
-    } else if (scope.role === 'GESTOR_II') {
-      if (scope.regionalId) {
-        notasWhere.filial = { regionalId: scope.regionalId };
-      }
-    } else if (scope.role === 'GESTOR_III') {
-      if (scope.diretoriaId) {
-        notasWhere.filial = { regionais: { diretoriaId: scope.diretoriaId } };
-      }
-    }
+    notasWhere = applyHierarchicalFilialScope(notasWhere, scope, { filialKey: 'filialId' });
     
     // Buscar notas fiscais do vendedor no período dentro do escopo
     const notasFiscais = await prisma.notasFiscalCabecalho.findMany({

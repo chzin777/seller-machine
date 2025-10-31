@@ -10,7 +10,6 @@ const PUBLIC_ROUTES = [
   '/api/auth/password-reset',
   '/api/nova-senha',
   '/api/vendedor-by-cpf',
-  '/api/debug', // 🔧 Rotas de debug (remover em produção)
   '/_next',
   '/favicon.ico',
   '/manifest.json',
@@ -23,6 +22,7 @@ const ROLE_RESTRICTED_ROUTES = {
   '/api/hierarchy': ['GESTOR_MASTER'],
   '/api/users': ['GESTOR_MASTER'],
   '/usuarios': ['GESTOR_MASTER'],
+  '/cadastro-usuario': ['GESTOR_MASTER'],
   '/api/seed': ['GESTOR_MASTER'], // Perigoso - apenas master
   
   // 🟠 GESTOR_III e acima (Diretoria)
@@ -145,6 +145,16 @@ export async function middleware(request: NextRequest) {
   requestHeaders.set('x-user-diretoria-id', String(payload.diretoriaId || ''));
   requestHeaders.set('x-user-regional-id', String(payload.regionalId || ''));
   requestHeaders.set('x-user-filial-id', String(payload.filialId || ''));
+  // Propagar identificadores específicos do vendedor (quando houver)
+  if (payload.cpf) {
+    requestHeaders.set('x-user-cpf', String(payload.cpf));
+  }
+  if (payload.vendedorId !== undefined && payload.vendedorId !== null) {
+    requestHeaders.set('x-vendedor-id', String(payload.vendedorId));
+  }
+  if (payload.vendedorNome) {
+    requestHeaders.set('x-vendedor-nome', String(payload.vendedorNome));
+  }
 
   return NextResponse.next({
     request: {

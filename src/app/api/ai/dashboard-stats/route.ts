@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { PrismaClient } from '@prisma/client'
-import { deriveScopeFromRequest, applyBasicScopeToWhere } from '../../../../../lib/scope';
+import { deriveScopeFromRequest, applyHierarchicalFilialScope } from '../../../../../lib/scope';
 import { requirePermission } from '../../../../../lib/permissions';
 
 interface Pedido {
@@ -42,7 +42,11 @@ export async function GET(request: NextRequest) {
     // Priorizar dados reais via Prisma com escopo hierárquico
     try {
       let whereClause: any = {}
-      whereClause = applyBasicScopeToWhere(whereClause, scope, { filialKey: 'filialId' })
+      whereClause = applyHierarchicalFilialScope(whereClause, scope, { filialKey: 'filialId' })
+      // Vendedor só vê seus próprios dados
+      if (scope.role === 'VENDEDOR' && scope.userId) {
+        (whereClause as any).vendedorId = scope.userId
+      }
 
       const notas = await prisma.notasFiscalCabecalho.findMany({
         where: whereClause,

@@ -66,6 +66,7 @@ export default function UserManagement() {
     name: '',
     email: '',
     telefone: '',
+    cpf: '',
     password: '',
     role: '',
     empresaId: '',
@@ -74,6 +75,11 @@ export default function UserManagement() {
     filialId: '',
     area: ''
   });
+
+  // Flags de derivação por CPF e controle de bloqueio
+  const [derived, setDerived] = useState({ empresa: false, diretoria: false, regional: false, filial: false });
+  const [lockDerivedHierarchy, setLockDerivedHierarchy] = useState(true);
+  const [cpfHints, setCpfHints] = useState<{ empresa?: string; diretoria?: string; regional?: string; filial?: string; vendedorNome?: string } | null>(null);
 
   // Filtered data based on selections
   const filteredDiretorias = diretorias.filter(d => d.empresaId === parseInt(formData.empresaId));
@@ -156,9 +162,14 @@ export default function UserManagement() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
-    if (!formData.name || !formData.email || !formData.password || !formData.role || 
-        !formData.empresaId || !formData.diretoriaId || !formData.area) {
+    if (!formData.name || !formData.email || !formData.password || !formData.role || !formData.area) {
       showToast('Preencha todos os campos obrigatórios', 'error');
+      return;
+    }
+
+    // Empresa e Diretoria seguem obrigatórias (derivadas via CPF ou informadas)
+    if (!formData.empresaId || !formData.diretoriaId) {
+      showToast('Empresa e Diretoria são obrigatórias (preencha manualmente ou informe CPF válido).', 'error');
       return;
     }
 
@@ -171,10 +182,11 @@ export default function UserManagement() {
         },
         body: JSON.stringify({
           ...formData,
+          cpf: formData.cpf,
           empresaId: parseInt(formData.empresaId),
           diretoriaId: parseInt(formData.diretoriaId),
-          regionalId: formData.regionalId ? parseInt(formData.regionalId) : null,
-          filialId: formData.filialId ? parseInt(formData.filialId) : null,
+          regionalId: formData.regionalId && formData.regionalId !== 'none' ? parseInt(formData.regionalId) : null,
+          filialId: formData.filialId && formData.filialId !== 'none' ? parseInt(formData.filialId) : null,
         }),
       });
 
@@ -184,6 +196,7 @@ export default function UserManagement() {
           name: '',
           email: '',
           telefone: '',
+          cpf: '',
           password: '',
           role: '',
           empresaId: '',
@@ -192,6 +205,8 @@ export default function UserManagement() {
           filialId: '',
           area: ''
         });
+        setDerived({ empresa: false, diretoria: false, regional: false, filial: false });
+        setCpfHints(null);
         loadUsers();
       } else {
         const error = await response.json();
@@ -288,6 +303,66 @@ export default function UserManagement() {
                   </div>
 
                   <div className="space-y-2">
+                    <Label htmlFor="cpf">CPF (para vincular a vendedor)</Label>
+                    <Input
+                      id="cpf"
+                      value={formData.cpf}
+                      onChange={(e) => setFormData({ ...formData, cpf: e.target.value })}
+                      onBlur={async () => {
+                        const raw = (formData.cpf || '').replace(/[^\d]/g, '');
+                        if (!raw || raw.length < 11) {
+                          setDerived({ empresa: false, diretoria: false, regional: false, filial: false });
+                          setCpfHints(null);
+                          return;
+                        }
+                        try {
+                          const resp = await fetch(`/api/vendedor-by-cpf?cpf=${encodeURIComponent(raw)}`);
+                          if (!resp.ok) {
+                            setDerived({ empresa: false, diretoria: false, regional: false, filial: false });
+                            setCpfHints(null);
+                            return;
+                          }
+                          const data = await resp.json();
+                          if (data.found) {
+                            const empresaId = data.empresaId ? String(data.empresaId) : '';
+                            const diretoriaId = data.diretoriaId ? String(data.diretoriaId) : '';
+                            const regionalId = data.regionalId ? String(data.regionalId) : '';
+                            const filialId = data.filialId ? String(data.filialId) : '';
+
+                            setFormData((prev) => ({
+                              ...prev,
+                              empresaId: empresaId || prev.empresaId,
+                              diretoriaId: diretoriaId || prev.diretoriaId,
+                              regionalId: regionalId || prev.regionalId,
+                              filialId: filialId || prev.filialId,
+                            }));
+                            setDerived({
+                              empresa: !!empresaId,
+                              diretoria: !!diretoriaId,
+                              regional: !!regionalId,
+                              filial: !!filialId,
+                            });
+                            setCpfHints({
+                              vendedorNome: data.vendedorNome,
+                              empresa: data.empresaId ? empresas.find(e => e.id === data.empresaId)?.razaoSocial : undefined,
+                              diretoria: data.diretoriaNome,
+                              regional: data.regionalNome,
+                              filial: data.filialNome,
+                            });
+                            showToast('Hierarquia preenchida pelo CPF do vendedor.', 'success');
+                          } else {
+                            setDerived({ empresa: false, diretoria: false, regional: false, filial: false });
+                            setCpfHints(null);
+                          }
+                        } catch (err) {
+                          console.error('Erro ao buscar vendedor por CPF:', err);
+                        }
+                      }}
+                      placeholder="000.000.000-00"
+                    />
+                  </div>
+
+                  <div className="space-y-2">
                     <Label htmlFor="password">Senha *</Label>
                     <div className="relative">
                       <Input
@@ -343,6 +418,20 @@ export default function UserManagement() {
                 </div>
 
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+                  {cpfHints && (
+                    <div className="col-span-full text-sm text-gray-700 bg-gray-50 border rounded p-3">
+                      {cpfHints.vendedorNome && <div>👤 Vendedor: {cpfHints.vendedorNome}</div>}
+                      {cpfHints.empresa && <div>🏛️ Empresa: {cpfHints.empresa}</div>}
+                      {cpfHints.diretoria && <div>📋 Diretoria: {cpfHints.diretoria}</div>}
+                      {cpfHints.regional && <div>🌍 Regional: {cpfHints.regional}</div>}
+                      {cpfHints.filial && <div>🏪 Filial: {cpfHints.filial}</div>}
+                      <div className="mt-2">
+                        <Button type="button" variant="outline" size="sm" onClick={() => setLockDerivedHierarchy(v => !v)}>
+                          {lockDerivedHierarchy ? 'Permitir edição manual' : 'Travar hierarquia derivada'}
+                        </Button>
+                      </div>
+                    </div>
+                  )}
                   <div className="space-y-2">
                     <Label htmlFor="empresa">Empresa *</Label>
                     <Select 
@@ -354,6 +443,7 @@ export default function UserManagement() {
                         regionalId: '',
                         filialId: ''
                       })}
+                      disabled={lockDerivedHierarchy && derived.empresa}
                     >
                       <SelectTrigger>
                         <SelectValue placeholder="Selecione a empresa" />
@@ -378,7 +468,7 @@ export default function UserManagement() {
                         regionalId: '',
                         filialId: ''
                       })}
-                      disabled={!formData.empresaId}
+                      disabled={!formData.empresaId || (lockDerivedHierarchy && derived.diretoria)}
                     >
                       <SelectTrigger>
                         <SelectValue placeholder="Selecione a diretoria" />
@@ -402,13 +492,13 @@ export default function UserManagement() {
                         regionalId: value,
                         filialId: ''
                       })}
-                      disabled={!formData.diretoriaId}
+                      disabled={!formData.diretoriaId || (lockDerivedHierarchy && derived.regional)}
                     >
                       <SelectTrigger>
                         <SelectValue placeholder="Selecione a regional" />
                       </SelectTrigger>
                       <SelectContent>
-                        <SelectItem value="">Nenhuma</SelectItem>
+                        <SelectItem value="none">Nenhuma</SelectItem>
                         {filteredRegionais.map((regional) => (
                           <SelectItem key={regional.id} value={regional.id.toString()}>
                             {regional.nome}
@@ -423,13 +513,13 @@ export default function UserManagement() {
                     <Select 
                       value={formData.filialId} 
                       onValueChange={(value) => setFormData({ ...formData, filialId: value })}
-                      disabled={!formData.regionalId}
+                      disabled={!formData.regionalId || (lockDerivedHierarchy && derived.filial)}
                     >
                       <SelectTrigger>
                         <SelectValue placeholder="Selecione a filial" />
                       </SelectTrigger>
                       <SelectContent>
-                        <SelectItem value="">Nenhuma</SelectItem>
+                        <SelectItem value="none">Nenhuma</SelectItem>
                         {filteredFiliais.map((filial) => (
                           <SelectItem key={filial.id} value={filial.id.toString()}>
                             {filial.nome}

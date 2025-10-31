@@ -275,26 +275,26 @@ export default function CadastroUsuarioPage() {
     }
 
     if (!role) {
-      setMsg("Perfil de acesso é obrigatório");
+      setMsg("Cargo é obrigatório");
       setMsgType('error');
       return false;
     }
 
-    // Validações específicas por role
-    if ((role === 'VENDEDOR' || role === 'GESTOR_I') && !formData.filialId) {
-      setMsg("Filial é obrigatória para Vendedores e Gestores I");
+    // Validações obrigatórias adicionais
+    if (!formData.regionalId) {
+      setMsg("Regional é obrigatória");
       setMsgType('error');
       return false;
     }
 
-    if (role === 'GESTOR_II' && !formData.regionalId) {
-      setMsg("Regional é obrigatória para Gestores II");
+    if (!formData.filialId) {
+      setMsg("Filial é obrigatória");
       setMsgType('error');
       return false;
     }
 
-    // Validação de telefone (se preenchido)
-    if (formData.telefone && !/^\(\d{2}\)\s\d{4,5}-\d{4}$/.test(formData.telefone)) {
+    // Validação de telefone obrigatório
+    if (!/^\(\d{2}\)\s\d{4,5}-\d{4}$/.test(formData.telefone)) {
       setMsg("Telefone deve estar no formato (11) 99999-9999");
       setMsgType('error');
       return false;
@@ -320,12 +320,12 @@ export default function CadastroUsuarioPage() {
         body: JSON.stringify({
           name: formData.nome,
           email: formData.email,
-          telefone: formData.telefone || null,
+          telefone: formData.telefone,
           password: formData.senha,
           empresaId: parseInt(formData.empresaId),
           diretoriaId: parseInt(formData.diretoriaId),
-          regionalId: formData.regionalId ? parseInt(formData.regionalId) : null,
-          filialId: formData.filialId ? parseInt(formData.filialId) : null,
+          regionalId: parseInt(formData.regionalId),
+          filialId: parseInt(formData.filialId),
           area: formData.area,
           role: formData.role
         }),
@@ -409,7 +409,7 @@ export default function CadastroUsuarioPage() {
 
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Telefone
+                    Telefone *
                   </label>
                   <input
                     type="tel"
@@ -425,6 +425,7 @@ export default function CadastroUsuarioPage() {
                     className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors"
                     placeholder="(11) 99999-9999"
                     maxLength={15}
+                    required
                   />
                 </div>
 
@@ -536,20 +537,16 @@ export default function CadastroUsuarioPage() {
 
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Regional {(formData.role === 'GESTOR_II' || formData.role === 'VENDEDOR' || formData.role === 'GESTOR_I') && '*'}
+                    Regional *
                   </label>
                   <select
                     value={formData.regionalId}
                     onChange={(e) => handleRegionalChange(e.target.value)}
                     className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors"
                     disabled={!formData.diretoriaId || loadingRegionais}
-                    required={formData.role === 'GESTOR_II' || formData.role === 'VENDEDOR' || formData.role === 'GESTOR_I'}
+                    required
                   >
-                    <option value="">
-                      {formData.role === 'GESTOR_II' || formData.role === 'VENDEDOR' || formData.role === 'GESTOR_I' 
-                        ? 'Selecione uma regional' 
-                        : 'Selecione uma regional (opcional)'}
-                    </option>
+                    <option value="">Selecione uma regional</option>
                     {regionais.map((regional) => (
                       <option key={regional.id} value={regional.id}>
                         {regional.nome}
@@ -561,20 +558,16 @@ export default function CadastroUsuarioPage() {
 
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Filial {(formData.role === 'VENDEDOR' || formData.role === 'GESTOR_I') && '*'}
+                    Filial *
                   </label>
                   <select
                     value={formData.filialId}
                     onChange={(e) => handleInputChange('filialId', e.target.value)}
                     className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors"
                     disabled={!formData.regionalId || loadingFiliais}
-                    required={formData.role === 'VENDEDOR' || formData.role === 'GESTOR_I'}
+                    required
                   >
-                    <option value="">
-                      {formData.role === 'VENDEDOR' || formData.role === 'GESTOR_I' 
-                        ? 'Selecione uma filial' 
-                        : 'Selecione uma filial (opcional)'}
-                    </option>
+                    <option value="">Selecione uma filial</option>
                     {filiais.map((filial) => (
                       <option key={filial.id} value={filial.id}>
                         {filial.nome} - {filial.cidade}/{filial.estado}
@@ -588,10 +581,10 @@ export default function CadastroUsuarioPage() {
 
             {/* Perfil de Acesso */}
             <div className="pb-6">
-              <h2 className="text-xl font-semibold mb-4" style={{ color: '#003153' }}>Perfil de Acesso</h2>
+              <h2 className="text-xl font-semibold mb-4" style={{ color: '#003153' }}>Cargo</h2>
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Nível de Acesso *
+                  Cargo *
                 </label>
                 <select
                   value={formData.role}
